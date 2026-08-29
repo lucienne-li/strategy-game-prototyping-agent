@@ -69,3 +69,24 @@
 - **Status:** Accepted / CONFIRMED
 - **Decision:** 范围、架构、任务、决策、评测和数据规则均在版本控制文档中维护。
 - **Why:** 保证变更可追踪，避免对话中的临时假设被误当成正式需求。
+
+## D-010 — M1 使用显式循环和 Fake Model
+
+- **Status:** Accepted for M1
+- **Decision:** 使用一个无工作流框架的 `for` 循环驱动 Model → Tool → Observation；先接确定性 Fake Model。
+- **Why:** 可在没有 API、网络波动和提示词变量的情况下验证 Runtime 契约、终止行为和真实工具执行。
+- **Limit:** Fake Model 只证明 Runtime 闭环成立，不代表模型具备理解或生成游戏的能力。
+
+## D-011 — MVP 工具范围与执行策略
+
+- **Status:** Accepted for MVP
+- **Decision:** 当前只开放 `read_file`、`write_file`、`run_command`。命令采用 `command + args[]`，`shell: false`，并要求命令白名单；文件路径限制在单次运行工作目录内。
+- **Why:** 三种工具足以验证最小 Coding Agent 闭环；避免 shell 字符串带来的注入和不必要工具面。
+- **Limit:** 路径守卫和白名单不是 OS 级沙箱。接入不可信模型或开放包管理器前必须增加独立进程/容器隔离。
+
+## D-012 — M1 循环上限与成功标准
+
+- **Status:** Accepted for MVP
+- **Decision:** 默认最大 Agent Loop 为 6 次；MVP 成功必须由自动测试或精确运行结果证明，模型的文字声明不作为证据。
+- **Why:** 最小验收通常需要写入、执行、可能一次修复和最终响应，6 次提供小幅余量且能快速终止失控循环。
+- **Revisit when:** M2/M3 的运行记录显示正常任务经常需要更多迭代；届时同时加入 wall-clock 和调用成本预算，而不是只放大轮次。

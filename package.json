@@ -1,0 +1,16 @@
+{
+  "name": "strategy-game-prototyping-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "test:e2e": "npm run build && node --test dist/tests/agent.e2e.test.js",
+    "demo": "npm run build && node dist/src/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "7.0.2"
+  }
+}

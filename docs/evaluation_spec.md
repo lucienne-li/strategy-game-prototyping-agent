@@ -95,15 +95,13 @@
 
 ## 6. Benchmark Task Design
 
-### MVP 建议任务结构（TBD，待 M0 冻结）
+### MVP Benchmark Tasks v0
 
-建议先有 3—5 个任务，覆盖而不追求数量：
-
-1. D1 单机制：抽牌/弃牌或能量消费；
-2. D2 子系统：玩家—敌人回合与伤害结算；
-3. D2/D3 状态效果：护甲、中毒及回合触发；
-4. D3 系统交互：卡牌、敌人意图、胜负和奖励；
-5. D4 小型完整原型：多场战斗与轻量卡组构筑。
+| ID | 任务需求 | 自动验收条件 |
+|---|---|---|
+| B1 单文件创建 | 在空工作目录创建一个 TypeScript 文件，运行后输出 `hello agent`。 | 目标文件存在；`node <file>` exit code 为 0；trim 后 stdout 精确等于 `hello agent`；stderr 为空。 |
+| B2 修改已有代码 | 给定保持既有导出接口的 TypeScript 加法函数，其中实现错误地执行减法；修改实现使给定用例通过。 | 原文件被修改且导出名不变；预置测试 exit code 为 0；至少覆盖正数与负数用例。 |
+| B3 最小卡牌逻辑 | 实现无 UI 的确定性回合逻辑：玩家 20 HP、敌人 18 HP、每回合 3 能量；Strike 消耗 1 并造成 6 伤害，Defend 消耗 1 并增加 5 护甲，结束回合后敌人造成 4 伤害且护甲优先吸收。 | TypeScript 构建通过；预置测试验证能量消耗、伤害、护甲吸收、非法能量操作不改变状态及胜负状态；全部测试 exit code 为 0。 |
 
 每个任务包含：
 
@@ -116,6 +114,17 @@
 - 成功阈值；
 - 最大预算；
 - 禁止条件。
+
+B1 已在 M1 通过 Fake Model 端到端执行。B2、B3 在 M2 转为不可被 Agent 修改的外部验收 fixture；当前只冻结需求和可判定条件。
+
+### M1 Runtime Contract
+
+- Tool 范围：`read_file`、`write_file`、`run_command`；
+- 默认最大 Agent Loop：6；
+- 默认单命令 timeout：10 秒，参数允许范围 1—30 秒；
+- 文件与单次命令输出上限：各 1 MB；
+- MVP 成功标准：任务的自动验收命令通过，模型自述不计为成功；
+- M1 E2E 额外检查：真实写入文件、真实启动 Node 子进程、Observation 包含 stdout/stderr/exit code、最终状态为 success。
 
 ## 7. Difficulty Model
 
@@ -169,13 +178,13 @@ D1—D4 仅作为面向人的分桶标签，底层难度由以下可观察特征
 - 测试数据不得进入训练数据；
 - 报告失败类型、成本和限制。
 
-### TBD / M0 BLOCKERS
+### TBD / M2+ ITEMS
 
-- 首批 Benchmark 具体内容；
-- MVP 成功阈值；
-- 最大修复轮次、时间和成本；
 - Playability 首版采用状态测试、GUI replay 还是二者结合；
 - 多次采样次数和统计报告方式。
+- 真实模型运行的 token/cost 上限；
+- M3 自动修复轮数是否与总 Agent Loop 分开统计；
+- 浏览器 GUI 功能验收工具与隔离方式。
 
 ### Confirmed MVP runtime commands
 

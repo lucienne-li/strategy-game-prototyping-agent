@@ -10,9 +10,9 @@
 
 ## 当前状态
 
-项目处于 **Phase 0：需求、架构与评测定义**。
+项目处于 **M1：最小 Agent Runtime 已实现并验证**。
 
-- 尚未实现 Agent；
+- 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 尚未选择模型供应商或模型；
 - 尚未开始 GitHub 数据收集或 SFT；
@@ -30,8 +30,18 @@
 
 ## 安装与运行
 
-Agent 尚未实现。仓库包含一个已验证的技术栈选择实验，运行方式见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
+需要 Node.js 22+。当前 Runtime 只连接 Fake Model，不调用真实 LLM。
+
+```bash
+npm install
+npm test
+npm run demo -- ./agent-workspace "创建一个 TypeScript 文件并验证输出 hello agent"
+```
+
+Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。
+
+技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
 ## 下一步
 
-继续执行 **M0：范围与评测契约冻结**，定义 MVP 输入/输出契约、首批 Benchmark Tasks 和成功条件。详见 [TASKS.md](TASKS.md)。
+下一步执行 **M2：接入一个真实模型的最小垂直切片**；在此之前需要确定模型接口和密钥配置方式。详见 [TASKS.md](TASKS.md)。

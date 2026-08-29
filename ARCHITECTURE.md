@@ -13,13 +13,12 @@
 
 ```mermaid
 flowchart TB
-    U["User Request"] --> M["Single Model Session"]
-    M -->|"GameSpec / Plan / Tool Call"| V["Action Validation"]
-    V --> X["Sandbox Executor"]
+    U["User Request"] --> M["Model Adapter"]
+    M -->|"Tool Call or Final"| V["Schema Validation"]
+    V --> X["Restricted Executor"]
     X --> O["Observation"]
-    O --> E["Deterministic Evaluation"]
-    E -->|"未通过且预算未耗尽"| M
-    E -->|"通过或终止"| P["Artifact Packaging"]
+    O -->|"Next iteration"| M
+    M -->|"Final or loop limit"| R["Run Result"]
 ```
 
 ### 有意合并的抽象
@@ -29,6 +28,17 @@ flowchart TB
 - Observation 只是 Executor/Evaluator 的结构化结果，不建立独立“观察 Agent”。
 - 第一版不要求复杂工作流框架；一个显式循环和状态对象足够。
 
+M1 当前实现只验证 Tool Calling 闭环。GameSpec、确定性游戏评测、自动修复策略和产物打包属于后续 Milestone，尚未伪装成已实现模块。
+
+### M1 实际执行顺序
+
+1. `runAgent` 将用户请求、迭代号和事件历史交给 `AgentModel.next`；
+2. Model 返回一个未知形态的 Tool Call 或 Final Response；
+3. Runtime 校验工具名、必需字段、额外字段和超时范围；
+4. `ToolExecutor` 在指定工作目录执行工具，并返回结构化 Observation；
+5. Observation 加入事件历史，下一轮 Model 据此继续或结束；
+6. 6 次迭代内没有 Final Response 时，以 `max_iterations` 停止。
+
 ## 3. MVP 模块契约
 
 | 模块 | 负责什么 | 输入 | 输出 | 上游 | 下游 | LLM / Runtime |
@@ -37,11 +47,25 @@ flowchart TB
 | Single Model Session | 理解需求、形成 GameSpec/计划、选择下一 Action、根据反馈修复 | 请求、当前状态、Observation | 结构化 GameSpec/计划更新或 Tool Call | Interface / Evaluator | Validator | LLM |
 | Run State | 保存本次运行的规格、动作历史、预算和状态；不跨项目长期记忆 | 事件与结果 | 当前 `RunState` | 全流程 | 全流程 | Runtime |
 | Action Validator | 校验 Tool Call 的 schema、路径、命令策略和参数 | Tool Call | 已验证 Action 或明确拒绝 | Model | Executor / Model | Runtime |
-| Sandbox Executor | 在隔离工作区执行文件操作和允许的命令 | Validated Action | stdout、stderr、exit code、文件变化、超时 | Validator | Observation/Evaluator | Runtime |
+| Restricted Executor | 在受限工作目录执行文件操作和允许的命令 | Validated Action | stdout、stderr、exit code、文件变化、超时 | Validator | Observation/Evaluator | Runtime |
 | Observation Builder | 将执行结果压缩为稳定、可诊断的结构 | 原始执行结果 | `Observation` | Executor | Model/Evaluator | Runtime |
 | Deterministic Evaluator | 执行构建、启动和功能检查，汇总通过/失败 | 项目目录、GameSpec、测试定义 | `EvaluationReport` | Executor | Model / Termination | Runtime |
 | Termination Policy | 根据成功条件、最大轮次、时间和成本预算决定继续或结束 | RunState、EvaluationReport | continue / success / stopped | Evaluator | Model / Packager | Runtime |
 | Artifact Packager | 汇总源码、依赖、运行说明、功能、测试和限制 | 最终工作区与报告 | 交付目录/清单 | Termination | 用户 | Runtime |
+
+### M1 已实现模块
+
+| 模块 | 文件 | 当前责任 |
+|---|---|---|
+| Agent Loop | `src/agent/agent-loop.ts` | 驱动 Model、记录事件、捕获模型错误、执行 6 轮上限 |
+| Model Contract | `src/agent/types.ts` | 定义 Model、Tool、Observation 和 Run Result 的边界类型 |
+| Fake Model | `src/agent/fake-model.ts` | 确定性地产生写文件、执行和最终判断三步行为 |
+| Tool Validation | `src/runtime/validation.ts` | 在执行前校验三种 Tool Call 的结构和参数 |
+| Workspace Guard | `src/runtime/workspace.ts` | 拒绝绝对路径、`..` 越界和符号链接逃逸 |
+| Tool Executor | `src/runtime/tool-executor.ts` | 文件读写；无 shell 命令执行；捕获输出、退出码、超时和错误 |
+| CLI | `src/cli.ts` | 提供可人工运行的 Fake Model 演示入口 |
+
+`run_command` 当前仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。工作目录限制和命令白名单降低误操作风险，但不是容器或操作系统级安全沙箱；接入不可信真实模型前必须补充进程隔离。
 
 ### LLM 与 Runtime 的责任线
 
@@ -127,7 +151,7 @@ flowchart TB
 
 ## 8. Repository 结构建议
 
-当前只创建文档。代码阶段建议逐步演化为：
+当前 M1 的实际结构为：
 
 ```text
 .
@@ -140,17 +164,15 @@ flowchart TB
 │   ├── product_spec.md
 │   ├── evaluation_spec.md
 │   └── data_spec.md
-├── src/                  # M1 才创建
-│   ├── agent/            # 单模型循环和运行状态
-│   ├── runtime/          # validation、executor、observation
-│   └── evaluation/       # build/functional checks
-├── tests/                # 与 src 同步创建
-│   ├── unit/
-│   ├── integration/
-│   └── fixtures/
-├── benchmarks/           # M0/M1 创建，小型冻结任务
+├── src/
+│   ├── agent/            # 循环、模型契约和 Fake Model
+│   ├── runtime/          # validation、workspace guard、executor
+│   ├── cli.ts            # 本地演示入口
+│   └── index.ts          # 公共导出
+├── tests/                # Node test runner 单元和端到端测试
+├── benchmarks/           # M2 将任务转成可执行 fixture 时创建
 ├── examples/             # 通过验证的示例输入/输出
 └── data_pipeline/        # M4 数据试点时才创建
 ```
 
-不提前创建空的代码包、服务层、数据库层或插件系统。
+不提前创建空的服务层、数据库层或插件系统。`src/evaluation/` 等到 M3 有真实确定性评测逻辑时再创建。

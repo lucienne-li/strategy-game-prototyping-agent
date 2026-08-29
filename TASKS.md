@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 0 / M0：范围与评测契约冻结**
+**Phase 1 / M1：Runtime Skeleton with Stub Model（完成，等待分支评审）**
 
 ## Milestone Roadmap
 
@@ -30,10 +30,10 @@
 **Acceptance Criteria**
 
 - [x] 技术栈被明确选择并记录理由；
-- 定义 3—5 个代表性 Benchmark Tasks；
-- 每个任务具有可自动验证的验收条件；
-- 定义 MVP Tool schema、预算和终止规则；
-- 区分自动、人工和暂缓指标。
+- [x] 定义 3 个代表性 Benchmark Tasks；
+- [x] 每个任务具有可自动验证的验收条件；
+- [x] 定义 MVP Tool schema、预算和终止规则；
+- [x] 区分自动、人工和暂缓指标。
 
 **Tests**
 
@@ -61,10 +61,10 @@
 
 **Acceptance Criteria**
 
-- 可在隔离工作区创建/修改允许文件；
-- 非法路径和命令被拒绝；
-- stdout、stderr、exit code、timeout 被结构化返回；
-- 达到最大轮次/时间预算时可靠停止。
+- [x] 可在受限工作目录创建/修改允许文件；
+- [x] 非法路径和命令被拒绝；
+- [x] stdout、stderr、exit code、timeout 被结构化返回；
+- [x] 达到最大轮次时可靠停止。
 
 **Tests**
 
@@ -256,9 +256,15 @@
 - [x] 使用同一最小卡牌任务比较 Browser + TypeScript 与 Godot 4 + GDScript。
 - [x] 验证两个实验的逻辑测试和运行 smoke test。
 - [x] 为 MVP 选择 Browser + TypeScript，并记录取舍与复议条件。
+- [x] 冻结 M0 的 3 个最小 Benchmark Task 和自动验收条件。
+- [x] 实现 `read_file`、`write_file`、`run_command` schema 与执行器。
+- [x] 实现 6 轮上限的单模型 Agent Loop 和基本错误处理。
+- [x] 用 Fake Model 真实创建并执行 `hello-agent.ts`。
+- [x] 通过 8 个 Runtime 单元/端到端测试。
 
 ## 下一步任务
 
-- [ ] 起草 3—5 个 Benchmark Task。
-- [ ] 为每个任务定义可自动验证的状态与行为。
-- [ ] 定义 Tool schema、终止预算与交付清单 v0。
+- [ ] 评审并合并 `feature/mvp-agent-runtime`。
+- [ ] 为 M2 确定一个真实 Model Adapter 和配置边界。
+- [ ] 将 Benchmark 1 转成固定 fixture，并记录一次真实模型运行轨迹。
+- [ ] 在接入不可信模型前确定进程级隔离方案；当前工作区守卫不等于安全沙箱。
