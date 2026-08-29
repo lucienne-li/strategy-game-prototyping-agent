@@ -172,8 +172,16 @@ D1—D4 仅作为面向人的分桶标签，底层难度由以下可观察特征
 ### TBD / M0 BLOCKERS
 
 - 首批 Benchmark 具体内容；
-- 技术栈对应的 build、launch、test 命令；
 - MVP 成功阈值；
 - 最大修复轮次、时间和成本；
 - Playability 首版采用状态测试、GUI replay 还是二者结合；
 - 多次采样次数和统计报告方式。
+
+### Confirmed MVP runtime commands
+
+- Build: `npm run build`
+- Logic tests: `npm test`
+- Combined check: `npm run check`
+- Runtime smoke test: serve the built project over HTTP and verify the entry page and compiled module load successfully.
+
+The first reference task and runtime comparison are recorded in `experiments/runtime-selection/`.

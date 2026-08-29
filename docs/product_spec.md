@@ -63,11 +63,11 @@
 | 2D | WORKING ASSUMPTION | 降低素材与场景复杂度 |
 | 回合制 | WORKING ASSUMPTION | 便于确定性测试 |
 | 卡牌策略 / 轻量 Deckbuilder | WORKING ASSUMPTION | 数据和规则结构较适合 |
-| 固定技术栈 | WORKING ASSUMPTION | 支持可复现构建与评测 |
+| 固定技术栈 | CONFIRMED FOR MVP | Browser + TypeScript；支持可复现构建与评测 |
 | 不要求商业级美术 | WORKING ASSUMPTION | 聚焦玩法代码 |
 | GameSpec 具体 schema | TBD | 用 benchmark 驱动定义 |
 | CLI、Web 或 IDE 界面 | TBD | MVP 可先 CLI，但未确认 |
-| Godot 或浏览器技术栈 | TBD / M0 BLOCKER | 影响 Runtime 与测试 |
+| Browser + TypeScript | CONFIRMED FOR MVP | 经同任务最小实验选择；Godot 保留为后续扩展 |
 
 ## 5. Out of Scope for MVP
 

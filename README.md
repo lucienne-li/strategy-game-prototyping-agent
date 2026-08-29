@@ -13,7 +13,7 @@
 项目处于 **Phase 0：需求、架构与评测定义**。
 
 - 尚未实现 Agent；
-- 尚未选择最终游戏技术栈；
+- MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 尚未选择模型供应商或模型；
 - 尚未开始 GitHub 数据收集或 SFT；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
@@ -30,8 +30,8 @@
 
 ## 安装与运行
 
-当前没有可安装或可运行的软件。待技术栈在 Milestone M0 中确认后补充准确命令。在代码和测试真正运行前，不会在此声称项目可用。
+Agent 尚未实现。仓库包含一个已验证的技术栈选择实验，运行方式见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
 ## 下一步
 
-执行 **M0：范围与评测契约冻结**，优先确定会阻碍首个垂直切片的事项：目标技术栈、MVP 输入/输出契约、首批 Benchmark Tasks 和成功条件。详见 [TASKS.md](TASKS.md)。
+继续执行 **M0：范围与评测契约冻结**，定义 MVP 输入/输出契约、首批 Benchmark Tasks 和成功条件。详见 [TASKS.md](TASKS.md)。

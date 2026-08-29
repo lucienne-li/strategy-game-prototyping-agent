@@ -34,10 +34,13 @@
 
 ## D-005 — 技术栈选择
 
-- **Status:** Open / TBD / BLOCKER for M1
-- **Candidates:** Godot 4 + GDScript；浏览器 TypeScript 技术栈；其他需给出证据。
-- **Decision method:** 使用同一最小卡牌任务比较自动化程度、项目文本可编辑性、headless 测试、数据可得性、依赖复杂度和交付体验。
-- **Why not decide now:** 当前产品范围仍是工作假设，尚未做最小验证。
+- **Status:** Accepted for MVP
+- **Decision:** 第一版使用 Browser + TypeScript。Godot 4 + GDScript 保留为后续专业引擎扩展。
+- **Evidence:** 两个实现均通过同一最小卡牌任务的逻辑测试和运行 smoke test。Browser 方案所需引擎概念和环境准备更少，TypeScript 编译、Node 测试和 HTTP 验证更直接，普通文本代码也更便于 Agent 修改。
+- **Trade-off:** Godot 的项目结构更接近专业游戏开发，项目级数据语义可能更一致；Browser 数据候选更多，但需更强的游戏项目筛选和去噪。
+- **Why:** MVP 首要目标是验证 Agent 的生成—执行—评测—修复闭环，暂不让场景绑定、资源导入和引擎安装成为主要故障来源。
+- **Revisit when:** Browser MVP 闭环稳定后需要验证专业引擎迁移，或离线数据试点表明 Browser 游戏数据质量不足。
+- **Experiment:** `experiments/runtime-selection/RESULTS.md`
 
 ## D-006 — 首版游戏类型与表现形式
 

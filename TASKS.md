@@ -29,7 +29,7 @@
 
 **Acceptance Criteria**
 
-- 技术栈被明确选择并记录理由；
+- [x] 技术栈被明确选择并记录理由；
 - 定义 3—5 个代表性 Benchmark Tasks；
 - 每个任务具有可自动验证的验收条件；
 - 定义 MVP Tool schema、预算和终止规则；
@@ -253,10 +253,12 @@
 - [x] 定义在线/离线系统边界。
 - [x] 设计最小 MVP 架构和模块责任线。
 - [x] 建立核心项目文档。
+- [x] 使用同一最小卡牌任务比较 Browser + TypeScript 与 Godot 4 + GDScript。
+- [x] 验证两个实验的逻辑测试和运行 smoke test。
+- [x] 为 MVP 选择 Browser + TypeScript，并记录取舍与复议条件。
 
 ## 下一步任务
 
-- [ ] 选择首版技术栈（建议作为决策实验，不凭偏好直接确认）。
 - [ ] 起草 3—5 个 Benchmark Task。
 - [ ] 为每个任务定义可自动验证的状态与行为。
 - [ ] 定义 Tool schema、终止预算与交付清单 v0。

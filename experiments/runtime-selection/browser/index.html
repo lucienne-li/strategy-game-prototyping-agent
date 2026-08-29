@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card Runtime Experiment</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem; }
+      button { margin-right: 0.5rem; padding: 0.6rem 1rem; }
+      #status { white-space: pre-line; padding: 1rem; background: #f4f4f4; border-radius: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Minimal Card Battle</h1>
+    <div id="status"></div>
+    <p>
+      <button id="strike">Strike (1 energy)</button>
+      <button id="defend">Defend (1 energy)</button>
+      <button id="end-turn">End Turn</button>
+    </p>
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>
