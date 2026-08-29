@@ -1,0 +1,43 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+.cache/
+
+# Python tooling (future offline pipeline)
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node / TypeScript tooling (runtime experiment candidate)
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Godot generated files (runtime experiment candidate)
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Generated experiment artifacts
+artifacts/
+reports/
