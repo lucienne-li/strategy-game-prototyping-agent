@@ -10,11 +10,12 @@
 
 ## 当前状态
 
-项目处于 **M1：最小 Agent Runtime 已实现并验证**。
+项目处于 **M2：真实 Model Adapter 垂直切片**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
+- 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
-- 尚未选择模型供应商或模型；
+- 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始 GitHub 数据收集或 SFT；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
 
@@ -30,7 +31,7 @@
 
 ## 安装与运行
 
-需要 Node.js 22+。当前 Runtime 只连接 Fake Model，不调用真实 LLM。
+需要 Node.js 24+。Node 子进程使用 permission model 限制任务工作区外的文件访问。
 
 ```bash
 npm install
@@ -40,8 +41,18 @@ npm run demo -- ./agent-workspace "创建一个 TypeScript 文件并验证输出
 
 Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。
 
+真实模型 B1 运行：
+
+```bash
+export OPENAI_API_KEY="..."
+export OPENAI_MODEL="gpt-5.6" # 可选
+npm run b1:real
+```
+
+Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 commit。每次 B1 运行创建独立临时工作目录，结束后由仓库外部的验收逻辑检查目标文件和真实执行结果。
+
 技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
 ## 下一步
 
-下一步执行 **M2：接入一个真实模型的最小垂直切片**；在此之前需要确定模型接口和密钥配置方式。详见 [TASKS.md](TASKS.md)。
+下一步是在配置 API Key 后完成一次真实 B1 运行并记录结果；通过后再评审 M2 分支。详见 [TASKS.md](TASKS.md)。

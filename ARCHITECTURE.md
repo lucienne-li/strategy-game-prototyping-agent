@@ -28,7 +28,7 @@ flowchart TB
 - Observation 只是 Executor/Evaluator 的结构化结果，不建立独立“观察 Agent”。
 - 第一版不要求复杂工作流框架；一个显式循环和状态对象足够。
 
-M1 当前实现只验证 Tool Calling 闭环。GameSpec、确定性游戏评测、自动修复策略和产物打包属于后续 Milestone，尚未伪装成已实现模块。
+M1 验证了 Fake Model Tool Calling 闭环。M2 在不修改 `AgentModel` 和 Agent Loop 的前提下加入一个 OpenAI Responses API Adapter，以及独立于 Agent 工作目录的 B1 验收器。GameSpec、游戏评测、自动修复策略和产物打包仍属于后续 Milestone。
 
 ### M1 实际执行顺序
 
@@ -65,7 +65,28 @@ M1 当前实现只验证 Tool Calling 闭环。GameSpec、确定性游戏评测�
 | Tool Executor | `src/runtime/tool-executor.ts` | 文件读写；无 shell 命令执行；捕获输出、退出码、超时和错误 |
 | CLI | `src/cli.ts` | 提供可人工运行的 Fake Model 演示入口 |
 
-`run_command` 当前仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。工作目录限制和命令白名单降低误操作风险，但不是容器或操作系统级安全沙箱；接入不可信真实模型前必须补充进程隔离。
+### M2 新增模块
+
+| 模块 | 文件 | 当前责任 |
+|---|---|---|
+| OpenAI Adapter | `src/model/openai-responses-model.ts` | 将现有 ModelContext 转换成 Responses API 请求，将函数调用还原为既有 Tool Call |
+| B1 Fixture | `benchmarks/b1/task.json` | 固定任务文本、目标文件和自动验收条件；不复制到 Agent 工作区 |
+| B1 Evaluator | `src/evaluation/b1-evaluator.ts` | Agent 结束后独立检查文件并重新执行，模型无法修改验收代码 |
+| Real-model CLI | `src/b1-real-model-cli.ts` | 创建临时工作区、运行 Agent、调用外部验收器并输出运行记录 |
+
+`run_command` 仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。Node 子进程自动启用 permission model，只允许读写本次任务工作目录，并拒绝模型传入权限放宽参数。它提供 M2 所需的最小进程隔离，但仍不是容器或生产级恶意代码沙箱。
+
+### B1 外部验收边界
+
+```mermaid
+flowchart TB
+    R["B1 Request"] --> A["Agent + Temporary Workspace"]
+    A --> F["Generated hello-agent.ts"]
+    F --> E["External B1 Evaluator"]
+    E --> P["Pass / Fail Evidence"]
+```
+
+验收器代码和 `benchmarks/b1/task.json` 位于 Repository，Agent 工具只能访问独立临时目录。即使模型声称成功，最终 B1 结果仍只取决于外部检查的文件类型、stdout、stderr 和 exit code。
 
 ### LLM 与 Runtime 的责任线
 
@@ -151,7 +172,7 @@ flowchart TB
 
 ## 8. Repository 结构建议
 
-当前 M1 的实际结构为：
+当前 M2 的实际结构为：
 
 ```text
 .
@@ -166,13 +187,16 @@ flowchart TB
 │   └── data_spec.md
 ├── src/
 │   ├── agent/            # 循环、模型契约和 Fake Model
+│   ├── model/            # OpenAI Responses API Adapter
 │   ├── runtime/          # validation、workspace guard、executor
+│   ├── evaluation/       # 当前只有 B1 外部验收器
+│   ├── b1-real-model-cli.ts
 │   ├── cli.ts            # 本地演示入口
 │   └── index.ts          # 公共导出
 ├── tests/                # Node test runner 单元和端到端测试
-├── benchmarks/           # M2 将任务转成可执行 fixture 时创建
+├── benchmarks/b1/        # Agent 不可修改的 B1 任务契约
 ├── examples/             # 通过验证的示例输入/输出
 └── data_pipeline/        # M4 数据试点时才创建
 ```
 
-不提前创建空的服务层、数据库层或插件系统。`src/evaluation/` 等到 M3 有真实确定性评测逻辑时再创建。
+不提前创建空的服务层、数据库层或插件系统。M3 再把当前单任务验收扩展成通用 Evaluation/Repair Loop。

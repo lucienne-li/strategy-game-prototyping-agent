@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -61,4 +61,31 @@ test("run_command reports stderr, non-zero exits, and timeout", async (context) 
   assert.equal(timedOut.result.ok, false);
   assert.equal(timedOut.result.exitCode, null);
   assert.match(timedOut.result.error ?? "", /timed out/);
+});
+
+test("node subprocess cannot read outside the workspace or relax permissions", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-command-isolation-"));
+  const outsideDirectory = await mkdtemp(path.join(os.tmpdir(), "agent-command-outside-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  context.after(() => rm(outsideDirectory, { recursive: true, force: true }));
+  const outsideFile = path.join(outsideDirectory, "secret.txt");
+  await writeFile(outsideFile, "not available to the task", "utf8");
+  const executor = new ToolExecutor({ workspace, allowedCommands: ["node"] });
+
+  const escaped = await executor.execute({
+    tool: "run_command",
+    command: "node",
+    args: ["-e", "require('node:fs').readFileSync(process.argv[1], 'utf8')", outsideFile]
+  });
+  assert.equal(escaped.result.ok, false);
+  assert.notEqual(escaped.result.exitCode, 0);
+  assert.match(escaped.result.stderr ?? "", /ERR_ACCESS_DENIED/);
+
+  const override = await executor.execute({
+    tool: "run_command",
+    command: "node",
+    args: [`--allow-fs-read=${outsideDirectory}`, "-e", "console.log('bad')"]
+  });
+  assert.equal(override.result.ok, false);
+  assert.match(override.result.error ?? "", /permission override is not allowed/);
 });

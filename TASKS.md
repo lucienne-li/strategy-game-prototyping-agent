@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 1 / M1：Runtime Skeleton with Stub Model（完成，等待分支评审）**
+**Phase 2 / M2：First Real-Model Vertical Slice（实现完成；真实 API 运行被凭据阻塞）**
 
 ## Milestone Roadmap
 
@@ -91,10 +91,12 @@
 
 **Acceptance Criteria**
 
-- 单个请求可以产生 GameSpec、计划和文件操作；
-- 项目能够通过真实构建/启动检查；
-- 全部模型调用、工具调用和结果可追踪；
-- 失败时返回明确诊断，不伪装成功。
+- [x] 保留既有 `AgentModel` 和 Agent Loop，新增单一真实 Model Adapter；
+- [x] API Key 只从环境变量读取；
+- [x] B1 使用 Agent 无法修改的独立 fixture 和 evaluator；
+- [x] 每次任务使用临时工作区，并限制命令、超时和 Node 文件权限；
+- [x] 模型调用、工具顺序和外部验收结果可由 CLI 输出；
+- [!] 使用真实 API 完成一次 B1 并记录：当前环境缺少 `OPENAI_API_KEY`。
 
 **Tests**
 
@@ -261,10 +263,15 @@
 - [x] 实现 6 轮上限的单模型 Agent Loop 和基本错误处理。
 - [x] 用 Fake Model 真实创建并执行 `hello-agent.ts`。
 - [x] 通过 8 个 Runtime 单元/端到端测试。
+- [x] 复审 M1 并 fast-forward 合并到 `main`。
+- [x] 新增 OpenAI Responses API Adapter，不修改现有 Agent Loop。
+- [x] 将 B1 固定为 Agent 工作区外的独立 fixture 和 evaluator。
+- [x] 使用 Node permission model 阻止子进程越界读写并拒绝权限覆盖参数。
+- [x] 通过 14 个确定性与 Adapter contract 测试。
 
 ## 下一步任务
 
-- [ ] 评审并合并 `feature/mvp-agent-runtime`。
-- [ ] 为 M2 确定一个真实 Model Adapter 和配置边界。
-- [ ] 将 Benchmark 1 转成固定 fixture，并记录一次真实模型运行轨迹。
-- [ ] 在接入不可信模型前确定进程级隔离方案；当前工作区守卫不等于安全沙箱。
+- [!] 在运行环境安全配置 `OPENAI_API_KEY`，执行 `npm run b1:real`。
+- [ ] 将真实模型名称、iterations、Tool Call 顺序、验收结果和错误更新到 `docs/m2_b1_run.md`。
+- [ ] 真实 B1 通过后评审并合并 `feature/real-model-adapter`。
+- [ ] M3 前决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。

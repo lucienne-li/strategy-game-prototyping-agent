@@ -90,3 +90,19 @@
 - **Decision:** 默认最大 Agent Loop 为 6 次；MVP 成功必须由自动测试或精确运行结果证明，模型的文字声明不作为证据。
 - **Why:** 最小验收通常需要写入、执行、可能一次修复和最终响应，6 次提供小幅余量且能快速终止失控循环。
 - **Revisit when:** M2/M3 的运行记录显示正常任务经常需要更多迭代；届时同时加入 wall-clock 和调用成本预算，而不是只放大轮次。
+
+## D-013 — M2 使用 OpenAI Responses API Adapter
+
+- **Status:** Accepted for M2
+- **Decision:** 新增一个直接调用 Responses API 的 Adapter，继续实现既有 `AgentModel.next(context)`；不引入 SDK 或工作流框架。Key 只读取 `OPENAI_API_KEY`，模型由 `OPENAI_MODEL` 配置，当前默认 `gpt-5.6`。
+- **Why:** Responses API 原生提供函数工具调用；使用 Node 内置 `fetch` 可避免仅为一次 HTTP 调用增加 Dependency，并让 Provider 边界保持在一个文件内。
+- **Protocol:** 每轮最多一个 Tool Call；最终文本必须以 `SUCCESS:` 或 `FAILURE:` 开头。模型状态不是最终验收证据。
+- **Reference:** [OpenAI function calling guide](https://platform.openai.com/docs/guides/function-calling)
+- **Revisit when:** 需要流式输出、重试策略、供应商切换或 API SDK 提供了已测的维护收益。
+
+## D-014 — B1 验收与最小进程隔离
+
+- **Status:** Accepted for M2
+- **Decision:** 每次 B1 创建独立临时工作目录；Agent 只能访问该目录。Repository 中的 fixture/evaluator 在 Agent 完成后独立运行。Node 命令使用白名单、timeout、`shell: false` 和 permission model 工作区授权。
+- **Why:** 防止 Agent 通过修改测试宣告成功，并对生成程序本身的工作区外文件读取提供实际限制。
+- **Limit:** Node permission model 不是针对恶意代码的完整安全边界，也不替代容器、资源配额或网络隔离。

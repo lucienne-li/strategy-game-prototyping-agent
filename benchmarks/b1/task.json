@@ -1,0 +1,13 @@
+{
+  "id": "B1",
+  "name": "single-file-create",
+  "request": "Create hello-agent.ts so that running it prints exactly hello agent. Run it with node and verify the output before finishing.",
+  "targetFile": "hello-agent.ts",
+  "acceptance": {
+    "regularFile": true,
+    "command": ["node", "hello-agent.ts"],
+    "stdoutTrimmed": "hello agent",
+    "stderr": "",
+    "exitCode": 0
+  }
+}

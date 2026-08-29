@@ -8,6 +8,7 @@ import { resolveWorkspaceFile } from "./workspace.js";
 const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_FILE_BYTES = 1_000_000;
 const MAX_OUTPUT_BYTES = 1_000_000;
+const FORBIDDEN_NODE_PERMISSION_ARGS = ["--permission", "--no-permission", "--allow-fs-read", "--allow-fs-write", "--allow-child-process", "--allow-worker"];
 
 export type ToolExecutorOptions = {
   workspace: string;
@@ -77,8 +78,10 @@ export class ToolExecutor {
       throw new Error(`command is not allowed: ${command}`);
     }
 
+    const commandArgs = command === "node" ? this.restrictNodeProcess(args) : args;
+
     return new Promise((resolve) => {
-      const child = spawn(command, args, {
+      const child = spawn(command, commandArgs, {
         cwd: this.workspace,
         shell: false,
         env: { PATH: process.env.PATH ?? "" }
@@ -137,5 +140,16 @@ export class ToolExecutor {
         });
       }, timeoutMs);
     });
+  }
+
+  private restrictNodeProcess(args: string[]): string[] {
+    const forbidden = args.find((arg) => FORBIDDEN_NODE_PERMISSION_ARGS.some((flag) => arg === flag || arg.startsWith(`${flag}=`)));
+    if (forbidden) throw new Error(`node permission override is not allowed: ${forbidden}`);
+    return [
+      "--permission",
+      `--allow-fs-read=${this.workspace}`,
+      `--allow-fs-write=${this.workspace}`,
+      ...args
+    ];
   }
 }

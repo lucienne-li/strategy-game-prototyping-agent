@@ -99,7 +99,7 @@
 
 | ID | 任务需求 | 自动验收条件 |
 |---|---|---|
-| B1 单文件创建 | 在空工作目录创建一个 TypeScript 文件，运行后输出 `hello agent`。 | 目标文件存在；`node <file>` exit code 为 0；trim 后 stdout 精确等于 `hello agent`；stderr 为空。 |
+| B1 单文件创建 | 在空工作目录创建 `hello-agent.ts`，运行后输出 `hello agent`。 | 目标必须是普通文件；`node hello-agent.ts` exit code 为 0；trim 后 stdout 精确等于 `hello agent`；stderr 为空。 |
 | B2 修改已有代码 | 给定保持既有导出接口的 TypeScript 加法函数，其中实现错误地执行减法；修改实现使给定用例通过。 | 原文件被修改且导出名不变；预置测试 exit code 为 0；至少覆盖正数与负数用例。 |
 | B3 最小卡牌逻辑 | 实现无 UI 的确定性回合逻辑：玩家 20 HP、敌人 18 HP、每回合 3 能量；Strike 消耗 1 并造成 6 伤害，Defend 消耗 1 并增加 5 护甲，结束回合后敌人造成 4 伤害且护甲优先吸收。 | TypeScript 构建通过；预置测试验证能量消耗、伤害、护甲吸收、非法能量操作不改变状态及胜负状态；全部测试 exit code 为 0。 |
 
@@ -115,7 +115,7 @@
 - 最大预算；
 - 禁止条件。
 
-B1 已在 M1 通过 Fake Model 端到端执行。B2、B3 在 M2 转为不可被 Agent 修改的外部验收 fixture；当前只冻结需求和可判定条件。
+B1 已在 M1 通过 Fake Model 端到端执行，并在 M2 转为 Agent 临时工作目录之外的固定 fixture 和 evaluator。B2、B3 当前只冻结需求和可判定条件，后续实现时同样不得让 Agent 修改验收代码。
 
 ### M1 Runtime Contract
 
@@ -125,6 +125,14 @@ B1 已在 M1 通过 Fake Model 端到端执行。B2、B3 在 M2 转为不可被 
 - 文件与单次命令输出上限：各 1 MB；
 - MVP 成功标准：任务的自动验收命令通过，模型自述不计为成功；
 - M1 E2E 额外检查：真实写入文件、真实启动 Node 子进程、Observation 包含 stdout/stderr/exit code、最终状态为 success。
+
+### M2 B1 External Evaluation
+
+- Fixture：`benchmarks/b1/task.json`；
+- Agent 每次运行使用独立临时工作目录，Repository 不在工具可访问范围；
+- Agent 结束后，外部 evaluator 独立检查文件类型并重新运行目标文件；
+- Node 子进程只能读写任务工作目录，不能通过 Tool Call 放宽 permission flags；
+- 最终 B1 结果来自 evaluator，不采用模型的 `SUCCESS` 文本。
 
 ## 7. Difficulty Model
 
