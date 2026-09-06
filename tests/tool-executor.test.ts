@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -88,4 +88,26 @@ test("node subprocess cannot read outside the workspace or relax permissions", a
   });
   assert.equal(override.result.ok, false);
   assert.match(override.result.error ?? "", /permission override is not allowed/);
+});
+
+test("node permissions use the canonical workspace when the supplied path is a symlink", async (context) => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "agent-command-canonical-"));
+  context.after(() => rm(parent, { recursive: true, force: true }));
+  const realWorkspace = path.join(parent, "real-workspace");
+  const workspaceAlias = path.join(parent, "workspace-alias");
+  await mkdir(realWorkspace);
+  await symlink(realWorkspace, workspaceAlias, "dir");
+  await writeFile(path.join(realWorkspace, "value.ts"), "export const value = 42;\n", "utf8");
+
+  const executor = new ToolExecutor({ workspace: workspaceAlias, allowedCommands: ["node"] });
+  const result = await executor.execute({
+    tool: "run_command",
+    command: "node",
+    args: ["--input-type=module", "-e", "const m = await import('./value.ts'); console.log(m.value);"]
+  });
+
+  assert.equal(result.result.ok, true);
+  assert.equal(result.result.stdout?.trim(), "42");
+  assert.equal(result.result.stderr, "");
+  assert.equal(result.result.exitCode, 0);
 });

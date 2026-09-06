@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -59,4 +59,34 @@ test("B3 evaluator rejects a missing artifact and accepts the required state tra
   assert.equal(evaluation.stdout.trim(), "B3 evaluator passed");
   assert.equal(evaluation.stderr, "");
   assert.equal(evaluation.exitCode, 0);
+});
+
+test("B2 and B3 evaluators can import artifacts through a canonicalized workspace alias", async (context) => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "agent-evaluator-canonical-"));
+  context.after(() => rm(parent, { recursive: true, force: true }));
+  const realWorkspace = path.join(parent, "real-workspace");
+  const workspaceAlias = path.join(parent, "workspace-alias");
+  await mkdir(realWorkspace);
+  await symlink(realWorkspace, workspaceAlias, "dir");
+  const executor = new ToolExecutor({ workspace: workspaceAlias });
+
+  await executor.execute({
+    tool: "write_file",
+    path: "math.ts",
+    content: "export function add(a: number, b: number): number { return a + b; }\n"
+  });
+  await executor.execute({
+    tool: "write_file",
+    path: "card-game.ts",
+    content: [
+      "export function createInitialState() { return { playerHp: 20, playerEnergy: 3, enemyHp: 20 }; }",
+      "export function strike(state: ReturnType<typeof createInitialState>) {",
+      "  return { ...state, playerEnergy: state.playerEnergy - 1, enemyHp: state.enemyHp - 6 };",
+      "}",
+      ""
+    ].join("\n")
+  });
+
+  assert.equal((await evaluateB2(workspaceAlias)).passed, true);
+  assert.equal((await evaluateB3(workspaceAlias)).passed, true);
 });

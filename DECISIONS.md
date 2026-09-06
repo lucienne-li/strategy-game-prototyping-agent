@@ -106,6 +106,7 @@
 - **Decision:** 每次 B1 创建独立临时工作目录；Agent 只能访问该目录。Repository 中的 fixture/evaluator 在 Agent 完成后独立运行。Node 命令使用白名单、timeout、`shell: false` 和 permission model 工作区授权。
 - **Why:** 防止 Agent 通过修改测试宣告成功，并对生成程序本身的工作区外文件读取提供实际限制。
 - **Limit:** Node permission model 不是针对恶意代码的完整安全边界，也不替代容器、资源配额或网络隔离。
+- **Implementation note:** Permission allowlist 必须使用临时工作目录的 canonical real path。macOS 可能把 `/var/...` 解析为 `/private/var/...`；若直接授权未规范化路径，合法 benchmark 文件会触发 `ERR_ACCESS_DENIED`。
 
 ## D-015 — M3 使用任务专用外部 Evaluator
 

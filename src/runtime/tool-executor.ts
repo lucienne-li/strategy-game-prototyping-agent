@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import type { ToolCall, ToolResult } from "../agent/types.js";
@@ -20,7 +21,9 @@ export class ToolExecutor {
   private readonly allowedCommands: Set<string>;
 
   constructor(options: ToolExecutorOptions) {
-    this.workspace = options.workspace;
+    // Node checks permission paths against their canonical filesystem form.
+    // This matters on macOS, where /var/... temporary paths resolve to /private/var/....
+    this.workspace = realpathSync(options.workspace);
     this.allowedCommands = new Set(options.allowedCommands ?? ["node"]);
   }
 

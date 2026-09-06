@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 3 / M3：Code Modification and Game Logic Vertical Slice（实现完成；等待本地真实模型运行）**
+**Phase 3 / M3：Code Modification and Game Logic Vertical Slice（权限修复完成；等待本地重新验收）**
 
 ## Milestone Roadmap
 
@@ -128,7 +128,7 @@
 - [x] B3 从空临时工作区创建 `card-game.ts`；
 - [x] B3 evaluator 验证初始状态和 Strike 后状态；
 - [x] 两个入口复用现有 Model、Loop、三种 Tool、权限和 6 次循环上限；
-- [ ] 使用真实模型分别执行 B2/B3 并保存结果。
+- [~] 使用真实模型分别执行 B2/B3 并保存结果：首次 Agent 均成功，但 evaluator 因临时目录 canonical path 权限不匹配而失败；修复后等待重跑。
 
 **Tests**
 
@@ -279,11 +279,13 @@
 - [x] 创建 `feature/game-vertical-slice`。
 - [x] 实现 B2 seed、真实模型入口和独立隐藏用例 evaluator。
 - [x] 实现 B3 真实模型入口和独立状态转换 evaluator。
-- [x] 通过 19 个测试，包括 B2/B3 contract、Adapter 和 evaluator 测试。
+- [x] 通过 21 个测试，包括 B2/B3 contract、Adapter、evaluator 和 canonical workspace 权限测试。
+- [x] 定位 B2/B3 首次真实验收失败为 evaluator Node 权限路径问题，而非模型任务失败。
+- [x] 将 Executor 工作目录规范化为 canonical real path，并增加路径别名回归测试。
 
 ## 下一步任务
 
-- [ ] 本地配置 `OPENAI_API_KEY` 后执行 `npm run b2:real`。
-- [ ] 执行 `npm run b3:real`，保留模型、iterations、Tool Calls 与 evaluator 输出。
+- [ ] 在修复后的分支重新执行 `npm run b2:real`。
+- [ ] 重新执行 `npm run b3:real`，保留模型、iterations、Tool Calls 与 evaluator 输出。
 - [ ] 根据真实失败轨迹决定是否需要 evaluator-feedback 修复轮，而不是提前增加 Planner 或 Reflection Agent。
 - [ ] M3 后续决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。
