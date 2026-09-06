@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 3 / M3：Code Modification and Game Logic Vertical Slice（权限修复完成；等待本地重新验收）**
+**Phase 4 / M4：Playable Browser Card Prototype（实现与确定性验收完成；等待真实模型运行）**
 
 ## Milestone Roadmap
 
@@ -128,7 +128,7 @@
 - [x] B3 从空临时工作区创建 `card-game.ts`；
 - [x] B3 evaluator 验证初始状态和 Strike 后状态；
 - [x] 两个入口复用现有 Model、Loop、三种 Tool、权限和 6 次循环上限；
-- [~] 使用真实模型分别执行 B2/B3 并保存结果：首次 Agent 均成功，但 evaluator 因临时目录 canonical path 权限不匹配而失败；修复后等待重跑。
+- [x] 使用真实模型分别执行 B2/B3 并保存结果；权限修复后两个 external evaluator 均通过。
 
 **Tests**
 
@@ -141,9 +141,46 @@
 
 - M2。
 
-完整的 evaluator-feedback 自动修复循环、一次成功率与修复提升统计暂未实现；这些内容等 B2/B3 真实运行暴露具体失败后再作为 M3 后续任务评估。
+完整的 evaluator-feedback 自动修复循环、一次成功率与修复提升统计暂未实现。B2/B3 已在现有循环内通过，没有证据支持此时增加新修复架构。
 
-### M4 — Offline Data Pilot
+### M4 — Playable Browser Card Prototype
+
+**Objective**
+
+复用现有真实 Model Adapter、Agent Loop 和三种 Tool，从空工作区生成第一个可构建、可启动、可点击的浏览器卡牌项目，并由 Agent 不可修改的 evaluator 验收。
+
+**Modules / Files**
+
+- `benchmarks/b4/`
+- `src/evaluation/b4-evaluator.ts`
+- `src/b4-real-model-cli.ts`
+- B4 evaluator 和 Adapter contract tests
+
+**Acceptance Criteria**
+
+- [x] Agent 任务只使用现有 `read_file`、`write_file`、`run_command` 和 6 次循环上限；
+- [x] 目标项目包含入口页、TypeScript 源码、build/serve 脚本和 build 产物；
+- [x] 独立 evaluator 验证文件、构建一致性、初始状态和 Strike 状态转换；
+- [x] evaluator 触发按钮 click listener 并验证 DOM 数值更新；
+- [x] evaluator 以当前工作区只读权限启动生成的服务器并验证 HTTP 入口与模块；
+- [x] 确定性 Adapter → Runtime → evaluator 集成测试通过；
+- [ ] 使用真实模型执行 B4 并记录结果。
+
+**Tests**
+
+- 缺少项目文件必须失败；
+- 伪造或过期 build 产物必须失败；
+- 逻辑正确但生成服务器无法启动必须失败；
+- reference project 的逻辑、UI 和 HTTP launch 必须通过；
+- 全量 M1—M3 回归测试继续通过。
+
+**Dependencies**
+
+- M3。
+
+M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair loop 或新的 Agent 层；这些能力只有在当前验证暴露具体缺口后再评估。
+
+### M5 — Offline Data Pilot
 
 **Objective**
 
@@ -171,9 +208,9 @@
 
 **Dependencies**
 
-- M0 数据政策；M3 的部分执行评测能力可复用。
+- M0 数据政策；M4 的项目级执行评测能力可复用。
 
-### M5 — Inverse Instruction and Difficulty Pilot
+### M6 — Inverse Instruction and Difficulty Pilot
 
 **Objective**
 
@@ -201,9 +238,9 @@
 
 **Dependencies**
 
-- M4。
+- M5。
 
-### M6 — Dataset Scale-up and SFT
+### M7 — Dataset Scale-up and SFT
 
 **Objective**
 
@@ -230,9 +267,9 @@
 
 **Dependencies**
 
-- M5 证明数据方法有效；训练资源。
+- M6 证明数据方法有效；训练资源。
 
-### M7 — Ablations and Final Evaluation
+### M8 — Ablations and Final Evaluation
 
 **Objective**
 
@@ -252,7 +289,7 @@
 
 **Dependencies**
 
-- M6。
+- M7。
 
 ## 已完成
 
@@ -286,10 +323,13 @@
 - [x] 使用真实模型重新执行 B2：Agent `success`，Tool Calls 为 `read_file` → `write_file` → `run_command`，外部 evaluator 通过。
 - [x] 使用真实模型重新执行 B3：Agent `success`，Tool Calls 为 `write_file` → `run_command`，外部 evaluator 通过。
 - [x] 完成 M3，证明现有 Agent Loop 可以完成修改任务和最小卡牌逻辑任务。
+- [x] 新增 B4 完整浏览器项目契约、真实模型运行入口和独立 evaluator。
+- [x] B4 evaluator 验证 build、确定性卡牌逻辑、DOM 点击更新和生成服务器 HTTP 启动。
+- [x] 保持既有 Agent 架构与三种 Tool，通过 28 个全量测试。
 
 ## 下一步任务
 
-- [ ] M4：生成可构建、可启动并具备 Strike 交互的最小浏览器卡牌项目。
-- [ ] 为 M4 增加确定性逻辑测试和独立 external evaluator。
-- [ ] 保持现有 Agent Runtime，不根据已通过的 B2/B3 提前增加 repair loop、Planner 或 Reflection Agent。
-- [ ] M3 后续决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。
+- [ ] 在本地执行 `npm run b4:real`，记录模型、iterations、Tool Calls、workspace 和 external evaluator 输出。
+- [ ] 若 B4 通过，人工打开保留的 workspace，确认 Strike 的基础可玩体验并记录非自动化观察。
+- [ ] 根据真实 B4 轨迹决定是否需要调整任务预算；不要提前加入 repair loop、Planner 或 Reflection Agent。
+- [ ] M4 后续决定是否需要真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

@@ -1,0 +1,59 @@
+import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import test from "node:test";
+import { evaluateB4 } from "../src/evaluation/b4-evaluator.js";
+import { writeReferenceProject } from "./fixtures/b4-reference.js";
+
+test("B4 evaluator rejects a missing project", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-missing-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+
+  const evaluation = await evaluateB4(workspace);
+  assert.equal(evaluation.passed, false);
+  assert.equal(evaluation.filesValid, false);
+});
+
+test("B4 evaluator verifies build output, card logic, UI interaction, and HTTP launch", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-evaluator-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  await writeReferenceProject(workspace);
+
+  const evaluation = await evaluateB4(workspace);
+  assert.equal(evaluation.passed, true);
+  assert.equal(evaluation.filesValid, true);
+  assert.equal(evaluation.buildArtifactMatches, true);
+  assert.equal(evaluation.logicPassed, true);
+  assert.equal(evaluation.uiPassed, true);
+  assert.equal(evaluation.launchPassed, true);
+  assert.equal(evaluation.stdout.trim(), "M4 evaluator passed");
+  assert.equal(evaluation.stderr, "");
+  assert.equal(evaluation.exitCode, 0);
+});
+
+test("B4 evaluator rejects a stale or fabricated build artifact", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-stale-build-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  await writeReferenceProject(workspace);
+  await writeFile(path.join(workspace, "dist/game.js"), "export const stale = true;\n", "utf8");
+
+  const evaluation = await evaluateB4(workspace);
+  assert.equal(evaluation.passed, false);
+  assert.equal(evaluation.filesValid, true);
+  assert.equal(evaluation.buildArtifactMatches, false);
+});
+
+test("B4 evaluator rejects a project whose generated server cannot launch", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-launch-failure-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  await writeReferenceProject(workspace);
+  await writeFile(path.join(workspace, "project.mjs"), "throw new Error('server broken');\n", "utf8");
+
+  const evaluation = await evaluateB4(workspace);
+  assert.equal(evaluation.passed, false);
+  assert.equal(evaluation.logicPassed, true);
+  assert.equal(evaluation.uiPassed, true);
+  assert.equal(evaluation.launchPassed, false);
+  assert.match(evaluation.error ?? "", /server broken/);
+});

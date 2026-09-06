@@ -141,6 +141,16 @@ B1 已在 M1 通过 Fake Model 端到端执行，并在 M2 转为 Agent 临时�
 - 两个 evaluator 都留在 Repository，Node permission model 阻止 Agent 子进程读取 Repository；
 - 当前只评估最终产物，不把外部 evaluator 失败自动反馈给模型；是否增加 repair loop 由真实 B2/B3 运行决定。
 
+### M4 B4 Playable Browser Project Evaluation
+
+- Fixture：`benchmarks/b4/task.json`，Agent 从空临时工作区开始；
+- 必需产物：`index.html`、`src/game.ts`、`project.mjs`、build 生成的 `dist/game.js`；
+- Artifact/Build：所有目标必须是普通文件，且当前无依赖构建契约要求 `dist/game.js` 与 `src/game.ts` 一致；
+- Logic：独立导入构建模块，验证初始状态及一次 Strike 后的精确状态；
+- UI：使用 evaluator 控制的最小 DOM double 调用 `mountGame`，触发真实 click listener 并验证页面值由 20/3/20 更新为 20/2/14；
+- Launch：以只读任务目录权限真正启动生成的 `node project.mjs serve`，通过 HTTP 读取入口页和模块；
+- Isolation：evaluator 和 fixture 留在 Repository，不复制进 Agent 工作区；不把 evaluator 结果反馈给当前 Agent Loop。
+
 ## 7. Difficulty Model
 
 D1—D4 仅作为面向人的分桶标签，底层难度由以下可观察特征记录：
@@ -195,7 +205,7 @@ D1—D4 仅作为面向人的分桶标签，底层难度由以下可观察特征
 
 ### TBD / M2+ ITEMS
 
-- Playability 首版采用状态测试、GUI replay 还是二者结合；
+- 真实浏览器 GUI replay、截图或像素级视觉检查是否在后续加入；M4 仅确认 DOM 行为与 HTTP 启动；
 - 多次采样次数和统计报告方式。
 - 真实模型运行的 token/cost 上限；
 - M3 自动修复轮数是否与总 Agent Loop 分开统计；

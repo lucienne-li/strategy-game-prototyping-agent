@@ -10,11 +10,12 @@
 
 ## 当前状态
 
-项目处于 **M3：B2/B3 代码修改与最小游戏逻辑垂直切片**。
+项目处于 **M4：第一个可玩浏览器卡牌原型垂直切片**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
-- 已准备 B2 修改已有代码和 B3 最小卡牌逻辑的独立验收器与真实模型运行入口；
+- B1、B2、B3 已完成真实模型与独立 evaluator 验收；
+- 已准备 B4 完整浏览器项目生成入口，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动验收；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始 GitHub 数据收集或 SFT；
@@ -59,10 +60,18 @@ npm run b3:real
 
 `b2:real` 会把带有减法缺陷的 `math.ts` 复制到新的临时工作目录，让 Agent 修改；`b3:real` 从空临时目录创建 `card-game.ts`。两者都会在 Agent 结束后调用工作目录外的独立 evaluator，并以 JSON 输出模型、iterations、Tool Call 顺序和验收证据。
 
+M4 可玩浏览器原型使用相同配置：
+
+```bash
+npm run b4:real
+```
+
+`b4:real` 要求 Agent 生成 `index.html`、`src/game.ts` 和 `project.mjs`，再构建 `dist/game.js`。运行结果会保留临时工作目录并输出其绝对路径。验收通过后，可进入该目录运行 `node project.mjs serve`，再打开 `http://127.0.0.1:4173`。
+
 Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 commit。每次 B1 运行创建独立临时工作目录，结束后由仓库外部的验收逻辑检查目标文件和真实执行结果。
 
 技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
 ## 下一步
 
-下一步是在本地配置 API Key 后分别执行 B2/B3，记录真实模型结果；通过后再评审 M3 分支。详见 [TASKS.md](TASKS.md)。
+下一步是在本地执行 `npm run b4:real`，记录真实模型生成与外部验收结果，再评审 M4 分支。详见 [TASKS.md](TASKS.md)。

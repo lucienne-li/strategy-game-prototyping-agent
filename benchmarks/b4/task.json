@@ -1,0 +1,35 @@
+{
+  "id": "B4",
+  "name": "playable-browser-card-prototype",
+  "request": "Create a complete no-dependency Browser + TypeScript card prototype in the empty workspace. Create index.html with visible values whose element IDs are player-hp, player-energy, and enemy-hp, plus a button with ID strike-button. Create src/game.ts as browser-compatible TypeScript that exports createInitialState(), strike(state), and mountGame(document). Initial state is playerHp 20, playerEnergy 3, enemyHp 20. One Strike costs 1 energy and deals 6 enemy damage. mountGame must render the initial values and update the displayed energy and enemy HP when strike-button is clicked. Create project.mjs with build and serve modes. Build copies the browser-compatible TypeScript to dist/game.js. Serve hosts index.html and dist/game.js over HTTP; use PORT or 4173. index.html must load ./dist/game.js as a module. The source module may auto-mount in a real browser but must remain importable without a global document. Run node project.mjs build and inspect its observation before finishing. Use only the requested three source files; dist/game.js must be produced by the build.",
+  "requiredFiles": [
+    "index.html",
+    "src/game.ts",
+    "project.mjs",
+    "dist/game.js"
+  ],
+  "commands": {
+    "build": "node project.mjs build",
+    "start": "node project.mjs serve"
+  },
+  "acceptance": {
+    "initialState": {
+      "playerHp": 20,
+      "playerEnergy": 3,
+      "enemyHp": 20
+    },
+    "stateAfterStrike": {
+      "playerHp": 20,
+      "playerEnergy": 2,
+      "enemyHp": 14
+    },
+    "requiredElementIds": [
+      "player-hp",
+      "player-energy",
+      "enemy-hp",
+      "strike-button"
+    ],
+    "buildExitCode": 0,
+    "launchOverHttp": true
+  }
+}

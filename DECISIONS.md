@@ -115,3 +115,12 @@
 - **Decision:** B2/B3 各自保留显式 fixture、临时工作区准备逻辑和任务专用 evaluator；暂不抽象通用 Benchmark Framework，也不增加 Planner、Reflection 或 evaluator-feedback Agent。
 - **Why:** 当前只有三个小任务，显式实现更容易确认隐藏测试边界和失败来源。先收集真实模型轨迹，再判断哪些重复逻辑值得抽象、是否确实需要自动修复轮。
 - **Scope:** B2 只验证已有 `add(a,b)` 的修改；B3 只验证一次 Strike 的最小状态转换，不扩展 UI、牌库、回合、护甲或敌人 AI。
+
+## D-016 — M4 使用无依赖 Browser + TypeScript 项目契约
+
+- **Status:** Accepted for M4
+- **Decision:** B4 从空工作区生成 `index.html`、`src/game.ts` 和 `project.mjs`，由 `node project.mjs build` 生成 `dist/game.js`；不新增包管理器权限、第三方前端框架或 Agent 工具。
+- **Why:** 这是从单逻辑文件到完整可玩项目的最小增量，现有 `write_file` 和白名单 `node` 已足够验证生成、构建、DOM 交互和 HTTP 启动。
+- **Evaluation boundary:** evaluator 位于 Repository，行为检查和生成服务器都只读访问单一任务工作区。模型自述不计为通过，也不把 evaluator 失败反馈给模型。
+- **Trade-off:** `src/game.ts` 暂用浏览器兼容的 TypeScript 子集并采用确定性复制构建；它不是对复杂 TypeScript bundler、CSS 视觉质量或真实浏览器兼容性的完整验证。
+- **Roadmap note:** 原计划的 Offline Data Pilot 顺延为 M5；M4 优先补齐真实可玩项目垂直切片，使后续数据研究拥有项目级执行契约。
