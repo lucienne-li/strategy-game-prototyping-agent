@@ -283,10 +283,13 @@
 - [x] 定位 B2/B3 首次真实验收失败为 evaluator Node 权限路径问题，而非模型任务失败。
 - [x] 将 Executor 工作目录规范化为 canonical real path，并增加路径别名回归测试。
 - [x] 将 B1/B2/B3 evaluator Node 权限限制为 benchmark 工作区只读；Agent 仍只对同一工作区读写。
+- [x] 使用真实模型重新执行 B2：Agent `success`，Tool Calls 为 `read_file` → `write_file` → `run_command`，外部 evaluator 通过。
+- [x] 使用真实模型重新执行 B3：Agent `success`，Tool Calls 为 `write_file` → `run_command`，外部 evaluator 通过。
+- [x] 完成 M3，证明现有 Agent Loop 可以完成修改任务和最小卡牌逻辑任务。
 
 ## 下一步任务
 
-- [ ] 在修复后的分支重新执行 `npm run b2:real`。
-- [ ] 重新执行 `npm run b3:real`，保留模型、iterations、Tool Calls 与 evaluator 输出。
-- [ ] 根据真实失败轨迹决定是否需要 evaluator-feedback 修复轮，而不是提前增加 Planner 或 Reflection Agent。
+- [ ] M4：生成可构建、可启动并具备 Strike 交互的最小浏览器卡牌项目。
+- [ ] 为 M4 增加确定性逻辑测试和独立 external evaluator。
+- [ ] 保持现有 Agent Runtime，不根据已通过的 B2/B3 提前增加 repair loop、Planner 或 Reflection Agent。
 - [ ] M3 后续决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。

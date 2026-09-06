@@ -21,11 +21,24 @@ The failures are classified as evaluator infrastructure failures, not model task
 
 The permission scope remains the single benchmark workspace. Agent Node processes can read and write that workspace; evaluator Node processes receive `--allow-fs-read` only. Repository files, evaluator source, and other filesystem paths are not added to the allowlist.
 
-## Required rerun
+## Successful rerun
+
+- **Evidence source:** repository owner local run
+- **B2 Agent status:** `success`
+- **B2 Tool Calls:** `read_file` → `write_file` → `run_command`
+- **B2 external evaluation:** `passed = true`
+- **B3 Agent status:** `success`
+- **B3 Tool Calls:** `write_file` → `run_command`
+- **B3 external evaluation:** `passed = true`
+- **Model and Agent iterations:** not included in the reported rerun summary
+
+The canonical-path and read-only evaluator permission fix is therefore validated by real-model B2 and B3 runs. Both results are counted as successful only because the independent external evaluators passed; the Agent's own `success` status is supporting run metadata, not the acceptance decision.
+
+## Reproduction
 
 ```bash
 npm run b2:real
 npm run b3:real
 ```
 
-Record the model, Agent status, iterations, ordered Tool Calls, stdout, stderr, exit code, and external evaluator result for each rerun.
+The commands emit structured JSON containing model, Agent status, iterations, ordered Tool Calls, and external evaluator output.
