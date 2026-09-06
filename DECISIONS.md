@@ -107,6 +107,7 @@
 - **Why:** 防止 Agent 通过修改测试宣告成功，并对生成程序本身的工作区外文件读取提供实际限制。
 - **Limit:** Node permission model 不是针对恶意代码的完整安全边界，也不替代容器、资源配额或网络隔离。
 - **Implementation note:** Permission allowlist 必须使用临时工作目录的 canonical real path。macOS 可能把 `/var/...` 解析为 `/private/var/...`；若直接授权未规范化路径，合法 benchmark 文件会触发 `ERR_ACCESS_DENIED`。
+- **Least privilege:** Agent Node 子进程获得单一任务目录的读写权限；外部 evaluator Node 子进程只获得该目录的读取权限。
 
 ## D-015 — M3 使用任务专用外部 Evaluator
 

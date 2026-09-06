@@ -279,9 +279,10 @@
 - [x] 创建 `feature/game-vertical-slice`。
 - [x] 实现 B2 seed、真实模型入口和独立隐藏用例 evaluator。
 - [x] 实现 B3 真实模型入口和独立状态转换 evaluator。
-- [x] 通过 21 个测试，包括 B2/B3 contract、Adapter、evaluator 和 canonical workspace 权限测试。
+- [x] 通过 22 个测试，包括 B2/B3 contract、Adapter、evaluator、canonical workspace 和 evaluator 只读权限测试。
 - [x] 定位 B2/B3 首次真实验收失败为 evaluator Node 权限路径问题，而非模型任务失败。
 - [x] 将 Executor 工作目录规范化为 canonical real path，并增加路径别名回归测试。
+- [x] 将 B1/B2/B3 evaluator Node 权限限制为 benchmark 工作区只读；Agent 仍只对同一工作区读写。
 
 ## 下一步任务
 

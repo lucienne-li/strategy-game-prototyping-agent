@@ -74,7 +74,7 @@ M1 验证了 Fake Model Tool Calling 闭环。M2 在不修改 `AgentModel` 和 A
 | B1 Evaluator | `src/evaluation/b1-evaluator.ts` | Agent 结束后独立检查文件并重新执行，模型无法修改验收代码 |
 | Real-model CLI | `src/b1-real-model-cli.ts` | 创建临时工作区、运行 Agent、调用外部验收器并输出运行记录 |
 
-`run_command` 仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。Node 子进程自动启用 permission model，只允许读写本次任务工作目录，并拒绝模型传入权限放宽参数。Executor 在授权和设置 `cwd` 前先把工作目录规范化为 canonical real path，避免 macOS 的 `/var` → `/private/var` 临时目录映射造成合法文件被拒绝。它提供 M2/M3 所需的最小进程隔离，但仍不是容器或生产级恶意代码沙箱。
+`run_command` 仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。Node 子进程自动启用 permission model，并拒绝模型传入权限放宽参数：Agent 执行器只允许读写本次任务目录，外部 evaluator 执行器只允许读取该目录。Executor 在授权和设置 `cwd` 前先把工作目录规范化为 canonical real path，避免 macOS 的 `/var` → `/private/var` 临时目录映射造成合法文件被拒绝。它提供 M2/M3 所需的最小进程隔离，但仍不是容器或生产级恶意代码沙箱。
 
 ### B1 外部验收边界
 

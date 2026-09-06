@@ -19,7 +19,7 @@ The failures are classified as evaluator infrastructure failures, not model task
 - `--allow-fs-read`;
 - `--allow-fs-write`.
 
-The permission scope remains the single benchmark workspace. Repository files, evaluator source, and other filesystem paths are not added to the allowlist.
+The permission scope remains the single benchmark workspace. Agent Node processes can read and write that workspace; evaluator Node processes receive `--allow-fs-read` only. Repository files, evaluator source, and other filesystem paths are not added to the allowlist.
 
 ## Required rerun
 

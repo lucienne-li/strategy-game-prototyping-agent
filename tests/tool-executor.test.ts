@@ -111,3 +111,26 @@ test("node permissions use the canonical workspace when the supplied path is a s
   assert.equal(result.result.stderr, "");
   assert.equal(result.result.exitCode, 0);
 });
+
+test("read-only node subprocess can read workspace files but cannot modify them", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-command-read-only-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  await writeFile(path.join(workspace, "input.txt"), "allowed", "utf8");
+  const executor = new ToolExecutor({ workspace, allowedCommands: ["node"], nodeFsAccess: "read-only" });
+
+  const read = await executor.execute({
+    tool: "run_command",
+    command: "node",
+    args: ["-e", "console.log(require('node:fs').readFileSync('input.txt', 'utf8'))"]
+  });
+  assert.equal(read.result.ok, true);
+  assert.equal(read.result.stdout?.trim(), "allowed");
+
+  const write = await executor.execute({
+    tool: "run_command",
+    command: "node",
+    args: ["-e", "require('node:fs').writeFileSync('output.txt', 'denied')"]
+  });
+  assert.equal(write.result.ok, false);
+  assert.match(write.result.stderr ?? "", /ERR_ACCESS_DENIED/);
+});

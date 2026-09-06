@@ -38,7 +38,7 @@ export async function evaluateB3(workspace: string): Promise<B3Evaluation> {
     "console.log('B3 evaluator passed');"
   ].join("\n");
   const result = (
-    await new ToolExecutor({ workspace, allowedCommands: ["node"] }).execute({
+    await new ToolExecutor({ workspace, allowedCommands: ["node"], nodeFsAccess: "read-only" }).execute({
       tool: "run_command",
       command: "node",
       args: ["--input-type=module", "-e", evaluatorScript],

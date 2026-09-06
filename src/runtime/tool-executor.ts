@@ -14,17 +14,20 @@ const FORBIDDEN_NODE_PERMISSION_ARGS = ["--permission", "--no-permission", "--al
 export type ToolExecutorOptions = {
   workspace: string;
   allowedCommands?: readonly string[];
+  nodeFsAccess?: "read-only" | "read-write";
 };
 
 export class ToolExecutor {
   private readonly workspace: string;
   private readonly allowedCommands: Set<string>;
+  private readonly nodeFsAccess: "read-only" | "read-write";
 
   constructor(options: ToolExecutorOptions) {
     // Node checks permission paths against their canonical filesystem form.
     // This matters on macOS, where /var/... temporary paths resolve to /private/var/....
     this.workspace = realpathSync(options.workspace);
     this.allowedCommands = new Set(options.allowedCommands ?? ["node"]);
+    this.nodeFsAccess = options.nodeFsAccess ?? "read-write";
   }
 
   async execute(rawCall: unknown): Promise<{ call?: ToolCall; result: ToolResult }> {
@@ -148,11 +151,11 @@ export class ToolExecutor {
   private restrictNodeProcess(args: string[]): string[] {
     const forbidden = args.find((arg) => FORBIDDEN_NODE_PERMISSION_ARGS.some((flag) => arg === flag || arg.startsWith(`${flag}=`)));
     if (forbidden) throw new Error(`node permission override is not allowed: ${forbidden}`);
-    return [
+    const permissionArgs = [
       "--permission",
-      `--allow-fs-read=${this.workspace}`,
-      `--allow-fs-write=${this.workspace}`,
-      ...args
+      `--allow-fs-read=${this.workspace}`
     ];
+    if (this.nodeFsAccess === "read-write") permissionArgs.push(`--allow-fs-write=${this.workspace}`);
+    return [...permissionArgs, ...args];
   }
 }

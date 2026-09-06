@@ -40,7 +40,7 @@ export async function evaluateB1(workspace: string): Promise<B1Evaluation> {
     };
   }
 
-  const executor = new ToolExecutor({ workspace, allowedCommands: ["node"] });
+  const executor = new ToolExecutor({ workspace, allowedCommands: ["node"], nodeFsAccess: "read-only" });
   const execution = await executor.execute({
     tool: "run_command",
     command: "node",

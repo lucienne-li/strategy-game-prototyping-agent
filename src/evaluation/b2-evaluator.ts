@@ -36,7 +36,7 @@ export async function evaluateB2(workspace: string): Promise<B2Evaluation> {
     "console.log('B2 evaluator passed');"
   ].join("\n");
   const result = (
-    await new ToolExecutor({ workspace, allowedCommands: ["node"] }).execute({
+    await new ToolExecutor({ workspace, allowedCommands: ["node"], nodeFsAccess: "read-only" }).execute({
       tool: "run_command",
       command: "node",
       args: ["--input-type=module", "-e", evaluatorScript],
