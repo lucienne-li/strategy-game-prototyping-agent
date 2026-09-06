@@ -1,0 +1,13 @@
+{
+  "id": "B2",
+  "name": "modify-existing-code",
+  "request": "Read the existing math.ts file. Fix add(a, b) so it returns the arithmetic sum while preserving the exported function name and signature. Run a Node check before finishing.",
+  "targetFile": "math.ts",
+  "seedFile": "benchmarks/b2/seed/math.ts",
+  "acceptance": {
+    "regularFile": true,
+    "exportedFunction": "add",
+    "behavior": "add(a, b) returns a + b for hidden positive, negative, zero, and decimal cases",
+    "exitCode": 0
+  }
+}

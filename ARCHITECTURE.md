@@ -88,6 +88,17 @@ flowchart TB
 
 验收器代码和 `benchmarks/b1/task.json` 位于 Repository，Agent 工具只能访问独立临时目录。即使模型声称成功，最终 B1 结果仍只取决于外部检查的文件类型、stdout、stderr 和 exit code。
 
+### M3 B2/B3 Vertical Slice
+
+M3 不增加新的 Agent 层。两个任务都复用 `OpenAIResponsesModel → runAgent → ToolExecutor`，仅在运行前准备不同工作区，并在结束后选择对应的确定性 evaluator。
+
+| Task | Workspace 初始状态 | Agent 目标 | 外部验收 |
+|---|---|---|---|
+| B2 | 从 Repository fixture 复制含缺陷的 `math.ts` | 读取文件，将 `add(a,b)` 从减法修复为加法，运行检查 | 动态导入 `math.ts`，使用隐藏的正数、负数、零和小数用例验证 `add` |
+| B3 | 空临时目录 | 创建 `card-game.ts`，实现初始状态与一次 Strike | 验证两个导出函数、初始状态和 Strike 后 `{ playerHp:20, playerEnergy:2, enemyHp:14 }` |
+
+两个 evaluator 均位于 Repository 而不是 Agent 工作区。模型可以看到自然语言契约，但不能读取或修改 evaluator 的隐藏断言。Evaluator 会独立重新运行生成代码，模型最终文本仍不参与 pass/fail 判定。
+
 ### LLM 与 Runtime 的责任线
 
 **LLM 可以决定：**
@@ -172,7 +183,7 @@ flowchart TB
 
 ## 8. Repository 结构建议
 
-当前 M2 的实际结构为：
+当前 M3 的实际结构为：
 
 ```text
 .
@@ -189,14 +200,19 @@ flowchart TB
 │   ├── agent/            # 循环、模型契约和 Fake Model
 │   ├── model/            # OpenAI Responses API Adapter
 │   ├── runtime/          # validation、workspace guard、executor
-│   ├── evaluation/       # 当前只有 B1 外部验收器
+│   ├── evaluation/       # B1/B2/B3 外部验收器
 │   ├── b1-real-model-cli.ts
+│   ├── b2-real-model-cli.ts
+│   ├── b3-real-model-cli.ts
 │   ├── cli.ts            # 本地演示入口
 │   └── index.ts          # 公共导出
 ├── tests/                # Node test runner 单元和端到端测试
-├── benchmarks/b1/        # Agent 不可修改的 B1 任务契约
+├── benchmarks/
+│   ├── b1/               # 单文件创建任务
+│   ├── b2/               # 修改任务与含缺陷 seed
+│   └── b3/               # 最小卡牌逻辑任务
 ├── examples/             # 通过验证的示例输入/输出
 └── data_pipeline/        # M4 数据试点时才创建
 ```
 
-不提前创建空的服务层、数据库层或插件系统。M3 再把当前单任务验收扩展成通用 Evaluation/Repair Loop。
+不提前创建空的服务层、数据库层或插件系统。当前三个 evaluator 保持显式、任务专用；等出现真实重复模式后再考虑抽象通用 Evaluation/Repair Loop。

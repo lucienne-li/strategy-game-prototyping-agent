@@ -1,0 +1,21 @@
+{
+  "id": "B3",
+  "name": "minimal-card-logic",
+  "request": "Create card-game.ts. Export createInitialState(), returning { playerHp: 20, playerEnergy: 3, enemyHp: 20 }, and strike(state), returning the state after spending 1 energy and dealing 6 enemy damage. Run a Node check before finishing.",
+  "targetFile": "card-game.ts",
+  "acceptance": {
+    "regularFile": true,
+    "exports": ["createInitialState", "strike"],
+    "initialState": {
+      "playerHp": 20,
+      "playerEnergy": 3,
+      "enemyHp": 20
+    },
+    "stateAfterStrike": {
+      "playerHp": 20,
+      "playerEnergy": 2,
+      "enemyHp": 14
+    },
+    "exitCode": 0
+  }
+}

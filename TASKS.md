@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 2 / M2：First Real-Model Vertical Slice（完成，等待合并）**
+**Phase 3 / M3：Code Modification and Game Logic Vertical Slice（实现完成；等待本地真实模型运行）**
 
 ## Milestone Roadmap
 
@@ -108,34 +108,40 @@
 
 - M1；模型访问配置；已确认技术栈。
 
-### M3 — Evaluation and Repair Loop
+### M3 — Code Modification and Game Logic Vertical Slice
 
 **Objective**
 
-实现确定性构建/功能评测和有限次数自动修复。
+复用现有真实 Model Adapter 和 Runtime，分别完成修改已有代码的 B2 与最小卡牌逻辑 B3，并由 Agent 不可修改的外部 evaluator 判定结果。
 
 **Modules / Files**
 
-- `src/evaluation/`
-- `src/agent/termination`
-- Benchmark tests
+- `benchmarks/b2/`, `benchmarks/b3/`
+- `src/evaluation/b2-evaluator.ts`, `src/evaluation/b3-evaluator.ts`
+- `src/b2-real-model-cli.ts`, `src/b3-real-model-cli.ts`
+- Adapter contract 和 evaluator tests
 
 **Acceptance Criteria**
 
-- Build 与 Functional 失败可被区分；
-- EvaluationReport 可作为下一轮模型输入；
-- 修复循环遵守轮次、时间和成本预算；
-- 报告一次成功率与修复后成功率。
+- [x] B2 从确定性 seed 创建临时工作区，并要求 Agent 修改已有 `math.ts`；
+- [x] B2 evaluator 使用 Agent 不可修改的隐藏用例验证加法行为；
+- [x] B3 从空临时工作区创建 `card-game.ts`；
+- [x] B3 evaluator 验证初始状态和 Strike 后状态；
+- [x] 两个入口复用现有 Model、Loop、三种 Tool、权限和 6 次循环上限；
+- [ ] 使用真实模型分别执行 B2/B3 并保存结果。
 
 **Tests**
 
-- 注入已知构建错误和功能错误；
-- 修复成功、修复失败、预算耗尽三条路径；
-- 回归测试保证修复不破坏已通过功能。
+- B2 seed 在修改前必须失败，正确修改后必须通过；
+- B3 缺少产物时必须失败，正确状态转换必须通过；
+- 使用 mocked Responses API 跑通 B2/B3 的完整 Adapter → Runtime → evaluator 契约；
+- 全量 M1/M2 回归测试继续通过。
 
 **Dependencies**
 
 - M2。
+
+完整的 evaluator-feedback 自动修复循环、一次成功率与修复提升统计暂未实现；这些内容等 B2/B3 真实运行暴露具体失败后再作为 M3 后续任务评估。
 
 ### M4 — Offline Data Pilot
 
@@ -269,10 +275,15 @@
 - [x] 使用 Node permission model 阻止子进程越界读写并拒绝权限覆盖参数。
 - [x] 通过 14 个确定性与 Adapter contract 测试。
 - [x] 使用 `gpt-5.6` 完成真实 B1：3 iterations，`write_file` → `run_command`，外部 evaluator 通过。
+- [x] 合并 `feature/real-model-adapter` 到 `main`。
+- [x] 创建 `feature/game-vertical-slice`。
+- [x] 实现 B2 seed、真实模型入口和独立隐藏用例 evaluator。
+- [x] 实现 B3 真实模型入口和独立状态转换 evaluator。
+- [x] 通过 19 个测试，包括 B2/B3 contract、Adapter 和 evaluator 测试。
 
 ## 下一步任务
 
-- [ ] 评审并合并 `feature/real-model-adapter`。
-- [ ] 从最新 `main` 创建 `feature/game-vertical-slice`。
-- [ ] 为 B2/B3 创建 Agent 不可修改的 fixture、外部 evaluator 和真实模型运行入口。
+- [ ] 本地配置 `OPENAI_API_KEY` 后执行 `npm run b2:real`。
+- [ ] 执行 `npm run b3:real`，保留模型、iterations、Tool Calls 与 evaluator 输出。
+- [ ] 根据真实失败轨迹决定是否需要 evaluator-feedback 修复轮，而不是提前增加 Planner 或 Reflection Agent。
 - [ ] M3 后续决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。

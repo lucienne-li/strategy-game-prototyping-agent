@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { B2_FILE_NAME, B2_REQUEST } from "../src/evaluation/b2-evaluator.js";
+import { B3_FILE_NAME, B3_REQUEST } from "../src/evaluation/b3-evaluator.js";
+
+type TaskFixture = { request: string; targetFile: string };
+
+async function loadFixture(path: string): Promise<TaskFixture> {
+  return JSON.parse(await readFile(path, "utf8")) as TaskFixture;
+}
+
+test("B2 and B3 executable contracts match their repository fixtures", async () => {
+  const b2 = await loadFixture("benchmarks/b2/task.json");
+  assert.equal(b2.request, B2_REQUEST);
+  assert.equal(b2.targetFile, B2_FILE_NAME);
+
+  const b3 = await loadFixture("benchmarks/b3/task.json");
+  assert.equal(b3.request, B3_REQUEST);
+  assert.equal(b3.targetFile, B3_FILE_NAME);
+});

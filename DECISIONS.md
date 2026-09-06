@@ -106,3 +106,10 @@
 - **Decision:** 每次 B1 创建独立临时工作目录；Agent 只能访问该目录。Repository 中的 fixture/evaluator 在 Agent 完成后独立运行。Node 命令使用白名单、timeout、`shell: false` 和 permission model 工作区授权。
 - **Why:** 防止 Agent 通过修改测试宣告成功，并对生成程序本身的工作区外文件读取提供实际限制。
 - **Limit:** Node permission model 不是针对恶意代码的完整安全边界，也不替代容器、资源配额或网络隔离。
+
+## D-015 — M3 使用任务专用外部 Evaluator
+
+- **Status:** Accepted for M3
+- **Decision:** B2/B3 各自保留显式 fixture、临时工作区准备逻辑和任务专用 evaluator；暂不抽象通用 Benchmark Framework，也不增加 Planner、Reflection 或 evaluator-feedback Agent。
+- **Why:** 当前只有三个小任务，显式实现更容易确认隐藏测试边界和失败来源。先收集真实模型轨迹，再判断哪些重复逻辑值得抽象、是否确实需要自动修复轮。
+- **Scope:** B2 只验证已有 `add(a,b)` 的修改；B3 只验证一次 Strike 的最小状态转换，不扩展 UI、牌库、回合、护甲或敌人 AI。

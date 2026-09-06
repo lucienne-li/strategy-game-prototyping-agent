@@ -11,7 +11,9 @@
     "test": "npm run build && node --test dist/tests/*.test.js",
     "test:e2e": "npm run build && node --test dist/tests/agent.e2e.test.js",
     "demo": "npm run build && node dist/src/cli.js",
-    "b1:real": "npm run build && node dist/src/b1-real-model-cli.js"
+    "b1:real": "npm run build && node dist/src/b1-real-model-cli.js",
+    "b2:real": "npm run build && node dist/src/b2-real-model-cli.js",
+    "b3:real": "npm run build && node dist/src/b3-real-model-cli.js"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

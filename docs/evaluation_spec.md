@@ -101,7 +101,7 @@
 |---|---|---|
 | B1 单文件创建 | 在空工作目录创建 `hello-agent.ts`，运行后输出 `hello agent`。 | 目标必须是普通文件；`node hello-agent.ts` exit code 为 0；trim 后 stdout 精确等于 `hello agent`；stderr 为空。 |
 | B2 修改已有代码 | 给定保持既有导出接口的 TypeScript 加法函数，其中实现错误地执行减法；修改实现使给定用例通过。 | 原文件被修改且导出名不变；预置测试 exit code 为 0；至少覆盖正数与负数用例。 |
-| B3 最小卡牌逻辑 | 实现无 UI 的确定性回合逻辑：玩家 20 HP、敌人 18 HP、每回合 3 能量；Strike 消耗 1 并造成 6 伤害，Defend 消耗 1 并增加 5 护甲，结束回合后敌人造成 4 伤害且护甲优先吸收。 | TypeScript 构建通过；预置测试验证能量消耗、伤害、护甲吸收、非法能量操作不改变状态及胜负状态；全部测试 exit code 为 0。 |
+| B3 最小卡牌逻辑 | 创建无 UI 的 `card-game.ts`：玩家 20 HP、3 Energy，敌人 20 HP；Strike 消耗 1 Energy 并造成 6 伤害。 | 导出 `createInitialState` 和 `strike`；初始状态精确匹配；一次 Strike 后 Player Energy=2、Enemy HP=14、Player HP=20；外部测试 exit code 为 0。 |
 
 每个任务包含：
 
@@ -133,6 +133,13 @@ B1 已在 M1 通过 Fake Model 端到端执行，并在 M2 转为 Agent 临时�
 - Agent 结束后，外部 evaluator 独立检查文件类型并重新运行目标文件；
 - Node 子进程只能读写任务工作目录，不能通过 Tool Call 放宽 permission flags；
 - 最终 B1 结果来自 evaluator，不采用模型的 `SUCCESS` 文本。
+
+### M3 B2/B3 External Evaluation
+
+- B2 在临时工作区放入含已知减法缺陷的 `math.ts`；外部 evaluator 使用未写入任务文本的多组输入验证保留的 `add` 接口；
+- B3 使用空临时工作区；外部 evaluator 动态导入 `card-game.ts`，验证导出函数与精确状态转换；
+- 两个 evaluator 都留在 Repository，Node permission model 阻止 Agent 子进程读取 Repository；
+- 当前只评估最终产物，不把外部 evaluator 失败自动反馈给模型；是否增加 repair loop 由真实 B2/B3 运行决定。
 
 ## 7. Difficulty Model
 
