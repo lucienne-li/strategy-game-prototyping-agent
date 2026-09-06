@@ -2,13 +2,26 @@
 
 ## Current status
 
-- **Status:** BLOCKED — live API request not executed
+- **Status:** PASSED — live API run completed locally
 - **Adapter:** OpenAI Responses API
-- **Configured default model:** `gpt-5.6`
-- **Attempt date:** 2026-08-29
-- **Error:** `OPENAI_API_KEY is required`
+- **Model:** `gpt-5.6`
+- **Reported date:** 2026-09-06
+- **Agent status:** `success`
+- **Agent iterations:** 3
+- **Tool Call order:** `write_file` → `run_command`
+- **External evaluator:** `passed = true`
 
-The current execution environment does not expose `OPENAI_API_KEY`. No model request was sent, so this is not reported as a real-model B1 result.
+The live run was executed by the repository owner in a local environment with `OPENAI_API_KEY` configured. No API Key or raw environment data was committed.
+
+## Live evaluation result
+
+- Generated file: `hello-agent.ts`
+- stdout: `hello agent`
+- stderr: empty
+- exit code: 0
+- External evaluation: passed
+
+This satisfies the M2 B1 acceptance contract. The final result comes from the independent evaluator rather than the model's own success message.
 
 ## Deterministic contract evidence
 
@@ -21,7 +34,7 @@ The mocked HTTP contract test exercises the same Adapter, Agent Loop, ToolExecut
 - Expected stderr: empty
 - Expected exit code: 0
 
-This evidence validates the local integration but does not substitute for the required live model run.
+This deterministic evidence remains as a regression test for the live path.
 
 ## Live run command
 
@@ -31,4 +44,4 @@ export OPENAI_MODEL="gpt-5.6"
 npm run b1:real
 ```
 
-After a live run, replace the blocked status with the exact model returned/configured, Agent iterations, ordered Tool Calls, final external evaluation and any error output.
+Future repeated runs should record the same fields and preserve failures rather than replacing them with model-reported success.

@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 2 / M2：First Real-Model Vertical Slice（实现完成；真实 API 运行被凭据阻塞）**
+**Phase 2 / M2：First Real-Model Vertical Slice（完成，等待合并）**
 
 ## Milestone Roadmap
 
@@ -96,7 +96,7 @@
 - [x] B1 使用 Agent 无法修改的独立 fixture 和 evaluator；
 - [x] 每次任务使用临时工作区，并限制命令、超时和 Node 文件权限；
 - [x] 模型调用、工具顺序和外部验收结果可由 CLI 输出；
-- [!] 使用真实 API 完成一次 B1 并记录：当前环境缺少 `OPENAI_API_KEY`。
+- [x] 使用 `gpt-5.6` 真实 API 完成一次 B1，并记录 iterations、Tool Calls 和外部验收结果。
 
 **Tests**
 
@@ -268,10 +268,11 @@
 - [x] 将 B1 固定为 Agent 工作区外的独立 fixture 和 evaluator。
 - [x] 使用 Node permission model 阻止子进程越界读写并拒绝权限覆盖参数。
 - [x] 通过 14 个确定性与 Adapter contract 测试。
+- [x] 使用 `gpt-5.6` 完成真实 B1：3 iterations，`write_file` → `run_command`，外部 evaluator 通过。
 
 ## 下一步任务
 
-- [!] 在运行环境安全配置 `OPENAI_API_KEY`，执行 `npm run b1:real`。
-- [ ] 将真实模型名称、iterations、Tool Call 顺序、验收结果和错误更新到 `docs/m2_b1_run.md`。
-- [ ] 真实 B1 通过后评审并合并 `feature/real-model-adapter`。
-- [ ] M3 前决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。
+- [ ] 评审并合并 `feature/real-model-adapter`。
+- [ ] 从最新 `main` 创建 `feature/game-vertical-slice`。
+- [ ] 为 B2/B3 创建 Agent 不可修改的 fixture、外部 evaluator 和真实模型运行入口。
+- [ ] M3 后续决定是否需要容器级沙箱；Node permission model 不是生产级安全边界。
