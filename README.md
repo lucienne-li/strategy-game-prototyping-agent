@@ -10,13 +10,15 @@
 
 ## 当前状态
 
-项目处于 **M5：Evaluator-Feedback Repair Loop 最小垂直切片**。
+项目处于 **M6：Offline Data Pilot 设计阶段**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
 - B1、B2、B3 已完成真实模型与独立 evaluator 验收；
 - B4 已完成真实模型验收，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动；
 - 已实现外层 evaluator-feedback repair loop，默认最多修复 2 次并保留每次 Agent 与评测轨迹；
+- M5 已完成 `gpt-5.6` 真实 repair 验收：一次 repair 后通过 logic、UI 和 launch evaluator；
+- 已定义 10 个候选仓库的小规模 Data Pilot，但尚未收集代码或生成 instruction；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始 GitHub 数据收集或 SFT；
@@ -83,4 +85,4 @@ Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 
 
 ## 下一步
 
-下一步是运行 M5 真实模型 repair 验收；通过并合并 M5 后，再创建独立分支开展小规模离线数据试点。详见 [TASKS.md](TASKS.md)。
+下一步是人工确认 Data Pilot 的许可证政策，并建立第一批 10 个候选仓库 manifest。详见 [docs/data_pilot_plan.md](docs/data_pilot_plan.md) 和 [TASKS.md](TASKS.md)。

@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 5 / M5：Evaluator-Feedback Repair Loop（完成确定性垂直切片）**
+**Phase 6 / M6：Offline Data Pilot（最小方案与目录已建立，数据收集尚未开始）**
 
 ## Milestone Roadmap
 
@@ -233,6 +233,12 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 **Acceptance Criteria**
 
+- [x] 冻结小规模方案：10 个手工策展候选、约 12 个 G1/G2 单元、至少 8 条合格样本；
+- [x] 创建 `data_pipeline/manifests`、`samples`、`reports` 的最小目录契约；
+- [ ] 确认试点许可证政策并录入第一批候选 manifest；
+- [ ] 对候选执行 license、build、duplicate 和 code-quality 检查；
+- [ ] 提取代码单元并生成少量 inverse instruction；
+- [ ] 完成 alignment/granularity 人工复核和单位成本报告；
 - 处理一批小型、许可证明确的仓库；
 - 每个派生样本可追溯到 commit 和代码范围；
 - repository family 去重/隔离可执行；
@@ -379,6 +385,7 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 ## 下一步任务
 
-- [ ] 评审 M5 的确定性修复轨迹；如需真实模型修复率，再单独定义可重复采样与成本记录，不用单次结果代替统计结论。
-- [ ] M6 开始前确认小规模开源数据试点的许可证政策和样本规模。
+- [x] 完成 M5 确定性与单次 `gpt-5.6` 真实修复验收；单次成功不作为模型修复率统计。
+- [ ] 确认 M6 试点许可证政策，并按 `docs/data_pilot_plan.md` 人工录入 10 个候选仓库。
+- [ ] 定义最小 manifest schema 和 rejection reason codes 后，再实现单仓库验证脚本。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

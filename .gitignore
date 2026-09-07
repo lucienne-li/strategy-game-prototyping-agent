@@ -40,4 +40,4 @@ export_presets.cfg
 
 # Generated experiment artifacts
 artifacts/
-reports/
+/reports/

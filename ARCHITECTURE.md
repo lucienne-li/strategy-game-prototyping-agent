@@ -245,7 +245,9 @@ flowchart TB
 │   ├── b3/               # 最小卡牌逻辑任务
 │   └── b4/               # 可玩浏览器卡牌项目任务
 ├── examples/             # 通过验证的示例输入/输出
-└── data_pipeline/        # M6 数据试点时才创建
+└── data_pipeline/        # M6 离线试点的 manifests、samples 与 reports
 ```
 
 不提前创建空的服务层、数据库层或插件系统。当前四个 evaluator 保持显式、任务专用；等出现真实重复模式后再考虑抽象通用 Evaluation/Repair Loop。
+
+M6 仅创建离线目录和数据契约，不修改 `src/agent`、Model Adapter、Tool Executor 或 evaluator-repair loop。第三方 checkout 只应存在于临时工作目录，不提交到本仓库。

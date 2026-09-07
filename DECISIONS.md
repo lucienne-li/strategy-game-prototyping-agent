@@ -151,4 +151,13 @@
 - **Trace:** 保存每次 request、phase、`AgentRunResult` 和 evaluation；通过立即结束，耗尽返回 `repair_limit_reached`。
 - **Why:** B4 已证明生成与 evaluator 可独立工作，M5 只补齐用户目标中的最小“评测失败—修改—重测”闭环，不需要 Planner、Memory、RAG 或 Multi-Agent。
 - **Isolation:** evaluator 作为 Runtime callback 保留在 Agent workspace 外。Agent 只获得结果文本，不获得 evaluator 文件路径或源码。
-- **Evidence:** 确定性 B4 变体第一次错误造成 5 点伤害、Enemy HP=15；收到 evaluator 失败后读取源码、改为 6、重新 build，第二次完整 evaluator 通过。
+- **Evidence:** 确定性 B4 变体第一次错误造成 5 点伤害、Enemy HP=15；收到 evaluator 失败后读取源码、改为 6、重新 build，第二次完整 evaluator 通过。真实 `gpt-5.6` 验收也在一次 repair 后通过 logic、UI 和 launch，未达到 repair limit；两次 Agent run 均使用 6 iterations，作为非阻塞效率优化项保留。
+
+## D-020 — M6 先做人工策展的小规模数据试点
+
+- **Status:** Accepted for M6 design / WORKING ASSUMPTION for counts
+- **Decision:** 第一轮只建立 10 个 Browser/TypeScript 候选仓库的人工 manifest，期望从至少 4 个 build-passed 仓库提取约 12 个 G1/G2 单元，并获得至少 8 条通过质量检查的样本。
+- **Why:** 该规模足以暴露 license、构建、重复、代码拆分、instruction 对齐和成本问题，同时避免在未知有效产率前构建 crawler 或承诺 2 万条数据。
+- **Selection:** 优先许可证明确、固定 commit、Node 可构建的小型卡牌、回合制网格和轻量资源管理项目；同一 repository family 最多一个，排除 fork、教程副本、纯模板、生成产物和权利不明素材。
+- **Boundary:** M6 设计阶段不抓取仓库、不运行 inverse generation、不开始 SFT；Online Agent Runtime 不读取 Data Pilot 目录。
+- **Revisit when:** 第一批漏斗与成本报告完成后，基于实际通过率调整仓库数、粒度和自动化程度。
