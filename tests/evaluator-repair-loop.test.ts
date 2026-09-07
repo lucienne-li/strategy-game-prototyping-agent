@@ -130,3 +130,28 @@ test("repair loop rejects an invalid maximum repair count", async () => {
     /maxRepairs must be a non-negative integer/
   );
 });
+
+test("a controlled initial request does not replace the repair target", async (context) => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-repair-request-"));
+  context.after(() => rm(workspace, { recursive: true, force: true }));
+  const seenRequests: string[] = [];
+  const model = createRepairingModel();
+  const recordingModel: AgentModel = {
+    async next(modelContext) {
+      seenRequests.push(modelContext.request);
+      return model.next(modelContext);
+    }
+  };
+
+  const result = await runWithEvaluatorRepair(repairTask, {
+    model: recordingModel,
+    executor: new ToolExecutor({ workspace, allowedCommands: ["node"] }),
+    evaluator: () => evaluateB4(workspace),
+    initialRequest: "Create the controlled candidate with the known five-damage defect."
+  });
+
+  assert.equal(result.status, "success");
+  assert.equal(result.attempts[0]?.request, "Create the controlled candidate with the known five-damage defect.");
+  assert.equal(result.attempts[1]?.request.includes(repairTask), true);
+  assert.equal(seenRequests[0], "Create the controlled candidate with the known five-damage defect.");
+});

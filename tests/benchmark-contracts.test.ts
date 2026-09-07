@@ -4,10 +4,15 @@ import test from "node:test";
 import { B4_REQUIRED_FILES, B4_REQUEST } from "../src/evaluation/b4-evaluator.js";
 import { B2_FILE_NAME, B2_REQUEST } from "../src/evaluation/b2-evaluator.js";
 import { B3_FILE_NAME, B3_REQUEST } from "../src/evaluation/b3-evaluator.js";
+import { B4_REPAIR_TARGET_REQUEST } from "../src/evaluation/b4-repair-benchmark.js";
 
 type TaskFixture = { request: string; targetFile: string };
 type B4TaskFixture = { request: string; requiredFiles: string[] };
-type B4RepairTaskFixture = { request: string; failureInjection: { actualEnemyHpAfterStrike: number } };
+type B4RepairTaskFixture = {
+  targetRequest: string;
+  initialRequest: string;
+  failureInjection: { actualEnemyHpAfterStrike: number };
+};
 
 async function loadFixture(path: string): Promise<TaskFixture> {
   return JSON.parse(await readFile(path, "utf8")) as TaskFixture;
@@ -31,6 +36,7 @@ test("B4 executable contract matches its repository fixture", async () => {
 
 test("B4 repair variant freezes the intentional first-attempt defect", async () => {
   const fixture = JSON.parse(await readFile("benchmarks/b4-repair/task.json", "utf8")) as B4RepairTaskFixture;
-  assert.equal(fixture.request, "Create the same playable Browser + TypeScript card prototype as B4 and verify its build.");
+  assert.equal(fixture.targetRequest, B4_REPAIR_TARGET_REQUEST);
+  assert.match(fixture.initialRequest, /deliberately deals 5 damage/);
   assert.equal(fixture.failureInjection.actualEnemyHpAfterStrike, 15);
 });

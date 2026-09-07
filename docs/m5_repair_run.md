@@ -39,3 +39,9 @@
 ## Scope
 
 这是确定性集成测试，不是 `gpt-5.6` 的真实 repair 成功率实验。当前结论只证明 repair orchestration、反馈传递、Evaluator 隔离和终止预算能够工作。
+
+## 真实模型验收入口（待运行）
+
+运行 `npm run b4:repair:real`。该入口让真实模型在首轮明确生成 Strike Damage=5 的完整项目，以稳定触发 B4 evaluator；repair round 则收到完整失败 JSON，并以标准 B4 的 Damage=6 需求为修复目标。
+
+输出会记录 model、每轮 Agent iterations、每轮 Tool Call 顺序、完整 evaluation、`repairsUsed` 和 `reachedRepairLimit`。在真实输出由用户提供前，本节不记录通过结论。

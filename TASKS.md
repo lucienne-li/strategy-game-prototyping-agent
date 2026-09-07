@@ -201,6 +201,8 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] evaluator 仍在 Agent workspace 外，只反馈结构化结果而不暴露或复制 evaluator；
 - [x] evaluator 通过后立即结束；达到 repair 上限后返回明确的 `repair_limit_reached`；
 - [x] 故意错误的 B4 变体在一次 evaluator-guided repair 后通过完整 B4 evaluator。
+- [x] 准备 `npm run b4:repair:real` 真实模型验收入口和可复现的首轮故障注入；
+- [ ] 使用本地 API Key 完成真实模型 B4-REPAIR 验收并记录结果。
 
 **Tests**
 

@@ -25,6 +25,7 @@ export type EvaluatorRepairOptions<T extends ExternalEvaluation> = {
   model: AgentModel;
   executor: ToolExecutor;
   evaluator: () => Promise<T>;
+  initialRequest?: string;
   maxRepairs?: number;
   maxIterationsPerAgentRun?: number;
   maxToolCallsPerIteration?: number;
@@ -40,7 +41,7 @@ export async function runWithEvaluatorRepair<T extends ExternalEvaluation>(
   }
 
   const attempts: RepairAttempt<T>[] = [];
-  let request = originalRequest;
+  let request = options.initialRequest ?? originalRequest;
 
   for (let attemptIndex = 0; attemptIndex <= maxRepairs; attemptIndex += 1) {
     const agentResult = await runAgent(request, {

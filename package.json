@@ -14,7 +14,8 @@
     "b1:real": "npm run build && node dist/src/b1-real-model-cli.js",
     "b2:real": "npm run build && node dist/src/b2-real-model-cli.js",
     "b3:real": "npm run build && node dist/src/b3-real-model-cli.js",
-    "b4:real": "npm run build && node dist/src/b4-real-model-cli.js"
+    "b4:real": "npm run build && node dist/src/b4-real-model-cli.js",
+    "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

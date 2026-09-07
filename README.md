@@ -69,10 +69,18 @@ npm run b4:real
 
 `b4:real` 要求 Agent 生成 `index.html`、`src/game.ts` 和 `project.mjs`，再构建 `dist/game.js`。运行结果会保留临时工作目录并输出其绝对路径。验收通过后，可进入该目录运行 `node project.mjs serve`，再打开 `http://127.0.0.1:4173`。
 
+M5 真实模型 repair 验收使用一个受控首轮缺陷：首轮要求真实模型生成 Strike Damage=5 的完整候选，external evaluator 失败后，repair request 改以标准 B4 的 Damage=6 为目标并附上完整失败 JSON：
+
+```bash
+npm run b4:repair:real
+```
+
+命令会保留临时 workspace，并输出模型、每轮 Agent iterations、每轮 Tool Call 顺序、完整 evaluator 结果、`repairsUsed` 和是否达到 repair limit。退出码 `0` 表示最终通过；退出码 `1` 表示达到上限或运行异常。
+
 Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 commit。每次 B1 运行创建独立临时工作目录，结束后由仓库外部的验收逻辑检查目标文件和真实执行结果。
 
 技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
 ## 下一步
 
-下一步是评审 M5 的确定性修复轨迹，并在进入离线数据试点前确认许可证政策和试点规模。详见 [TASKS.md](TASKS.md)。
+下一步是运行 M5 真实模型 repair 验收；通过并合并 M5 后，再创建独立分支开展小规模离线数据试点。详见 [TASKS.md](TASKS.md)。
