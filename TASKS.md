@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 4 / M4：Playable Browser Card Prototype（实现与确定性验收完成；等待真实模型运行）**
+**Phase 4 / M4：Playable Browser Card Prototype（完成）**
 
 ## Milestone Roadmap
 
@@ -164,7 +164,7 @@
 - [x] evaluator 触发按钮 click listener 并验证 DOM 数值更新；
 - [x] evaluator 以 workspace 只读、仅 `dist/` 可写的最小权限启动生成服务器并验证 HTTP 入口与模块；
 - [x] 确定性 Adapter → Runtime → evaluator 集成测试通过；
-- [~] 使用真实模型执行 B4 并记录结果：第二次运行已通过 files/build/logic/UI，launch 的最小 `dist/` 权限修复后等待重跑。
+- [x] 使用真实模型执行 B4：3 iterations，三个 `write_file` 后执行 `run_command`，external evaluator 全部通过。
 
 **Tests**
 
@@ -332,10 +332,12 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] 记录第二次真实 B4：Agent `success`，3 iterations，三个 `write_file` 后执行 `run_command`；除 launch 外均通过。
 - [x] 将 B4 launch 写权限限制为 canonical `<workspace>/dist/`，保持其他路径只读并拒绝 symlink 目录。
 - [x] 增加启动时重建 dist 成功及越界写拒绝回归测试；全量 34 项通过。
+- [x] 完成最终真实 B4 验收：`evaluation.passed`、files、build、logic、UI、launch 均为 `true`，exit code 为 0。
+- [x] 完成 M4，证明真实模型可通过现有 Runtime 生成、构建并启动最小可玩浏览器卡牌项目。
 
 ## 下一步任务
 
-- [ ] 在本地重新执行 `npm run b4:real`，记录模型、iterations、Tool Calls、workspace 和 external evaluator 输出。
-- [ ] 若 B4 通过，人工打开保留的 workspace，确认 Strike 的基础可玩体验并记录非自动化观察。
-- [ ] 根据真实 B4 轨迹决定是否需要调整任务预算；不要提前加入 repair loop、Planner 或 Reflection Agent。
-- [ ] M4 后续决定是否需要真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。
+- [ ] M5：在现有 Runtime 外围实现 evaluator-feedback 自动修复循环，并保留逐轮轨迹。
+- [ ] 用故意首次失败的 B4 变体验证修复成功与最大修复次数终止。
+- [ ] 保持 evaluator 隔离，不增加 Planner、Memory、RAG 或 Multi-Agent。
+- [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

@@ -48,7 +48,24 @@ This run validates the ordered multi-Tool Runtime fix and the generated project 
 
 ## Status after launch fix
 
-The deterministic B4 contract, multi-Tool Runtime support, minimally writable launch evaluator, and real-model CLI are implemented. A post-launch-fix live rerun has not yet been claimed.
+The deterministic B4 contract, multi-Tool Runtime support, minimally writable launch evaluator, and real-model CLI are implemented.
+
+## Final successful live run
+
+- **Evidence source:** repository owner local run
+- **Model:** not repeated in the reported final-run summary
+- **Agent status:** `success`
+- **Agent iterations:** `3`
+- **Tool Calls:** `write_file` → `write_file` → `write_file` → `run_command`
+- **External evaluation:** `passed = true`
+- **Files valid:** `true`
+- **Build artifact matches:** `true`
+- **Logic passed:** `true`
+- **UI passed:** `true`
+- **Launch passed:** `true`
+- **Evaluator exit code:** `0`
+
+This run completes M4 acceptance. Success is based on the independent external evaluator, not the Agent's final text.
 
 ## Run
 
@@ -67,7 +84,7 @@ node project.mjs serve
 
 Then open `http://127.0.0.1:4173` and click **Strike**.
 
-## Record after the live run
+## Recorded evidence fields
 
 - model;
 - Agent status and iterations;
