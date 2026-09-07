@@ -36,12 +36,26 @@
 
 另一个确定性模型收到反馈后不修改文件。在 `maxRepairs = 1` 时，Runtime 保存 initial 和 repair 两次失败记录，并以 `repair_limit_reached` 停止，不虚报成功。
 
-## Scope
+## Deterministic test scope
 
-这是确定性集成测试，不是 `gpt-5.6` 的真实 repair 成功率实验。当前结论只证明 repair orchestration、反馈传递、Evaluator 隔离和终止预算能够工作。
+上述确定性测试只证明 repair orchestration、反馈传递、Evaluator 隔离和终止预算能够工作；真实模型证据记录如下。
 
-## 真实模型验收入口（待运行）
+## Real-model acceptance
 
 运行 `npm run b4:repair:real`。该入口让真实模型在首轮明确生成 Strike Damage=5 的完整项目，以稳定触发 B4 evaluator；repair round 则收到完整失败 JSON，并以标准 B4 的 Damage=6 需求为修复目标。
 
-输出会记录 model、每轮 Agent iterations、每轮 Tool Call 顺序、完整 evaluation、`repairsUsed` 和 `reachedRepairLimit`。在真实输出由用户提供前，本节不记录通过结论。
+2026-09-07 的本地真实运行结果：
+
+- model: `gpt-5.6`；
+- final status: `success`；
+- repairs used: `1`；
+- reached repair limit: `false`；
+- initial Agent iterations: `6`；
+- initial Tool Call sequence: 本次上报摘要未包含，保留为 `TBD`，不推测补写；
+- initial evaluator: `passed = false`, `logicPassed = false`；
+- initial failure: Strike 后 Enemy HP 实际为 15，预期为 14；
+- repair Agent iterations: `6`；
+- repair Tool Call sequence: 本次上报摘要未包含，保留为 `TBD`，不推测补写；
+- final evaluator: `passed = true`, `logicPassed = true`, `uiPassed = true`, `launchPassed = true`。
+
+结论：真实模型成功接收 evaluator 失败反馈并在一次 repair 内修复项目，M5 验收通过。两轮 Agent 都达到当前单次运行上限 6 iterations，但最终 evaluator 已通过，因此这是效率和终止行为的后续优化项，而不是 M5 blocker。后续应区分“第 6 轮正常返回 final”与“达到 `max_iterations`”，并观察真实任务上的平均 iterations，再决定是否调整提示或预算。

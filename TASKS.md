@@ -202,7 +202,8 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] evaluator 通过后立即结束；达到 repair 上限后返回明确的 `repair_limit_reached`；
 - [x] 故意错误的 B4 变体在一次 evaluator-guided repair 后通过完整 B4 evaluator。
 - [x] 准备 `npm run b4:repair:real` 真实模型验收入口和可复现的首轮故障注入；
-- [ ] 使用本地 API Key 完成真实模型 B4-REPAIR 验收并记录结果。
+- [x] 使用本地 API Key 完成真实模型 B4-REPAIR 验收：`gpt-5.6` 在 1 次 repair 后通过全部 evaluator，未达到 repair limit；
+- [ ] 非阻塞优化：两轮 Agent 均使用 6 iterations；补充区分正常第 6 轮结束与 `max_iterations`，并在更多真实任务上统计 iterations。
 
 **Tests**
 
