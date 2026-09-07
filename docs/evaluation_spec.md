@@ -232,4 +232,21 @@ D1—D4 仅作为面向人的分桶标签，底层难度由以下可观察特征
 - Combined check: `npm run check`
 - Runtime smoke test: serve the built project over HTTP and verify the entry page and compiled module load successfully.
 
+## 10. M7 Base-vs-SFT Holdout
+
+M7 使用 6 个 project-authored TypeScript holdout tasks：精确 stdout、修改已有函数、卡牌状态转换、网格邻居、目标选择和回合顺序。任务 family 使用 `benchmark:original:*`，运行前确定性检查其与 5 个训练 repository families 零重叠。
+
+公平条件：Base 与 SFT 均使用同一 `runAgent`、三种 Tool、`ToolExecutor`、隐藏 external evaluator、4 次 Agent iteration 上限、1 次 repair budget、greedy decoding 和 512 new-token 上限。Local adapter 的确定性 scaffold 只负责 read/write/run 顺序，Base/SFT 模型负责生成完整 TypeScript 文件。
+
+单次真实运行结果：
+
+| Metric | Base | SFT |
+|---|---:|---:|
+| Final / functional pass | 2/6 | 3/6 |
+| Build pass | 6/6 | 6/6 |
+| First-pass success | 2/6 | 3/6 |
+| Used repair | 4/6 | 3/6 |
+
+SFT 额外通过网格邻居任务，其他三个策略逻辑失败仍未被一次 repair 修复。该结果仅支持“观察到初步正向差异”，不支持统计显著性、因果归因或通用提升声明。后续必须扩大 family-isolated holdout、重复采样并报告区间。
+
 The first reference task and runtime comparison are recorded in `experiments/runtime-selection/`.

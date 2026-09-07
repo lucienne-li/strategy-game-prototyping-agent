@@ -16,7 +16,9 @@
     "b3:real": "npm run build && node dist/src/b3-real-model-cli.js",
     "b4:real": "npm run build && node dist/src/b4-real-model-cli.js",
     "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js",
-    "data:pilot:validate": "node data_pipeline/validate-pilot.mjs"
+    "sft:evaluate": "npm run build && node dist/src/sft-evaluation-cli.js",
+    "data:pilot:validate": "node data_pipeline/validate-pilot.mjs",
+    "data:expansion:validate": ".venv/bin/python -m unittest tests_py.test_data_expansion -v"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

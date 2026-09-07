@@ -60,6 +60,27 @@ def render_chat_samples(samples: Iterable[ChatSample], tokenizer: Any) -> list[d
     return rendered
 
 
+def encode_response_only(sample: ChatSample, tokenizer: Any, max_length: int) -> dict[str, list[int]]:
+    prompt_ids = tokenizer.apply_chat_template(
+        [sample.messages[0]], tokenize=True, add_generation_prompt=True
+    )
+    full_ids = tokenizer.apply_chat_template(
+        list(sample.messages), tokenize=True, add_generation_prompt=False
+    )
+    if full_ids[: len(prompt_ids)] != prompt_ids:
+        raise ValueError(f"chat template prompt is not a prefix for {sample.sample_id}")
+    input_ids = full_ids[:max_length]
+    prompt_length = min(len(prompt_ids), len(input_ids))
+    labels = [-100] * prompt_length + input_ids[prompt_length:]
+    if not any(label != -100 for label in labels):
+        raise ValueError(f"max_length masks the entire assistant response for {sample.sample_id}")
+    return {
+        "input_ids": input_ids,
+        "attention_mask": [1] * len(input_ids),
+        "labels": labels,
+    }
+
+
 def _validate_messages(value: object, source: Path, line_number: int) -> tuple[dict[str, str], ...]:
     if not isinstance(value, list) or len(value) != 2:
         raise ValueError(f"{source}:{line_number}: expected exactly user and assistant messages")

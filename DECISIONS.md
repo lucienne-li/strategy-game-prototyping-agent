@@ -170,3 +170,14 @@
 - **Why:** 当前机器无 GPU、15 GiB RAM。0.49B 模型保留代码与 chat 能力，LoRA 仅训练 270,336 个参数，可在本机完成 checkpoint 和重载验证。
 - **Evidence:** 7 条样本成功加载并模板化；固定最短样本上的 loss 为 `2.7908 → 2.7338 → 2.6706`；adapter 保存、重载和生成均成功。
 - **Boundary:** 这是刻意过拟合的训练链路 smoke test，不证明数据质量或模型能力提升。模型权重/checkpoint 不提交 Git；正式实验前需要扩大样本、独立复核、family split 和 Base-vs-SFT 评测。
+
+## D-022 — M7 使用半自动 24-sample Pipeline 和 scaffolded local evaluation
+
+- **Status:** Accepted for small-scale evaluation
+- **Data decision:** 在原 5 个 license/build-approved repository families 上扩到 25 个候选；独立本地模型复核、target hash 校验、精确去重与探索性 0.80 token-Jaccard gate 后接受 24 条、拒绝 1 条。
+- **Training decision:** 继续使用 Qwen2.5-Coder-0.5B-Instruct + CPU LoRA，全部 24 条样本训练 2 epochs，并只对 assistant response token 计算 loss。
+- **Evaluation decision:** 使用 6 个与训练 family 零重叠的 project-authored tasks。Base 和 SFT 共用 Agent Runtime、三种 Tool、4 iterations、1 repair 和 greedy generation；确定性 scaffold 负责 Tool 顺序，模型只负责完整 TypeScript 内容。
+- **Why:** 小模型无法可靠原生规划 Tool Calls，scaffold 可以在不改变安全执行与 evaluator 合约的前提下，隔离比较代码生成能力。它也避免为了一个小实验引入新 Agent 架构。
+- **Evidence:** Base final/functional 2/6，SFT 3/6；两者 build 均为 6/6。SFT 只额外通过 H4 grid-neighbors，属于初步正向信号而非有效性证明。
+- **Limit:** 独立 reviewer 与训练基座同属小模型家族，尚未进行人工双标校准；任务数为 6 且每题只跑一次；手工范围提取无法直接扩到 500+。
+- **Revisit when:** 完成 AST/symbol extraction、强 reviewer + sampled human agreement、跨仓 family/near-duplicate grouping、成本遥测和更大冻结 holdout 后。

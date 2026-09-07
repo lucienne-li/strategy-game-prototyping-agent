@@ -18,3 +18,14 @@ Run loader tests and the smoke test:
 ```
 
 The default base is `Qwen/Qwen2.5-Coder-0.5B-Instruct`. Generated checkpoints and `run.json` are written under ignored `artifacts/sft-smoke/`; do not commit model weights.
+
+## Small-scale comparison
+
+The follow-up experiment consumes all accepted v2 records, masks user/prompt tokens from loss, trains two CPU LoRA epochs, reloads the adapter, then compares Base and SFT under the same six external-evaluator tasks:
+
+```bash
+.venv/bin/python -m training.sft_evaluation.train
+npm run sft:evaluate
+```
+
+Outputs are written to ignored `artifacts/sft-evaluation/`. The comparison uses the existing Agent loop, restricted Executor and evaluator repair wrapper. A deterministic adapter scaffold handles read/write/run sequencing while the local Qwen worker supplies only the TypeScript contents; this experiment therefore measures code generation under the Runtime, not native local-model tool calling.

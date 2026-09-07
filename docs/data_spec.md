@@ -236,3 +236,29 @@ D1—D4 是从底层特征派生的展示标签，而不是生成模型凭感觉
 只有 Pilot 结果支持后，才决定是否扩展到约 2 万条或调整目标规模。
 
 M6 的实际结果见 `data_pipeline/reports/pilot-report.md`：5 个手工策展仓库均通过保守许可证政策和构建检查，8 个 G1/G2 单元中保留 7 条、拒绝 1 条。该规模仅允许验证格式和流程，不能证明 SFT 有效性。
+
+## 14. M7 Small Expansion Result
+
+M7 继续使用上述 5 个固定 commit，没有引入未重新验证 license/build 的来源。`pipeline/expansion-units.json` 定义 18 个新增代码范围；与 7 个 Pilot accepted records 合并后形成 25 个候选。
+
+确定性阶段与制品：
+
+1. `build_expansion.py`：从固定 checkout 提取指定范围，绑定 repo/commit/path/lines/license/family/hash；
+2. `review_candidates.py`：使用独立本地模型检查 alignment、granularity match、solvability，保存原始输出和耗时；
+3. `finalize_dataset.py`：校验 review 与 target hash，拒绝无效/失败 review，执行精确 hash 和 token Jaccard 近重复检查；
+4. `accepted-v2.jsonl`：24 条 G1/G2 chat records；`rejected-v2.jsonl`：1 条 fail-closed 审计记录。
+
+当前 24 条 accepted records 分布为 13 G1 / 11 G2、20 MIT / 4 BSD-2-Clause、5 个 repository families。训练与 6 个 project-authored holdout family 的交集为零。
+
+### Scale assessment
+
+Pipeline 的阶段边界、schema、provenance、review 和 rejection audit 已可复现，适合继续做小规模策展。以下能力仍是扩到 500 条前的缺口：
+
+- 自动 discovery、clone/commit pin、license evidence 与 sandboxed build queue；
+- TypeScript AST/符号和依赖上下文提取，替代手工行号范围；
+- 更强的 inverse-instruction generator 与 reviewer，并用人工双标样本校准；
+- 跨仓库 clone/fork/family 和语义近重复检测；
+- dataset version/split manifest、可恢复任务状态、token/时间/人工成本遥测；
+- benchmark contamination 自动阻断。
+
+因此当前结论是“半自动 Pipeline 结构可扩展”，不是“已可直接自动生产 2 万条”。

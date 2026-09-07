@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 6.1：SFT Technical Smoke Test（完成）**
+**Phase 7：Small-scale SFT Evaluation（完成）**
 
 ## Milestone Roadmap
 
@@ -283,35 +283,42 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 训练只重复一个最短样本以观测三步优化信号，不构成效果实验；完整数据训练、response-only masking、独立复核和 Base-vs-SFT 对比留待扩大样本后进行。
 
-### M7 — Inverse Instruction and Difficulty Pilot
+### M7 — Small-scale Data Expansion and SFT Evaluation
 
 **Objective**
 
-生成、评测少量多粒度反向 Instruction，验证难度体系后再规模化。
+将 Pilot 扩至约 20—30 条合格 G1/G2 样本，以相同 Runtime 和预算完成最小 Base-vs-SFT 对比，同时把数据步骤整理为可继续批量化的半自动 Pipeline。
 
 **Modules / Files**
 
-- `data_pipeline/`
-- 数据评测脚本
-- `docs/data_spec.md`
+- `data_pipeline/pipeline/`, `data_pipeline/reviews/`, `data_pipeline/samples/`
+- `training/sft_evaluation/`
+- `src/model/local-qwen-code-model.ts`, `src/evaluation/sft-holdout.ts`
+- `docs/sft_evaluation_run.md`
 
 **Acceptance Criteria**
 
-- Instruction 与目标代码范围匹配；
-- 具有结构化类别、粒度和难度证据；
-- 自动过滤结合人工抽检；
-- 明确通过率、主要失败类型和成本。
+- [x] 从 5 个已通过 license/build 的固定仓库形成 25 个候选；
+- [x] 独立本地模型复核 alignment、G1/G2 granularity 和 solvability，并 fail-closed；
+- [x] 精确去重与 0.80 token-Jaccard 探索性过滤后保留 24 条、拒绝 1 条；
+- [x] 使用全部 24 条样本、assistant-response-only loss、2 epochs 的 Qwen2.5-Coder-0.5B LoRA；
+- [x] 6 个 holdout task 与训练 repository family 零重叠；
+- [x] Base 与 SFT 使用相同 Agent Runtime、4 iterations 和 1 repair；
+- [x] 真实对比记录 success、build、functional、first-pass 和 repairs；Base 2/6，SFT 3/6；
+- [x] 明确结论仅为初步趋势，不声称统计显著或普遍提升。
 
 **Tests**
 
-- 双人标注一致性试验；
-- 代码—Instruction 一致性抽检；
-- 难度排序 pairwise 检查；
-- 数据泄漏检查。
+- [x] v2 committed artifact 和 finalization 可复现回归测试；
+- [x] assistant-only label masking 单元测试；
+- [x] local-model Adapter scaffold 单元测试；
+- [x] holdout repository-family 泄漏运行时检查；
+- [x] 44 个 Node 测试与 5 个 Python 测试通过；
+- [ ] 后续规模化前：使用强 reviewer 并完成抽样人工双标一致性试验。
 
 **Dependencies**
 
-- M6。
+- M6 与 M6.1。
 
 ### M8 — Dataset Scale-up and SFT
 
@@ -416,6 +423,10 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 完成 M5 确定性与单次 `gpt-5.6` 真实修复验收；单次成功不作为模型修复率统计。
 - [x] 完成 M6 首轮 5-repository Data Pilot、manifest schema、7 条 accepted JSONL 和 1 条拒绝审计记录。
 - [x] 完成 M6.1 CPU LoRA SFT smoke test，checkpoint 保存、重载和生成均通过。
-- [ ] 在训练有效性实验前，对 accepted 样本做独立复核并冻结 repository-family holdout。
-- [ ] 扩充到 20–50 条独立复核样本后，再设计正式 Base-vs-SFT 对比。
+- [x] 扩充到 25 个候选，独立模型复核后形成 24 条 accepted v2 和 1 条 rejected v2。
+- [x] 用 24 条完整样本、assistant-only masking 完成 2-epoch CPU LoRA；epoch loss 0.9432 → 0.8163，checkpoint 可重载。
+- [x] 在 6 个 family 隔离 holdout 上完成相同 Runtime/预算 Base-vs-SFT：2/6 vs 3/6，观察到单任务正向差异但不足以下效果结论。
+- [x] 将 extraction、review、filter/finalize 整理为可复现的半自动 Pipeline，并增加制品回归测试。
+- [ ] 在扩到约 100—500 条前，实现 AST/符号提取、强 reviewer + 人工双标校准、跨仓 family/near-duplicate 分组和成本遥测。
+- [ ] 扩张后冻结更大的 repository-family holdout，增加重复采样并重新验证趋势。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

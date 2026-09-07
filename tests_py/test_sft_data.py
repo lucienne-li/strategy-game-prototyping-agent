@@ -3,13 +3,22 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from training.sft_smoke.data import load_chat_samples, render_chat_samples
+from training.sft_smoke.data import encode_response_only, load_chat_samples, render_chat_samples
 
 
 class FakeTokenizer:
     def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
         self.assertion = (tokenize, add_generation_prompt)
         return "\n".join(f"<{message['role']}>{message['content']}" for message in messages)
+
+
+class FakeTokenizingChatTokenizer:
+    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+        if len(messages) == 1 and add_generation_prompt:
+            return [10, 11, 12]
+        if len(messages) == 2 and not add_generation_prompt:
+            return [10, 11, 12, 20, 21]
+        raise AssertionError("unexpected template call")
 
 
 class SftDataTest(unittest.TestCase):
@@ -34,6 +43,12 @@ class SftDataTest(unittest.TestCase):
             path.write_text(json.dumps(record) + "\n", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "failed alignment"):
                 load_chat_samples(path)
+
+    def test_response_only_encoding_masks_prompt_tokens(self):
+        sample = load_chat_samples("data_pipeline/samples/accepted.jsonl")[0]
+        encoded = encode_response_only(sample, FakeTokenizingChatTokenizer(), max_length=8)
+        self.assertEqual([10, 11, 12, 20, 21], encoded["input_ids"])
+        self.assertEqual([-100, -100, -100, 20, 21], encoded["labels"])
 
 
 if __name__ == "__main__":

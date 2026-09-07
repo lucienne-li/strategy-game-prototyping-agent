@@ -254,3 +254,7 @@ flowchart TB
 M6 离线 Pilot 不修改 `src/agent`、Model Adapter、Tool Executor 或 evaluator-repair loop。第三方 checkout 只存在于临时工作目录；仓库仅保留固定 manifest、获许可代码单元、SFT/rejection JSONL、notices、验证器与报告。`npm run data:pilot:validate` 是这些制品的确定性边界检查。
 
 M6.1 的 Python loader/LoRA 脚本只消费 accepted JSONL，并将 checkpoint 写入 ignored `artifacts/`。它不被 Online Agent 导入，也不改变 Model Adapter 或 Runtime。
+
+M7 将离线侧拆成三个显式批处理阶段：固定范围提取、独立静态复核、确定性过滤/去重；每阶段使用 JSON/JSONL 制品衔接并保留拒绝记录。当前 extraction spec 仍为人工策展，尚未加入 crawler、数据库或任务平台。
+
+为进行公平的小规模对比，`training/local_model_worker.py` 以持久子进程分别加载 Base 或 LoRA adapter；`ScaffoldedLocalCodeModel` 把模型生成的完整 TypeScript 文件映射到现有 read/write/run Tool 协议。两组继续复用 `runAgent`、`ToolExecutor`、external evaluator 和 repair orchestration。这个 adapter 是评测夹具，不替换产品中的 OpenAI Tool Calling Adapter，也不意味着本地 0.5B 模型具备原生工具规划能力。

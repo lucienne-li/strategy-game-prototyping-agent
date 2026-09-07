@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M6.1：SFT Technical Smoke Test 已完成**。
+项目处于 **M7：Small-scale SFT Evaluation 已完成**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -20,6 +20,8 @@
 - M5 已完成 `gpt-5.6` 真实 repair 验收：一次 repair 后通过 logic、UI 和 launch evaluator；
 - 已完成 5 个公开仓库的保守许可证与构建检查，提取 8 个 G1/G2 单元并保留 7 条 SFT JSONL；
 - 已使用 Qwen2.5-Coder-0.5B-Instruct + CPU LoRA 跑通 3-step SFT、checkpoint 保存、重载和生成；
+- 已将数据扩至 25 个候选，经独立模型复核后保留 24 个 G1/G2 样本；
+- 已用全部 24 条样本执行 response-only loss 的 2-epoch LoRA，并在 6 个 family 隔离 holdout 上完成同 Runtime Base-vs-SFT：最终功能通过 2/6 vs 3/6；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始大规模数据收集或正式 SFT；
@@ -90,8 +92,17 @@ Data Pilot 制品可用以下命令检查：
 npm run data:pilot:validate
 ```
 
-结果与限制见 [data_pipeline/reports/pilot-report.md](data_pipeline/reports/pilot-report.md)，训练候选位于 [data_pipeline/samples/accepted.jsonl](data_pipeline/samples/accepted.jsonl)。
+结果与限制见 [data_pipeline/reports/pilot-report.md](data_pipeline/reports/pilot-report.md) 和 [data_pipeline/reports/expansion-v2-report.md](data_pipeline/reports/expansion-v2-report.md)。当前训练集位于 [data_pipeline/samples/accepted-v2.jsonl](data_pipeline/samples/accepted-v2.jsonl)。
+
+小规模训练和 Base-vs-SFT 对比：
+
+```bash
+.venv/bin/python -m training.sft_evaluation.train
+npm run sft:evaluate
+```
+
+实际运行记录见 [docs/sft_evaluation_run.md](docs/sft_evaluation_run.md)。Checkpoint 和机器可读运行报告写入 ignored `artifacts/sft-evaluation/`。
 
 ## 下一步
 
-下一步是在评价训练收益前增加独立复核，并扩充到 20–50 条样本后设计 Base-vs-SFT 对比。Smoke test 记录见 [docs/sft_smoke_run.md](docs/sft_smoke_run.md)。
+下一步不应直接跳到 2 万条。先扩到约 100–500 条，并补齐 AST/符号级提取、强 reviewer + 人工双标校准、family/near-duplicate 分组、可恢复任务队列和成本遥测；随后在更大的冻结 holdout 上复验初步趋势。
