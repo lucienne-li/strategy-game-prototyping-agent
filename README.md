@@ -10,12 +10,13 @@
 
 ## 当前状态
 
-项目处于 **M4：第一个可玩浏览器卡牌原型垂直切片**。
+项目处于 **M5：Evaluator-Feedback Repair Loop 最小垂直切片**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
 - B1、B2、B3 已完成真实模型与独立 evaluator 验收；
-- 已准备 B4 完整浏览器项目生成入口，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动验收；
+- B4 已完成真实模型验收，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动；
+- 已实现外层 evaluator-feedback repair loop，默认最多修复 2 次并保留每次 Agent 与评测轨迹；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始 GitHub 数据收集或 SFT；
@@ -74,4 +75,4 @@ Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 
 
 ## 下一步
 
-下一步是在本地执行 `npm run b4:real`，记录真实模型生成与外部验收结果，再评审 M4 分支。详见 [TASKS.md](TASKS.md)。
+下一步是评审 M5 的确定性修复轨迹，并在进入离线数据试点前确认许可证政策和试点规模。详见 [TASKS.md](TASKS.md)。

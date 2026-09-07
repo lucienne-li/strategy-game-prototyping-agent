@@ -1,0 +1,17 @@
+{
+  "id": "B4-REPAIR",
+  "name": "repair-wrong-strike-damage",
+  "request": "Create the same playable Browser + TypeScript card prototype as B4 and verify its build.",
+  "failureInjection": {
+    "attempt": 1,
+    "defect": "Strike deals 5 damage instead of 6",
+    "expectedEnemyHpAfterStrike": 14,
+    "actualEnemyHpAfterStrike": 15
+  },
+  "repairExpectation": {
+    "inspectExistingSource": true,
+    "correctStrikeDamage": 6,
+    "rebuild": true,
+    "externalEvaluatorPassed": true
+  }
+}

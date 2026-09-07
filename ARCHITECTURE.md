@@ -114,6 +114,21 @@ M4 仍复用同一个 Model Adapter、Agent Loop、Tool schema 和 Executor。�
 
 首次 B4 真实运行表明，多文件任务会触发模型在一次响应中返回多个函数调用。Runtime 因此增加 `tool_calls` 批次输出，但没有新增 Agent 模块：默认每轮最多 8 项，合法批次严格串行执行；超限批次整体拒绝并作为一条失败 Observation 返回下一轮模型。6 次 Model iteration 上限保持不变。
 
+### M5 Evaluator-Feedback Repair Loop
+
+```mermaid
+flowchart TD
+    A["Existing runAgent"] --> E["External Evaluator"]
+    E -->|"Pass"| S["Success"]
+    E -->|"Fail + budget"| F["Repair Request"]
+    F --> A
+    E -->|"Fail + exhausted"| X["Repair Limit"]
+```
+
+`runWithEvaluatorRepair` 是现有 Runtime 外的一层确定性编排，不改变 Model Adapter、Agent Loop 或 Tool Executor。第一次执行使用原始需求；失败后把 evaluator 的结构化结果加入下一次请求，并在同一 workspace 再次调用 `runAgent`。默认 `maxRepairs = 2`，所以最多发生 1 次初始执行和 2 次修复执行；每次内部仍使用既有 iteration 和 Tool Call 限制。
+
+每个 attempt 保存 phase、实际 request、完整 `AgentRunResult` 和 external evaluation。Evaluator 函数仍由宿主 Runtime 持有，不进入 Agent workspace；模型只能收到评测结果，不能读取或修改 evaluator 实现。通过后立即终止，预算耗尽则返回 `repair_limit_reached` 和所有失败轨迹。
+
 ### LLM 与 Runtime 的责任线
 
 **LLM 可以决定：**
@@ -215,6 +230,7 @@ flowchart TB
 │   ├── agent/            # 循环、模型契约和 Fake Model
 │   ├── model/            # OpenAI Responses API Adapter
 │   ├── runtime/          # validation、workspace guard、executor
+│   ├── repair/           # evaluator-feedback 外层修复编排
 │   ├── evaluation/       # B1—B4 外部验收器
 │   ├── b1-real-model-cli.ts
 │   ├── b2-real-model-cli.ts
@@ -229,7 +245,7 @@ flowchart TB
 │   ├── b3/               # 最小卡牌逻辑任务
 │   └── b4/               # 可玩浏览器卡牌项目任务
 ├── examples/             # 通过验证的示例输入/输出
-└── data_pipeline/        # M5 数据试点时才创建
+└── data_pipeline/        # M6 数据试点时才创建
 ```
 
 不提前创建空的服务层、数据库层或插件系统。当前四个 evaluator 保持显式、任务专用；等出现真实重复模式后再考虑抽象通用 Evaluation/Repair Loop。

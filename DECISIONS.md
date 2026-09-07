@@ -142,3 +142,13 @@
 - **Why:** 允许常见的 build-before-serve 行为，同时避免将写权限扩大到整个 workspace、Repository 或 evaluator 所在区域。
 - **Verification:** reference serve 在启动时重建 `dist/game.js` 后通过 HTTP 检查；尝试写 `../outside.txt` 的 serve 被拒绝且没有创建外部文件。
 - **Scope:** 不修改 Agent Model、Loop、Tool、Planner 或修复策略；B1–B3 权限不变。
+
+## D-019 — M5 使用外层 evaluator-feedback repair orchestration
+
+- **Status:** Accepted for M5
+- **Decision:** 新增 `runWithEvaluatorRepair`，顺序执行现有 `runAgent` 与 external evaluator。默认最多 2 次 repair；第一次执行不计入 repair 数。
+- **Feedback contract:** evaluator 失败时，将完整结构化 evaluation 与原始需求组成下一次请求；同一 workspace 保留产物，但每次 Agent run 使用新的会话事件列表。
+- **Trace:** 保存每次 request、phase、`AgentRunResult` 和 evaluation；通过立即结束，耗尽返回 `repair_limit_reached`。
+- **Why:** B4 已证明生成与 evaluator 可独立工作，M5 只补齐用户目标中的最小“评测失败—修改—重测”闭环，不需要 Planner、Memory、RAG 或 Multi-Agent。
+- **Isolation:** evaluator 作为 Runtime callback 保留在 Agent workspace 外。Agent 只获得结果文本，不获得 evaluator 文件路径或源码。
+- **Evidence:** 确定性 B4 变体第一次错误造成 5 点伤害、Enemy HP=15；收到 evaluator 失败后读取源码、改为 6、重新 build，第二次完整 evaluator 通过。

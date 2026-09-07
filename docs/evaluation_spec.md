@@ -152,7 +152,18 @@ B1 已在 M1 通过 Fake Model 端到端执行，并在 M2 转为 Agent 临时�
 - Launch：真正启动生成的 `node project.mjs serve`，通过 HTTP 读取入口页和模块；子进程只读访问当前 canonical workspace，并仅可写入其中已经存在、非 symlink 的 `dist/`；
 - Isolation：evaluator 和 fixture 留在 Repository，不复制进 Agent 工作区；不把 evaluator 结果反馈给当前 Agent Loop。
 - 首次真实运行因 Adapter 拒绝同轮多个 Tool Calls 而提前终止；该 Runtime 限制已移除，后续 B4 结果需通过修复后的真实重跑确认。
-- 第二次真实运行已通过文件、构建、逻辑和 UI 验收；launch 因生成服务器启动时重建 `dist/` 而被只读权限拒绝。最小 `dist/` 写权限修复后仍需真实重跑确认。
+- 第二次真实运行已通过文件、构建、逻辑和 UI 验收；launch 因生成服务器启动时重建 `dist/` 而被只读权限拒绝。
+- 最终真实运行在最小 `dist/` 写权限修复后全部通过：files、build、logic、UI、launch 均为 `true`，exit code 为 0。
+
+### M5 Evaluator-Feedback Repair Evaluation
+
+- 默认预算：初始 Agent 执行 1 次，最多 repair 2 次；每次 Agent 执行继续使用既有 iteration/Tool 上限；
+- 终止：evaluation `passed = true` 时立即成功；预算内始终失败则返回 `repair_limit_reached`；
+- Trace：逐 attempt 保存原始或修复请求、Agent status/iterations/events 和完整 external evaluation；
+- Feedback：只把 evaluator 结果序列化进修复请求，不把 evaluator 源码或 fixture 复制进 workspace；
+- 验证任务：`benchmarks/b4-repair/task.json` 固定第一次候选的 Strike Damage=5，使 Enemy HP 变为 15；修复目标为 Damage=6、Enemy HP=14；
+- 确定性结果：第一次 evaluator 失败；repair Agent 调用 `read_file` → `write_file` → `run_command`；第二次 B4 evaluator 的 logic、UI、launch 全部通过；
+- 负向测试：不执行修复的模型在预算耗尽后保留两次失败 evaluation 并明确停止。
 
 ## 7. Difficulty Model
 

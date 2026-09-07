@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 4 / M4：Playable Browser Card Prototype（完成）**
+**Phase 5 / M5：Evaluator-Feedback Repair Loop（完成确定性垂直切片）**
 
 ## Milestone Roadmap
 
@@ -180,7 +180,43 @@
 
 M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair loop 或新的 Agent 层；这些能力只有在当前验证暴露具体缺口后再评估。
 
-### M5 — Offline Data Pilot
+### M5 — Evaluator-Feedback Repair Loop
+
+**Objective**
+
+在现有 Agent Runtime 外围增加最小自动修复编排：执行 Agent、运行 external evaluator，在失败且预算允许时把结构化评测结果反馈给模型，并在同一 workspace 继续修改。
+
+**Modules / Files**
+
+- `src/repair/evaluator-repair-loop.ts`
+- `benchmarks/b4-repair/task.json`
+- `tests/evaluator-repair-loop.test.ts`
+- `docs/m5_repair_run.md`
+
+**Acceptance Criteria**
+
+- [x] 复用现有 Model Adapter、`runAgent`、`ToolExecutor` 和三种 Tool；
+- [x] 默认最多 2 次 repair，不计第一次 Agent 执行；
+- [x] 每次 Agent 结果、evaluation、请求、阶段和顺序均保存在 trace；
+- [x] evaluator 仍在 Agent workspace 外，只反馈结构化结果而不暴露或复制 evaluator；
+- [x] evaluator 通过后立即结束；达到 repair 上限后返回明确的 `repair_limit_reached`；
+- [x] 故意错误的 B4 变体在一次 evaluator-guided repair 后通过完整 B4 evaluator。
+
+**Tests**
+
+- 首次候选将 Strike 伤害错误设为 5，evaluator 必须失败并观察到 Enemy HP 15；
+- repair Agent 必须读取现有源码、改为 6 点伤害并重新 build；
+- 第二次 evaluator 必须通过 logic、UI 和 launch；
+- 不修复的模型必须在上限处停止并保留全部失败轨迹；
+- 非法 `maxRepairs` 必须被拒绝。
+
+**Dependencies**
+
+- M4。
+
+M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loop；repair orchestration 只是复用现有 Agent 与 evaluator 的外层确定性循环。
+
+### M6 — Offline Data Pilot
 
 **Objective**
 
@@ -210,7 +246,7 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 
 - M0 数据政策；M4 的项目级执行评测能力可复用。
 
-### M6 — Inverse Instruction and Difficulty Pilot
+### M7 — Inverse Instruction and Difficulty Pilot
 
 **Objective**
 
@@ -238,9 +274,9 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 
 **Dependencies**
 
-- M5。
+- M6。
 
-### M7 — Dataset Scale-up and SFT
+### M8 — Dataset Scale-up and SFT
 
 **Objective**
 
@@ -267,9 +303,9 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 
 **Dependencies**
 
-- M6 证明数据方法有效；训练资源。
+- M7 证明数据方法有效；训练资源。
 
-### M8 — Ablations and Final Evaluation
+### M9 — Ablations and Final Evaluation
 
 **Objective**
 
@@ -289,7 +325,7 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 
 **Dependencies**
 
-- M7。
+- M8。
 
 ## 已完成
 
@@ -334,10 +370,12 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] 增加启动时重建 dist 成功及越界写拒绝回归测试；全量 34 项通过。
 - [x] 完成最终真实 B4 验收：`evaluation.passed`、files、build、logic、UI、launch 均为 `true`，exit code 为 0。
 - [x] 完成 M4，证明真实模型可通过现有 Runtime 生成、构建并启动最小可玩浏览器卡牌项目。
+- [x] 实现最多 2 次 repair 的 evaluator-feedback 外层循环，并保留逐次 Agent/evaluator trace。
+- [x] 用 B4 伤害错误变体证明首次失败后可 `read_file` → `write_file` → `run_command` 修复并通过。
+- [x] 验证 repair 上限终止、失败轨迹保留和参数校验；全量 38 项测试通过。
 
 ## 下一步任务
 
-- [ ] M5：在现有 Runtime 外围实现 evaluator-feedback 自动修复循环，并保留逐轮轨迹。
-- [ ] 用故意首次失败的 B4 变体验证修复成功与最大修复次数终止。
-- [ ] 保持 evaluator 隔离，不增加 Planner、Memory、RAG 或 Multi-Agent。
+- [ ] 评审 M5 的确定性修复轨迹；如需真实模型修复率，再单独定义可重复采样与成本记录，不用单次结果代替统计结论。
+- [ ] M6 开始前确认小规模开源数据试点的许可证政策和样本规模。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

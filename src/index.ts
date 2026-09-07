@@ -10,5 +10,12 @@ export type { B3Evaluation } from "./evaluation/b3-evaluator.js";
 export { B4_REQUEST, B4_REQUIRED_FILES, evaluateB4 } from "./evaluation/b4-evaluator.js";
 export type { B4Evaluation } from "./evaluation/b4-evaluator.js";
 export { OpenAIResponsesModel } from "./model/openai-responses-model.js";
+export { runWithEvaluatorRepair } from "./repair/evaluator-repair-loop.js";
+export type {
+  EvaluatorRepairOptions,
+  EvaluatorRepairResult,
+  ExternalEvaluation,
+  RepairAttempt
+} from "./repair/evaluator-repair-loop.js";
 export { ToolExecutor } from "./runtime/tool-executor.js";
 export { validateToolCall } from "./runtime/validation.js";
