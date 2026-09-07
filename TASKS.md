@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 6 / M6：Offline Data Pilot（最小方案与目录已建立，数据收集尚未开始）**
+**Phase 6 / M6：Offline Data Pilot（首轮 5-repository Pilot 已完成）**
 
 ## Milestone Roadmap
 
@@ -233,12 +233,15 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 **Acceptance Criteria**
 
-- [x] 冻结小规模方案：10 个手工策展候选、约 12 个 G1/G2 单元、至少 8 条合格样本；
+- [x] 按用户确认缩小并冻结方案：5 个手工策展候选、8 个 G1/G2 单元；
 - [x] 创建 `data_pipeline/manifests`、`samples`、`reports` 的最小目录契约；
-- [ ] 确认试点许可证政策并录入第一批候选 manifest；
-- [ ] 对候选执行 license、build、duplicate 和 code-quality 检查；
-- [ ] 提取代码单元并生成少量 inverse instruction；
-- [ ] 完成 alignment/granularity 人工复核和单位成本报告；
+- [x] 确认保守许可证政策并录入 5 个固定 commit 的候选 manifest；
+- [x] 对候选执行 license、build、duplicate 和 code-quality 检查；
+- [x] 提取 8 个代码单元并各生成 1 个 inverse instruction；
+- [x] 完成 alignment/granularity 静态复核：7 条保留、1 条拒绝；
+- [x] 输出 SFT chat JSONL、拒绝审计记录、第三方 notices 和 Pilot 报告；
+- [x] 增加离线制品校验器和回归测试，全量测试 40/40 通过；
+- [ ] 非阻塞优化：独立复核、生成 token/API 成本和人工分钟数尚未完成计量；
 - 处理一批小型、许可证明确的仓库；
 - 每个派生样本可追溯到 commit 和代码范围；
 - repository family 去重/隔离可执行；
@@ -246,10 +249,10 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 **Tests**
 
-- License 规则测试；
-- provenance 完整性测试；
-- fork/近重复样例测试；
-- 可复现构建抽查。
+- [x] License allowlist 和 manifest provenance 校验；
+- [x] fork/family/exact-target duplicate 校验；
+- [x] target content hash、G1/G2 和 quality gate 校验；
+- [x] 5 个固定 commit 的实际构建检查。
 
 **Dependencies**
 
@@ -386,6 +389,7 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 ## 下一步任务
 
 - [x] 完成 M5 确定性与单次 `gpt-5.6` 真实修复验收；单次成功不作为模型修复率统计。
-- [ ] 确认 M6 试点许可证政策，并按 `docs/data_pilot_plan.md` 人工录入 10 个候选仓库。
-- [ ] 定义最小 manifest schema 和 rejection reason codes 后，再实现单仓库验证脚本。
+- [x] 完成 M6 首轮 5-repository Data Pilot、manifest schema、7 条 accepted JSONL 和 1 条拒绝审计记录。
+- [ ] 在训练有效性实验前，对 accepted 样本做独立复核并冻结 repository-family holdout。
+- [ ] 可用现有 7 条 JSONL 做最小 trainer/format smoke test，但不得据此评价模型提升。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

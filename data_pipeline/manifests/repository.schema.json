@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/strategy-game-prototyping-agent/repository.schema.json",
+  "title": "Data Pilot Repository Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository_id", "url", "commit_sha", "category", "license", "build", "duplicate", "quality"],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "repository_id": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "url": { "type": "string", "pattern": "^https://github\\.com/" },
+    "commit_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "category": { "enum": ["card_deckbuilder", "turn_based_tactics", "tower_defense_resource"] },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdx_id", "file", "file_sha256", "verified"],
+      "properties": {
+        "spdx_id": { "enum": ["MIT", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0"] },
+        "file": { "type": "string" },
+        "file_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "verified": { "const": true }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_version", "install_command", "build_command", "status", "exit_code", "attempts", "duration_seconds"],
+      "properties": {
+        "node_version": { "type": "string" },
+        "install_command": { "type": "string" },
+        "build_command": { "type": "string" },
+        "status": { "enum": ["passed", "passed_with_compatibility_flag", "failed"] },
+        "exit_code": { "type": "integer" },
+        "attempts": { "type": "integer", "minimum": 1 },
+        "duration_seconds": { "type": "number", "minimum": 0 },
+        "warning": { "type": "string" }
+      }
+    },
+    "duplicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["is_fork", "family_id", "exact_duplicate"],
+      "properties": {
+        "is_fork": { "type": "boolean" },
+        "family_id": { "type": "string" },
+        "exact_duplicate": { "type": "boolean" }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["typescript_primary", "browser_game", "review_status"],
+      "properties": {
+        "typescript_primary": { "type": "boolean" },
+        "browser_game": { "type": "boolean" },
+        "review_status": { "enum": ["accepted", "accepted_with_warning", "rejected"] },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

@@ -15,7 +15,8 @@
     "b2:real": "npm run build && node dist/src/b2-real-model-cli.js",
     "b3:real": "npm run build && node dist/src/b3-real-model-cli.js",
     "b4:real": "npm run build && node dist/src/b4-real-model-cli.js",
-    "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js"
+    "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js",
+    "data:pilot:validate": "node data_pipeline/validate-pilot.mjs"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

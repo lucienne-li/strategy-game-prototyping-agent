@@ -153,11 +153,12 @@
 - **Isolation:** evaluator 作为 Runtime callback 保留在 Agent workspace 外。Agent 只获得结果文本，不获得 evaluator 文件路径或源码。
 - **Evidence:** 确定性 B4 变体第一次错误造成 5 点伤害、Enemy HP=15；收到 evaluator 失败后读取源码、改为 6、重新 build，第二次完整 evaluator 通过。真实 `gpt-5.6` 验收也在一次 repair 后通过 logic、UI 和 launch，未达到 repair limit；两次 Agent run 均使用 6 iterations，作为非阻塞效率优化项保留。
 
-## D-020 — M6 先做人工策展的小规模数据试点
+## D-020 — M6 采用五仓库人工策展试点与保守许可证政策
 
-- **Status:** Accepted for M6 design / WORKING ASSUMPTION for counts
-- **Decision:** 第一轮只建立 10 个 Browser/TypeScript 候选仓库的人工 manifest，期望从至少 4 个 build-passed 仓库提取约 12 个 G1/G2 单元，并获得至少 8 条通过质量检查的样本。
-- **Why:** 该规模足以暴露 license、构建、重复、代码拆分、instruction 对齐和成本问题，同时避免在未知有效产率前构建 crawler 或承诺 2 万条数据。
+- **Status:** Accepted / CONFIRMED
+- **Decision:** 用户将第一轮从 10 个缩小为 5 个 Browser/TypeScript 仓库：2 个卡牌、2 个 Tactics、1 个塔防/资源管理。只接受具有明确 `LICENSE` 文件的 MIT、BSD-2-Clause、BSD-3-Clause、Apache-2.0；GPL、AGPL、无许可证和不明确许可证拒绝。
+- **Why:** 五仓库足以快速暴露 license、构建、重复、代码拆分和 instruction 对齐问题，同时避免在未知产率前实现 crawler 或承诺 2 万条数据。
 - **Selection:** 优先许可证明确、固定 commit、Node 可构建的小型卡牌、回合制网格和轻量资源管理项目；同一 repository family 最多一个，排除 fork、教程副本、纯模板、生成产物和权利不明素材。
-- **Boundary:** M6 设计阶段不抓取仓库、不运行 inverse generation、不开始 SFT；Online Agent Runtime 不读取 Data Pilot 目录。
-- **Revisit when:** 第一批漏斗与成本报告完成后，基于实际通过率调整仓库数、粒度和自动化程度。
+- **Evidence:** 5/5 license 通过，5/5 build 通过（4 个直接、1 个兼容参数重试）；8 个 G1/G2 单元生成 8 个 instruction，静态复核保留 7 条、拒绝 1 条源代码行为不匹配样本。
+- **Boundary:** 不提交完整第三方 checkout、依赖、素材或构建产物；Online Agent Runtime 不读取 Data Pilot 目录；尚不进行正式 SFT。
+- **Revisit when:** 独立复核与更大样本试点完成后，再确定规模、近重复阈值和训练实验。

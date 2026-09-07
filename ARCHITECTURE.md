@@ -250,4 +250,4 @@ flowchart TB
 
 不提前创建空的服务层、数据库层或插件系统。当前四个 evaluator 保持显式、任务专用；等出现真实重复模式后再考虑抽象通用 Evaluation/Repair Loop。
 
-M6 仅创建离线目录和数据契约，不修改 `src/agent`、Model Adapter、Tool Executor 或 evaluator-repair loop。第三方 checkout 只应存在于临时工作目录，不提交到本仓库。
+M6 离线 Pilot 不修改 `src/agent`、Model Adapter、Tool Executor 或 evaluator-repair loop。第三方 checkout 只存在于临时工作目录；仓库仅保留固定 manifest、获许可代码单元、SFT/rejection JSONL、notices、验证器与报告。`npm run data:pilot:validate` 是这些制品的确定性边界检查。

@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M6：Offline Data Pilot 设计阶段**。
+项目处于 **M6：首轮 Offline Data Pilot 已完成**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -18,10 +18,10 @@
 - B4 已完成真实模型验收，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动；
 - 已实现外层 evaluator-feedback repair loop，默认最多修复 2 次并保留每次 Agent 与评测轨迹；
 - M5 已完成 `gpt-5.6` 真实 repair 验收：一次 repair 后通过 logic、UI 和 launch evaluator；
-- 已定义 10 个候选仓库的小规模 Data Pilot，但尚未收集代码或生成 instruction；
+- 已完成 5 个公开仓库的保守许可证与构建检查，提取 8 个 G1/G2 单元并保留 7 条 SFT JSONL；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
-- 尚未开始 GitHub 数据收集或 SFT；
+- 尚未开始大规模数据收集或正式 SFT；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
 
 ## 文档导航
@@ -83,6 +83,14 @@ Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 
 
 技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
 
+Data Pilot 制品可用以下命令检查：
+
+```bash
+npm run data:pilot:validate
+```
+
+结果与限制见 [data_pipeline/reports/pilot-report.md](data_pipeline/reports/pilot-report.md)，训练候选位于 [data_pipeline/samples/accepted.jsonl](data_pipeline/samples/accepted.jsonl)。
+
 ## 下一步
 
-下一步是人工确认 Data Pilot 的许可证政策，并建立第一批 10 个候选仓库 manifest。详见 [docs/data_pilot_plan.md](docs/data_pilot_plan.md) 和 [TASKS.md](TASKS.md)。
+下一步可先用 7 条 JSONL 做训练脚本/格式 smoke test；在评价训练收益前，应增加独立复核并扩充样本。详见 [docs/data_pilot_plan.md](docs/data_pilot_plan.md) 和 [TASKS.md](TASKS.md)。

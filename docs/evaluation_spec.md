@@ -25,7 +25,7 @@
 | 维度 | 指标/检查 | 方法 | 当前状态 |
 |---|---|---|---|
 | Provenance | commit、文件范围、处理版本完整率 | 确定性校验 | REQUIRED |
-| License | 允许/拒绝/人工复核比例 | 规则 + 人工复核 | POLICY TBD |
+| License | 允许/拒绝/人工复核比例 | 明确 LICENSE + allowlist + 人工复核 | MIT/BSD-2/BSD-3/Apache-2 only |
 | Buildability | 原始项目构建通过率 | 隔离构建 | REQUIRED |
 | Executability | 可启动/基础运行比例 | headless/运行检查 | REQUIRED where applicable |
 | Deduplication | exact、fork-family、near-duplicate 比例 | hash + family + 相似度 | REQUIRED |

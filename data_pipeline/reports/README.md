@@ -7,3 +7,5 @@
 - instruction-code alignment 与 granularity review；
 - API tokens/cost、build duration、retry count 和 human review minutes；
 - candidate repository → extracted unit → accepted sample 的真实转化率。
+
+首轮结果记录在 `pilot-report.md`。
