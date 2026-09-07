@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 6 / M6：Offline Data Pilot（首轮 5-repository Pilot 已完成）**
+**Phase 6.1：SFT Technical Smoke Test（完成）**
 
 ## Milestone Roadmap
 
@@ -258,6 +258,31 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 - M0 数据政策；M4 的项目级执行评测能力可复用。
 
+### M6.1 — SFT Technical Smoke Test
+
+**Objective**
+
+不评价模型效果，只验证 accepted JSONL → chat template → CPU LoRA → checkpoint → reload/generation 技术链路。
+
+**Acceptance Criteria**
+
+- [x] 确定性 loader 读取并验证 7 条 accepted samples；
+- [x] 使用基座原生 chat template 转换 user/assistant messages；
+- [x] `Qwen/Qwen2.5-Coder-0.5B-Instruct` 在 CPU 上完成 3 个 LoRA steps；
+- [x] 产生有限 loss，且固定样本上的 loss 从 2.7908 降至 2.6706；
+- [x] 保存 adapter checkpoint，重新加载后完成一次生成；
+- [x] checkpoint 保持在 ignored `artifacts/`，不提交模型权重。
+
+**Tests**
+
+- [x] loader 对实际 7 条数据和 chat-template 调用的单元测试；
+- [x] 失败 quality gate 样本拒绝测试；
+- [x] 真实 CPU 训练、checkpoint reload 和 generation smoke run。
+
+**Limit**
+
+训练只重复一个最短样本以观测三步优化信号，不构成效果实验；完整数据训练、response-only masking、独立复核和 Base-vs-SFT 对比留待扩大样本后进行。
+
 ### M7 — Inverse Instruction and Difficulty Pilot
 
 **Objective**
@@ -390,6 +415,7 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 - [x] 完成 M5 确定性与单次 `gpt-5.6` 真实修复验收；单次成功不作为模型修复率统计。
 - [x] 完成 M6 首轮 5-repository Data Pilot、manifest schema、7 条 accepted JSONL 和 1 条拒绝审计记录。
+- [x] 完成 M6.1 CPU LoRA SFT smoke test，checkpoint 保存、重载和生成均通过。
 - [ ] 在训练有效性实验前，对 accepted 样本做独立复核并冻结 repository-family holdout。
-- [ ] 可用现有 7 条 JSONL 做最小 trainer/format smoke test，但不得据此评价模型提升。
+- [ ] 扩充到 20–50 条独立复核样本后，再设计正式 Base-vs-SFT 对比。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

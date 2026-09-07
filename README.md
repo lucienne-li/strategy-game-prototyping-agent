@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M6：首轮 Offline Data Pilot 已完成**。
+项目处于 **M6.1：SFT Technical Smoke Test 已完成**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -19,6 +19,7 @@
 - 已实现外层 evaluator-feedback repair loop，默认最多修复 2 次并保留每次 Agent 与评测轨迹；
 - M5 已完成 `gpt-5.6` 真实 repair 验收：一次 repair 后通过 logic、UI 和 launch evaluator；
 - 已完成 5 个公开仓库的保守许可证与构建检查，提取 8 个 G1/G2 单元并保留 7 条 SFT JSONL；
+- 已使用 Qwen2.5-Coder-0.5B-Instruct + CPU LoRA 跑通 3-step SFT、checkpoint 保存、重载和生成；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 尚未开始大规模数据收集或正式 SFT；
@@ -93,4 +94,4 @@ npm run data:pilot:validate
 
 ## 下一步
 
-下一步可先用 7 条 JSONL 做训练脚本/格式 smoke test；在评价训练收益前，应增加独立复核并扩充样本。详见 [docs/data_pilot_plan.md](docs/data_pilot_plan.md) 和 [TASKS.md](TASKS.md)。
+下一步是在评价训练收益前增加独立复核，并扩充到 20–50 条样本后设计 Base-vs-SFT 对比。Smoke test 记录见 [docs/sft_smoke_run.md](docs/sft_smoke_run.md)。

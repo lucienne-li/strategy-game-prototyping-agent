@@ -162,3 +162,11 @@
 - **Evidence:** 5/5 license 通过，5/5 build 通过（4 个直接、1 个兼容参数重试）；8 个 G1/G2 单元生成 8 个 instruction，静态复核保留 7 条、拒绝 1 条源代码行为不匹配样本。
 - **Boundary:** 不提交完整第三方 checkout、依赖、素材或构建产物；Online Agent Runtime 不读取 Data Pilot 目录；尚不进行正式 SFT。
 - **Revisit when:** 独立复核与更大样本试点完成后，再确定规模、近重复阈值和训练实验。
+
+## D-021 — SFT smoke test 使用 Qwen2.5-Coder-0.5B-Instruct + CPU LoRA
+
+- **Status:** Accepted for technical smoke test
+- **Decision:** 使用 Apache-2.0 的 `Qwen/Qwen2.5-Coder-0.5B-Instruct`，通过 PyTorch CPU 与 PEFT LoRA 运行 3 个优化 step；训练依赖和代码与 Node Online Agent Runtime 隔离。
+- **Why:** 当前机器无 GPU、15 GiB RAM。0.49B 模型保留代码与 chat 能力，LoRA 仅训练 270,336 个参数，可在本机完成 checkpoint 和重载验证。
+- **Evidence:** 7 条样本成功加载并模板化；固定最短样本上的 loss 为 `2.7908 → 2.7338 → 2.6706`；adapter 保存、重载和生成均成功。
+- **Boundary:** 这是刻意过拟合的训练链路 smoke test，不证明数据质量或模型能力提升。模型权重/checkpoint 不提交 Git；正式实验前需要扩大样本、独立复核、family split 和 Base-vs-SFT 评测。

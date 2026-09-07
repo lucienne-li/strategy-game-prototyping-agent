@@ -245,9 +245,12 @@ flowchart TB
 │   ├── b3/               # 最小卡牌逻辑任务
 │   └── b4/               # 可玩浏览器卡牌项目任务
 ├── examples/             # 通过验证的示例输入/输出
-└── data_pipeline/        # M6 离线试点的 manifests、samples 与 reports
+├── data_pipeline/        # M6 离线试点的 manifests、samples 与 reports
+└── training/sft_smoke/   # 隔离的 Python CPU LoRA 技术链路验证
 ```
 
 不提前创建空的服务层、数据库层或插件系统。当前四个 evaluator 保持显式、任务专用；等出现真实重复模式后再考虑抽象通用 Evaluation/Repair Loop。
 
 M6 离线 Pilot 不修改 `src/agent`、Model Adapter、Tool Executor 或 evaluator-repair loop。第三方 checkout 只存在于临时工作目录；仓库仅保留固定 manifest、获许可代码单元、SFT/rejection JSONL、notices、验证器与报告。`npm run data:pilot:validate` 是这些制品的确定性边界检查。
+
+M6.1 的 Python loader/LoRA 脚本只消费 accepted JSONL，并将 checkpoint 写入 ignored `artifacts/`。它不被 Online Agent 导入，也不改变 Model Adapter 或 Runtime。
