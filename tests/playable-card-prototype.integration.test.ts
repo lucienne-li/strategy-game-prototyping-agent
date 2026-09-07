@@ -19,29 +19,26 @@ function responseWith(output: unknown[]): Response {
 test("existing Agent Runtime generates and externally validates the B4 project", async (context) => {
   const workspace = await mkdtemp(path.join(os.tmpdir(), "agent-b4-adapter-"));
   context.after(() => rm(workspace, { recursive: true, force: true }));
-  const responses = [
+  const projectCalls = [
     ["index.html", referenceIndex],
     ["src/game.ts", referenceGame],
     ["project.mjs", referenceProjectScript]
-  ].map(([filePath, content]) =>
+  ].map(([filePath, content]) => ({
+    type: "function_call",
+    name: "write_file",
+    arguments: JSON.stringify({ path: filePath, content })
+  }));
+  projectCalls.push({
+    type: "function_call",
+    name: "run_command",
+    arguments: JSON.stringify({ command: "node", args: ["project.mjs", "build"] })
+  });
+  const responses = [
+    responseWith(projectCalls),
     responseWith([
-      {
-        type: "function_call",
-        name: "write_file",
-        arguments: JSON.stringify({ path: filePath, content })
-      }
+      { type: "message", content: [{ type: "output_text", text: "SUCCESS: B4 build verified" }] }
     ])
-  );
-  responses.push(
-    responseWith([
-      {
-        type: "function_call",
-        name: "run_command",
-        arguments: JSON.stringify({ command: "node", args: ["project.mjs", "build"] })
-      }
-    ]),
-    responseWith([{ type: "message", content: [{ type: "output_text", text: "SUCCESS: B4 build verified" }] }])
-  );
+  ];
   let index = 0;
   const fakeFetch = (async () => {
     const response = responses[index++];
@@ -58,7 +55,7 @@ test("existing Agent Runtime generates and externally validates the B4 project",
   const evaluation = await evaluateB4(workspace);
 
   assert.equal(result.status, "success");
-  assert.equal(result.iterations, 5);
+  assert.equal(result.iterations, 2);
   assert.deepEqual(
     result.events.filter((event) => event.type === "tool_call").map((event) => event.call.tool),
     ["write_file", "write_file", "write_file", "run_command"]

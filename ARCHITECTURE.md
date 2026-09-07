@@ -14,7 +14,7 @@
 ```mermaid
 flowchart TB
     U["User Request"] --> M["Model Adapter"]
-    M -->|"Tool Call or Final"| V["Schema Validation"]
+    M -->|"Tool Call(s) or Final"| V["Schema Validation"]
     V --> X["Restricted Executor"]
     X --> O["Observation"]
     O -->|"Next iteration"| M
@@ -33,9 +33,9 @@ M1 验证了 Fake Model Tool Calling 闭环。M2 在不修改 `AgentModel` 和 A
 ### M1 实际执行顺序
 
 1. `runAgent` 将用户请求、迭代号和事件历史交给 `AgentModel.next`；
-2. Model 返回一个未知形态的 Tool Call 或 Final Response；
-3. Runtime 校验工具名、必需字段、额外字段和超时范围；
-4. `ToolExecutor` 在指定工作目录执行工具，并返回结构化 Observation；
+2. Model 返回一个 Tool Call、有序 Tool Call 批次或 Final Response；
+3. Runtime 先检查单轮批次数量，再逐个校验工具名、必需字段、额外字段和超时范围；
+4. `ToolExecutor` 按返回顺序逐个执行工具，每项分别产生结构化 Observation；某项失败不会被隐藏，也不会跳过同批后续项；
 5. Observation 加入事件历史，下一轮 Model 据此继续或结束；
 6. 6 次迭代内没有 Final Response 时，以 `max_iterations` 停止。
 
@@ -111,6 +111,8 @@ M4 仍复用同一个 Model Adapter、Agent Loop、Tool schema 和 Executor。�
 | `dist/game.js` | 由 Agent 执行 build 后产生的浏览器模块 |
 
 独立 B4 evaluator 不向 Agent 暴露源码或断言。它检查普通文件和 source/build 一致性，在只读 Node 子进程中验证初始状态、Strike 状态转换及模拟 DOM 点击，再用只读权限真实启动生成的 `project.mjs serve` 并通过 HTTP 请求入口页和浏览器模块。Evaluator 结果不会反馈给模型，因此本阶段没有新增 repair loop。
+
+首次 B4 真实运行表明，多文件任务会触发模型在一次响应中返回多个函数调用。Runtime 因此增加 `tool_calls` 批次输出，但没有新增 Agent 模块：默认每轮最多 8 项，合法批次严格串行执行；超限批次整体拒绝并作为一条失败 Observation 返回下一轮模型。6 次 Model iteration 上限保持不变。
 
 ### LLM 与 Runtime 的责任线
 

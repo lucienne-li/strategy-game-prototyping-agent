@@ -41,7 +41,7 @@ npm test
 npm run demo -- ./agent-workspace "创建一个 TypeScript 文件并验证输出 hello agent"
 ```
 
-Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。
+Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。模型单轮可以返回有序 Tool Call 批次；Runtime 默认每轮最多接受 8 个，并为每个调用分别校验、执行和记录 Observation。
 
 真实模型 B1 运行：
 

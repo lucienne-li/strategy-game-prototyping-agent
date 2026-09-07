@@ -37,6 +37,25 @@ test("reads credentials from the environment and converts a function call", asyn
   assert.equal(model.modelName, "test-model");
 });
 
+test("converts multiple function calls in model response order", async () => {
+  const fakeFetch = (async () =>
+    responseWith([
+      { type: "function_call", name: "write_file", arguments: JSON.stringify({ path: "first.txt", content: "1" }) },
+      { type: "function_call", name: "read_file", arguments: JSON.stringify({ path: "first.txt" }) },
+      { type: "function_call", name: "run_command", arguments: JSON.stringify({ command: "node", args: ["first.txt"] }) }
+    ])) as typeof globalThis.fetch;
+  const model = OpenAIResponsesModel.fromEnv({ env: { OPENAI_API_KEY: "test-key" }, fetch: fakeFetch });
+
+  assert.deepEqual(await model.next({ request: "batch", iteration: 1, events: [] }), {
+    type: "tool_calls",
+    calls: [
+      { tool: "write_file", path: "first.txt", content: "1" },
+      { tool: "read_file", path: "first.txt" },
+      { tool: "run_command", command: "node", args: ["first.txt"] }
+    ]
+  });
+});
+
 test("converts protocol-prefixed final text and rejects missing credentials", async () => {
   const fakeFetch = (async () =>
     responseWith([

@@ -59,7 +59,7 @@ const tools = [
 
 const instructions = [
   "You are a minimal coding agent operating in a temporary task workspace.",
-  "Use only the supplied tools and make at most one tool call in each response.",
+  "Use only the supplied tools. You may return up to 8 tool calls in one response; they execute sequentially in the order returned.",
   "All file paths must be relative to the workspace. The only executable currently allowed is node.",
   "Inspect tool observations before deciding whether the task succeeded.",
   "When the task is complete, respond without a tool call and start the text with SUCCESS:.",
@@ -181,11 +181,11 @@ export class OpenAIResponsesModel implements AgentModel {
     const functionCalls = payload.output.filter(
       (item): item is JsonRecord => isRecord(item) && item.type === "function_call"
     );
-    if (functionCalls.length > 1) {
-      throw new Error("model returned multiple tool calls; M2 supports one call per iteration");
-    }
     if (functionCalls.length === 1) {
       return { type: "tool_call", call: parseToolCall(functionCalls[0]) };
+    }
+    if (functionCalls.length > 1) {
+      return { type: "tool_calls", calls: functionCalls.map(parseToolCall) };
     }
 
     const text = extractOutputText(payload.output)?.trim();

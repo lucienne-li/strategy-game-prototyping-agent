@@ -164,7 +164,7 @@
 - [x] evaluator 触发按钮 click listener 并验证 DOM 数值更新；
 - [x] evaluator 以当前工作区只读权限启动生成的服务器并验证 HTTP 入口与模块；
 - [x] 确定性 Adapter → Runtime → evaluator 集成测试通过；
-- [ ] 使用真实模型执行 B4 并记录结果。
+- [~] 使用真实模型执行 B4 并记录结果：首次运行暴露多 Tool Call 协议限制，Runtime 修复后等待重跑。
 
 **Tests**
 
@@ -326,10 +326,13 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] 新增 B4 完整浏览器项目契约、真实模型运行入口和独立 evaluator。
 - [x] B4 evaluator 验证 build、确定性卡牌逻辑、DOM 点击更新和生成服务器 HTTP 启动。
 - [x] 保持既有 Agent 架构与三种 Tool，通过 28 个全量测试。
+- [x] 记录首次真实 B4 失败：`gpt-5.6` 在 iteration 2 返回多个 Tool Calls，旧 Adapter 提前终止。
+- [x] 扩展现有 ModelOutput 和 Agent Loop，支持每轮最多 8 个有序 Tool Calls，并保留逐项 Observation。
+- [x] 增加单调用、多调用、中间失败、数量超限和 B4 多调用端到端回归测试；全量 33 项通过。
 
 ## 下一步任务
 
-- [ ] 在本地执行 `npm run b4:real`，记录模型、iterations、Tool Calls、workspace 和 external evaluator 输出。
+- [ ] 在本地重新执行 `npm run b4:real`，记录模型、iterations、Tool Calls、workspace 和 external evaluator 输出。
 - [ ] 若 B4 通过，人工打开保留的 workspace，确认 Strike 的基础可玩体验并记录非自动化观察。
 - [ ] 根据真实 B4 轨迹决定是否需要调整任务预算；不要提前加入 repair loop、Planner 或 Reflection Agent。
 - [ ] M4 后续决定是否需要真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。

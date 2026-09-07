@@ -40,6 +40,7 @@ export type ModelContext = {
 
 export type ModelOutput =
   | { type: "tool_call"; call: unknown }
+  | { type: "tool_calls"; calls: readonly unknown[] }
   | { type: "final"; status: "success" | "failure"; message: string };
 
 export interface AgentModel {

@@ -5,12 +5,17 @@ export type AgentLoopOptions = {
   model: AgentModel;
   executor: ToolExecutor;
   maxIterations?: number;
+  maxToolCallsPerIteration?: number;
 };
 
 export async function runAgent(request: string, options: AgentLoopOptions): Promise<AgentRunResult> {
   const maxIterations = options.maxIterations ?? 6;
+  const maxToolCallsPerIteration = options.maxToolCallsPerIteration ?? 8;
   if (!Number.isInteger(maxIterations) || maxIterations < 1) {
     throw new Error("maxIterations must be a positive integer");
+  }
+  if (!Number.isInteger(maxToolCallsPerIteration) || maxToolCallsPerIteration < 1) {
+    throw new Error("maxToolCallsPerIteration must be a positive integer");
   }
 
   const events: AgentEvent[] = [];
@@ -37,9 +42,31 @@ export async function runAgent(request: string, options: AgentLoopOptions): Prom
       };
     }
 
-    const execution = await options.executor.execute(output.call);
-    if (execution.call) events.push({ type: "tool_call", call: execution.call });
-    events.push({ type: "tool_result", result: execution.result });
+    const calls = output.type === "tool_calls" ? output.calls : [output.call];
+    if (calls.length === 0) {
+      events.push({
+        type: "tool_result",
+        result: { tool: "unknown", ok: false, error: "model returned an empty tool call batch" }
+      });
+      continue;
+    }
+    if (calls.length > maxToolCallsPerIteration) {
+      events.push({
+        type: "tool_result",
+        result: {
+          tool: "unknown",
+          ok: false,
+          error: `model returned ${calls.length} tool calls; limit is ${maxToolCallsPerIteration} per iteration`
+        }
+      });
+      continue;
+    }
+
+    for (const call of calls) {
+      const execution = await options.executor.execute(call);
+      if (execution.call) events.push({ type: "tool_call", call: execution.call });
+      events.push({ type: "tool_result", result: execution.result });
+    }
   }
 
   return {

@@ -96,7 +96,7 @@
 - **Status:** Accepted for M2
 - **Decision:** 新增一个直接调用 Responses API 的 Adapter，继续实现既有 `AgentModel.next(context)`；不引入 SDK 或工作流框架。Key 只读取 `OPENAI_API_KEY`，模型由 `OPENAI_MODEL` 配置，当前默认 `gpt-5.6`。
 - **Why:** Responses API 原生提供函数工具调用；使用 Node 内置 `fetch` 可避免仅为一次 HTTP 调用增加 Dependency，并让 Provider 边界保持在一个文件内。
-- **Protocol:** 每轮最多一个 Tool Call；最终文本必须以 `SUCCESS:` 或 `FAILURE:` 开头。模型状态不是最终验收证据。
+- **Protocol at M2:** 最初每轮最多一个 Tool Call；该限制已被 D-017 基于 B4 真实失败证据替代。最终文本仍必须以 `SUCCESS:` 或 `FAILURE:` 开头，且模型状态不是最终验收证据。
 - **Reference:** [OpenAI function calling guide](https://platform.openai.com/docs/guides/function-calling)
 - **Revisit when:** 需要流式输出、重试策略、供应商切换或 API SDK 提供了已测的维护收益。
 
@@ -124,3 +124,12 @@
 - **Evaluation boundary:** evaluator 位于 Repository，行为检查和生成服务器都只读访问单一任务工作区。模型自述不计为通过，也不把 evaluator 失败反馈给模型。
 - **Trade-off:** `src/game.ts` 暂用浏览器兼容的 TypeScript 子集并采用确定性复制构建；它不是对复杂 TypeScript bundler、CSS 视觉质量或真实浏览器兼容性的完整验证。
 - **Roadmap note:** 原计划的 Offline Data Pilot 顺延为 M5；M4 优先补齐真实可玩项目垂直切片，使后续数据研究拥有项目级执行契约。
+
+## D-017 — Agent Loop 支持有界、有序的多 Tool Call 批次
+
+- **Status:** Accepted for M4
+- **Evidence:** 首次真实 B4 使用 `gpt-5.6`，在第 2 次 iteration 返回多个 Tool Calls；M2 Adapter 直接报错并终止，随后 evaluator 因缺少 `src/game.ts` 连锁失败。
+- **Decision:** 保留单 Tool Call 输出，并新增有序 `tool_calls` 批次。Agent Loop 默认每轮最多执行 8 项，逐项复用既有 schema、安全、路径和命令校验。
+- **Failure semantics:** 合法批次严格串行；中间项失败时保留真实 Observation 并继续后续项。超限批次整体不执行，只记录明确失败 Observation，避免不可预测的部分副作用。
+- **Why:** 多文件项目自然会让支持函数调用的模型在同一响应中创建多个文件。批次执行解决已观察到的协议不兼容，不需要 Planner、Memory、RAG、Multi-Agent 或独立 repair loop。
+- **Limits:** 仍保留 6 次 Model iteration 上限；默认上限使理论最大执行量为 48 个 Tool Calls，但每项继续受独立 timeout、文件大小、输出大小和工作区边界限制。
