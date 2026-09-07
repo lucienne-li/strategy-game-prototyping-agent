@@ -149,9 +149,10 @@ B1 已在 M1 通过 Fake Model 端到端执行，并在 M2 转为 Agent 临时�
 - Artifact/Build：所有目标必须是普通文件，且当前无依赖构建契约要求 `dist/game.js` 与 `src/game.ts` 一致；
 - Logic：独立导入构建模块，验证初始状态及一次 Strike 后的精确状态；
 - UI：使用 evaluator 控制的最小 DOM double 调用 `mountGame`，触发真实 click listener 并验证页面值由 20/3/20 更新为 20/2/14；
-- Launch：以只读任务目录权限真正启动生成的 `node project.mjs serve`，通过 HTTP 读取入口页和模块；
+- Launch：真正启动生成的 `node project.mjs serve`，通过 HTTP 读取入口页和模块；子进程只读访问当前 canonical workspace，并仅可写入其中已经存在、非 symlink 的 `dist/`；
 - Isolation：evaluator 和 fixture 留在 Repository，不复制进 Agent 工作区；不把 evaluator 结果反馈给当前 Agent Loop。
 - 首次真实运行因 Adapter 拒绝同轮多个 Tool Calls 而提前终止；该 Runtime 限制已移除，后续 B4 结果需通过修复后的真实重跑确认。
+- 第二次真实运行已通过文件、构建、逻辑和 UI 验收；launch 因生成服务器启动时重建 `dist/` 而被只读权限拒绝。最小 `dist/` 写权限修复后仍需真实重跑确认。
 
 ## 7. Difficulty Model
 

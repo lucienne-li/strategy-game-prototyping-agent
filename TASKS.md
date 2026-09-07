@@ -162,9 +162,9 @@
 - [x] 目标项目包含入口页、TypeScript 源码、build/serve 脚本和 build 产物；
 - [x] 独立 evaluator 验证文件、构建一致性、初始状态和 Strike 状态转换；
 - [x] evaluator 触发按钮 click listener 并验证 DOM 数值更新；
-- [x] evaluator 以当前工作区只读权限启动生成的服务器并验证 HTTP 入口与模块；
+- [x] evaluator 以 workspace 只读、仅 `dist/` 可写的最小权限启动生成服务器并验证 HTTP 入口与模块；
 - [x] 确定性 Adapter → Runtime → evaluator 集成测试通过；
-- [~] 使用真实模型执行 B4 并记录结果：首次运行暴露多 Tool Call 协议限制，Runtime 修复后等待重跑。
+- [~] 使用真实模型执行 B4 并记录结果：第二次运行已通过 files/build/logic/UI，launch 的最小 `dist/` 权限修复后等待重跑。
 
 **Tests**
 
@@ -329,6 +329,9 @@ M4 不加入真实浏览器自动化、视觉评分、evaluator-feedback repair 
 - [x] 记录首次真实 B4 失败：`gpt-5.6` 在 iteration 2 返回多个 Tool Calls，旧 Adapter 提前终止。
 - [x] 扩展现有 ModelOutput 和 Agent Loop，支持每轮最多 8 个有序 Tool Calls，并保留逐项 Observation。
 - [x] 增加单调用、多调用、中间失败、数量超限和 B4 多调用端到端回归测试；全量 33 项通过。
+- [x] 记录第二次真实 B4：Agent `success`，3 iterations，三个 `write_file` 后执行 `run_command`；除 launch 外均通过。
+- [x] 将 B4 launch 写权限限制为 canonical `<workspace>/dist/`，保持其他路径只读并拒绝 symlink 目录。
+- [x] 增加启动时重建 dist 成功及越界写拒绝回归测试；全量 34 项通过。
 
 ## 下一步任务
 

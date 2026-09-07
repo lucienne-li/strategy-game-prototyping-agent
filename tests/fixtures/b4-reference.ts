@@ -48,6 +48,8 @@ if (mode === 'build') {
   await copyFile('src/game.ts', 'dist/game.js');
   console.log('build complete');
 } else if (mode === 'serve') {
+  await mkdir('dist', { recursive: true });
+  await copyFile('src/game.ts', 'dist/game.js');
   const server = createServer(async (request, response) => {
     const file = request.url === '/dist/game.js' ? 'dist/game.js' : 'index.html';
     response.end(await readFile(file));

@@ -121,7 +121,7 @@
 - **Status:** Accepted for M4
 - **Decision:** B4 从空工作区生成 `index.html`、`src/game.ts` 和 `project.mjs`，由 `node project.mjs build` 生成 `dist/game.js`；不新增包管理器权限、第三方前端框架或 Agent 工具。
 - **Why:** 这是从单逻辑文件到完整可玩项目的最小增量，现有 `write_file` 和白名单 `node` 已足够验证生成、构建、DOM 交互和 HTTP 启动。
-- **Evaluation boundary:** evaluator 位于 Repository，行为检查和生成服务器都只读访问单一任务工作区。模型自述不计为通过，也不把 evaluator 失败反馈给模型。
+- **Evaluation boundary:** evaluator 位于 Repository；行为检查只读访问任务工作区，生成服务器按 D-018 仅可写其中的 `dist/`。模型自述不计为通过，也不把 evaluator 失败反馈给模型。
 - **Trade-off:** `src/game.ts` 暂用浏览器兼容的 TypeScript 子集并采用确定性复制构建；它不是对复杂 TypeScript bundler、CSS 视觉质量或真实浏览器兼容性的完整验证。
 - **Roadmap note:** 原计划的 Offline Data Pilot 顺延为 M5；M4 优先补齐真实可玩项目垂直切片，使后续数据研究拥有项目级执行契约。
 
@@ -133,3 +133,12 @@
 - **Failure semantics:** 合法批次严格串行；中间项失败时保留真实 Observation 并继续后续项。超限批次整体不执行，只记录明确失败 Observation，避免不可预测的部分副作用。
 - **Why:** 多文件项目自然会让支持函数调用的模型在同一响应中创建多个文件。批次执行解决已观察到的协议不兼容，不需要 Planner、Memory、RAG、Multi-Agent 或独立 repair loop。
 - **Limits:** 仍保留 6 次 Model iteration 上限；默认上限使理论最大执行量为 48 个 Tool Calls，但每项继续受独立 timeout、文件大小、输出大小和工作区边界限制。
+
+## D-018 — B4 launch 仅允许写入任务 workspace 的 dist
+
+- **Status:** Accepted for M4
+- **Evidence:** 多 Tool 修复后的真实 B4 已通过 files、build、logic 和 UI，但生成的 `project.mjs serve` 会在启动前重建 `dist/`，只读 launch 子进程因此触发 `ERR_ACCESS_DENIED FileSystemWrite`。
+- **Decision:** B4 行为 evaluator 继续只读；仅 launch 子进程增加 `<canonical workspace>/dist/` 写权限。`dist/` 必须已经存在、是 workspace 根下的真实目录且不是 symlink。
+- **Why:** 允许常见的 build-before-serve 行为，同时避免将写权限扩大到整个 workspace、Repository 或 evaluator 所在区域。
+- **Verification:** reference serve 在启动时重建 `dist/game.js` 后通过 HTTP 检查；尝试写 `../outside.txt` 的 serve 被拒绝且没有创建外部文件。
+- **Scope:** 不修改 Agent Model、Loop、Tool、Planner 或修复策略；B1–B3 权限不变。

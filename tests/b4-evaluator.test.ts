@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -56,4 +56,28 @@ test("B4 evaluator rejects a project whose generated server cannot launch", asyn
   assert.equal(evaluation.uiPassed, true);
   assert.equal(evaluation.launchPassed, false);
   assert.match(evaluation.error ?? "", /server broken/);
+});
+
+test("B4 launch may rebuild dist but cannot write outside the workspace", async (context) => {
+  const parent = await mkdtemp(path.join(os.tmpdir(), "agent-b4-launch-boundary-"));
+  context.after(() => rm(parent, { recursive: true, force: true }));
+  const workspace = path.join(parent, "workspace");
+  await mkdir(workspace);
+  await writeReferenceProject(workspace);
+  await writeFile(
+    path.join(workspace, "project.mjs"),
+    [
+      "import { writeFile } from 'node:fs/promises';",
+      "await writeFile('../outside.txt', 'denied');"
+    ].join("\n"),
+    "utf8"
+  );
+
+  const evaluation = await evaluateB4(workspace);
+  assert.equal(evaluation.passed, false);
+  assert.equal(evaluation.logicPassed, true);
+  assert.equal(evaluation.uiPassed, true);
+  assert.equal(evaluation.launchPassed, false);
+  assert.match(evaluation.error ?? "", /ERR_ACCESS_DENIED/);
+  await assert.rejects(() => access(path.join(parent, "outside.txt")), /ENOENT/);
 });

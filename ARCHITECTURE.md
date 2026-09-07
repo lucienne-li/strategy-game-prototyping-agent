@@ -74,7 +74,7 @@ M1 验证了 Fake Model Tool Calling 闭环。M2 在不修改 `AgentModel` 和 A
 | B1 Evaluator | `src/evaluation/b1-evaluator.ts` | Agent 结束后独立检查文件并重新执行，模型无法修改验收代码 |
 | Real-model CLI | `src/b1-real-model-cli.ts` | 创建临时工作区、运行 Agent、调用外部验收器并输出运行记录 |
 
-`run_command` 仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。Node 子进程自动启用 permission model，并拒绝模型传入权限放宽参数：Agent 执行器只允许读写本次任务目录，外部 evaluator 执行器只允许读取该目录。Executor 在授权和设置 `cwd` 前先把工作目录规范化为 canonical real path，避免 macOS 的 `/var` → `/private/var` 临时目录映射造成合法文件被拒绝。它提供 M2—M4 所需的最小进程隔离，但仍不是容器或生产级恶意代码沙箱。
+`run_command` 仅允许显式白名单中的可执行文件，参数以数组传递且 `shell: false`。Node 子进程自动启用 permission model，并拒绝模型传入权限放宽参数：Agent 执行器只允许读写本次任务目录，B1—B4 行为 evaluator 只允许读取该目录；B4 launch 的唯一例外是可写当前任务的 `dist/`。Executor 在授权和设置 `cwd` 前先把工作目录规范化为 canonical real path，避免 macOS 的 `/var` → `/private/var` 临时目录映射造成合法文件被拒绝。它提供 M2—M4 所需的最小进程隔离，但仍不是容器或生产级恶意代码沙箱。
 
 ### B1 外部验收边界
 
@@ -110,7 +110,7 @@ M4 仍复用同一个 Model Adapter、Agent Loop、Tool schema 和 Executor。�
 | `project.mjs` | 无第三方依赖的 build/serve 入口 |
 | `dist/game.js` | 由 Agent 执行 build 后产生的浏览器模块 |
 
-独立 B4 evaluator 不向 Agent 暴露源码或断言。它检查普通文件和 source/build 一致性，在只读 Node 子进程中验证初始状态、Strike 状态转换及模拟 DOM 点击，再用只读权限真实启动生成的 `project.mjs serve` 并通过 HTTP 请求入口页和浏览器模块。Evaluator 结果不会反馈给模型，因此本阶段没有新增 repair loop。
+独立 B4 evaluator 不向 Agent 暴露源码或断言。它检查普通文件和 source/build 一致性，在只读 Node 子进程中验证初始状态、Strike 状态转换及模拟 DOM 点击。Launch 子进程可读取 canonical task workspace，但只可写入已经存在、非 symlink 的 `<workspace>/dist/`，以兼容启动时重新构建产物的项目；它随后通过 HTTP 请求入口页和浏览器模块。Evaluator 结果不会反馈给模型，因此本阶段没有新增 repair loop。
 
 首次 B4 真实运行表明，多文件任务会触发模型在一次响应中返回多个函数调用。Runtime 因此增加 `tool_calls` 批次输出，但没有新增 Agent 模块：默认每轮最多 8 项，合法批次严格串行执行；超限批次整体拒绝并作为一条失败 Observation 返回下一轮模型。6 次 Model iteration 上限保持不变。
 

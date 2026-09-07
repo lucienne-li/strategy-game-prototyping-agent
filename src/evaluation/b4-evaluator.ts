@@ -125,10 +125,25 @@ function createEvaluatorScript(html: string): string {
 
 async function verifyGeneratedServer(workspace: string): Promise<{ passed: boolean; error?: string }> {
   const canonicalWorkspace = realpathSync(workspace);
+  const distPath = path.join(canonicalWorkspace, "dist");
+  const distStats = await lstat(distPath);
+  if (!distStats.isDirectory() || distStats.isSymbolicLink()) {
+    return { passed: false, error: "dist must be a regular directory inside the B4 workspace" };
+  }
+  const canonicalDist = realpathSync(distPath);
+  if (path.dirname(canonicalDist) !== canonicalWorkspace) {
+    return { passed: false, error: "dist resolves outside the B4 workspace" };
+  }
   const port = await reservePort();
   const child = spawn(
     process.execPath,
-    ["--permission", `--allow-fs-read=${canonicalWorkspace}`, "project.mjs", "serve"],
+    [
+      "--permission",
+      `--allow-fs-read=${canonicalWorkspace}`,
+      `--allow-fs-write=${canonicalDist}`,
+      "project.mjs",
+      "serve"
+    ],
     {
       cwd: canonicalWorkspace,
       shell: false,
