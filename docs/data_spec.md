@@ -299,3 +299,7 @@ units.jsonl
 确定性 gate 检查完整句、45–140 words、精确文件与 symbol scope、behavior/constraint 在 instruction 中的覆盖、required context 是否属于已声明上下文、G1/G2 范围、target delimiter/symbol 结构以及 duplicate/family cap。任何一项失败均在调用强 reviewer 前直接 reject。通过者再由 `gpt-5.6` 独立判断 behavior consistency、granularity match 和 missing context，只有明确 `pass` 才可进入最终集。
 
 行为验证采取保守策略：仅对无参数、返回安全 literal/object 且可在 Node permission model 中独立执行的代码运行 deterministic harness；其余标为 `not_eligible`，不以 repository build 冒充 unit-level functional pass。当前静态重检发现 438/440 结构通过、2 条不完整 target 失败，1 条满足并通过窄行为执行条件。
+
+### Dependency boundary
+
+quality-v2 的 Python 阶段只使用标准库，依赖文件为 `data_pipeline/requirements-quality.txt`；Node target validation 复用仓库已有 devDependencies。本地质量处理不得安装 `training/requirements-scale.txt`，其中的 PyTorch、Accelerate 和 bitsandbytes 只属于云 GPU QLoRA 训练。

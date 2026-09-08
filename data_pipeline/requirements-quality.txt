@@ -1,0 +1,2 @@
+# Intentionally empty: quality-repair uses only the Python standard library.
+# Node-based target validation uses the repository devDependencies installed by npm.

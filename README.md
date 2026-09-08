@@ -108,9 +108,15 @@ npm run sft:evaluate
 只重处理固定 440 code units 的 quality-v2 流程：
 
 ```bash
+python3 -m venv .venv-quality
+.venv-quality/bin/python -m pip install -r data_pipeline/requirements-quality.txt
+npm install
 export OPENAI_API_KEY="..."
+export QUALITY_PYTHON="$PWD/.venv-quality/bin/python"
 npm run data:scale:quality-repair
 ```
+
+`requirements-quality.txt` 当前不包含第三方 Python 包，因为 quality-repair 只使用 Python 标准库；它不会安装 `bitsandbytes`、CUDA、PyTorch 或训练依赖。`training/requirements-scale.txt` 仅供后续云 GPU QLoRA 使用。若本机已有可用的 Python 3 和仓库 Node 依赖，也可不创建虚拟环境，直接设置 Key 后运行 npm 命令。
 
 批量数据流程与正式 Qwen3-4B 实验：
 

@@ -209,3 +209,10 @@
 - **Behavior evidence:** 只执行可证明安全且自包含的极窄单元；其他样本保留 repository build 证据并标记 unit behavior test `not_eligible`，不得把 build 冒充功能正确性。
 - **Training boundary:** 旧 186 条 freeze 仅作为 v1 历史基线。`training/sft_scale/train.py` 拒绝非 `m8-qwen3-4b-quality-v2` freeze，直到强 reviewer 全量完成并重新冻结。
 - **Why:** 质量问题来自生产过程，继续人工抽检只能测量问题，无法修复它。结构化契约、自动 gate、独立强 reviewer 和有限行为证据使拒绝原因可复现，并阻止旧低质量记录静默进入训练。
+
+## D-026 — Data Quality 与 QLoRA 使用独立依赖边界
+
+- **Status:** Accepted / CONFIRMED
+- **Decision:** `data:scale:quality-repair` 使用 `python3` 或 `QUALITY_PYTHON` 指定的独立解释器；`data_pipeline/requirements-quality.txt` 只描述质量流程依赖，当前因全部使用标准库而不含第三方包。`training/requirements-scale.txt` 保留给云 GPU QLoRA。
+- **Why:** `bitsandbytes` 是量化训练依赖，不支持当前 Intel macOS 环境，也不参与 instruction 生成、API review、JSONL finalization 或 Node target validation。把它装进本地质量环境会制造不必要的平台阻塞。
+- **Affected:** 仅安装与运行说明、npm 入口和依赖文件；不改变 quality-v2 Pipeline 逻辑或数据输出。

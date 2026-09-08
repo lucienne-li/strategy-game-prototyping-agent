@@ -53,10 +53,16 @@ npm run data:scale:run
 旧流程的 48 条抽检和 186 条 freeze 保留为 v1 历史证据，但不再作为正式训练输入。quality-v2 只重处理已有 440 units，运行入口如下；需要 `OPENAI_API_KEY`，生成器和 reviewer 模型可分别由参数或 `DATA_GENERATOR_MODEL` / `DATA_REVIEWER_MODEL` 配置，默认均为 `gpt-5.6`：
 
 ```bash
+python3 -m venv .venv-quality
+.venv-quality/bin/python -m pip install -r data_pipeline/requirements-quality.txt
+npm install
+export QUALITY_PYTHON="$PWD/.venv-quality/bin/python"
 npm run data:scale:quality-repair
 ```
 
 命令按 target validation、结构化生成、确定性预检、强模型 review 和 finalization 顺序执行并可断点恢复。没有 strong review 的候选一律 reject；全量完成并生成新的 quality-v2 freeze 前，Qwen3-4B 正式训练保持暂停。
+
+quality-repair 的 Python 代码只依赖标准库，因此 `requirements-quality.txt` 有意不声明第三方包。不要为本地数据质量处理安装 `training/requirements-scale.txt`；后者包含 `bitsandbytes` 等云 GPU QLoRA 专用依赖。
 
 约束：
 

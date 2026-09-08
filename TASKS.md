@@ -395,6 +395,7 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 对安全可独立执行的极窄代码单元运行 deterministic behavior harness，其余明确标记 `not_eligible`；
 - [x] 最终 reviewer 默认使用 `gpt-5.6`，只返回 pass/fail、失败类别和 reason；
 - [x] 生成、review 和 finalize 均支持 JSONL checkpoint/resume；
+- [x] 将本地 quality-repair 与 CUDA/QLoRA requirements 解耦；quality 环境无第三方 Python 依赖；
 - [!] 对固定 440 units 完成强模型全量重跑并替换 `accepted.jsonl`；当前执行环境没有 `OPENAI_API_KEY`，不得伪造结果或沿用旧 reviewer；
 - [ ] 生成新的 quality-v2 freeze manifest 后解除正式训练暂停。
 

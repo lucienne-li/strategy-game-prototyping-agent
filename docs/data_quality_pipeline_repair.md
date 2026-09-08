@@ -25,11 +25,17 @@ Target validation has been executed for all 440 units: 438 pass the conservative
 From a checkout containing the committed fixed-unit artifacts:
 
 ```bash
+python3 -m venv .venv-quality
+.venv-quality/bin/python -m pip install -r data_pipeline/requirements-quality.txt
+npm install
 export OPENAI_API_KEY="..."
 export DATA_GENERATOR_MODEL="gpt-5.6"
 export DATA_REVIEWER_MODEL="gpt-5.6"
+export QUALITY_PYTHON="$PWD/.venv-quality/bin/python"
 npm run data:scale:quality-repair
 ```
+
+The quality environment intentionally contains no third-party Python packages. All Python stages use the standard library, while `validate-targets.mjs` uses the repository's existing Node environment. `training/requirements-scale.txt`, including `bitsandbytes`, remains isolated to the later CUDA/QLoRA training environment and must not be installed for this command.
 
 The stages checkpoint to:
 
