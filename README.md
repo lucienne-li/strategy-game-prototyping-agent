@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M8：质量抽检与实验冻结已完成，Qwen3-4B 云 GPU 实验待运行**。
+项目处于 **M8.1：修复 Data Quality Pipeline；Qwen3-4B 正式训练暂停**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -26,6 +26,7 @@
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
 - 已对 28 个候选仓库运行可恢复的 license/install/build 批处理：17 个通过，抽取 440 个 G1/G2 候选；初筛 334 条，经 48 条分层人工抽检和全量明显缺陷 gate 后冻结 186 条训练样本；
 - 已冻结 24 个 repository-family 隔离 holdout，并准备 `Qwen/Qwen3-4B` QLoRA 与同预算 Base-vs-SFT 入口；当前工作区无 CUDA，正式训练和对比尚未运行；
+- 已将 80-token 生成路径替换为 strict scoped JSON + 512-token 完整响应，并增加确定性 consistency gate、窄行为执行和 `gpt-5.6` 最终 reviewer；旧 186 条 freeze 只保留为历史基线，quality-v2 全量 review 前训练入口会拒绝启动；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
 
 ## 文档导航
@@ -104,6 +105,13 @@ npm run sft:evaluate
 
 实际运行记录见 [docs/sft_evaluation_run.md](docs/sft_evaluation_run.md)。Checkpoint 和机器可读运行报告写入 ignored `artifacts/sft-evaluation/`。
 
+只重处理固定 440 code units 的 quality-v2 流程：
+
+```bash
+export OPENAI_API_KEY="..."
+npm run data:scale:quality-repair
+```
+
 批量数据流程与正式 Qwen3-4B 实验：
 
 ```bash
@@ -117,4 +125,4 @@ npm run sft:scale:evaluate
 
 ## 下一步
 
-下一步是在 16 GB 最低、24 GB 推荐的云 GPU 上执行冻结的 Qwen3-4B QLoRA 和 24-task Base-vs-SFT：先安装依赖，再运行 `npm run sft:scale:cloud`。本轮不继续扩大数据；只有正式结果与更强 reviewer 校准完成后，才重新讨论数千条规模。
+下一步是先在配置 `OPENAI_API_KEY` 的环境完成固定 440 units 的 quality-v2 生成与强 review，记录最终 accepted/reject reasons 并重新冻结。之后才在 16 GB 最低、24 GB 推荐的云 GPU 上运行 Qwen3-4B QLoRA；本轮不新增仓库或样本来源。

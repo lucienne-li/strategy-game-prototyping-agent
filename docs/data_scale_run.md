@@ -1,5 +1,7 @@
 # M8 Data Scale-up Run
 
+> Superseded for formal training: the 334 pre-audit / 186 v1 freeze exposed systematic generation and reviewer failures. See `docs/data_quality_pipeline_repair.md`; Qwen3-4B training is paused until quality-v2 finishes.
+
 ## Scope
 
 This run scales the Browser + TypeScript G1/G2 pilot without adding a crawler, database or distributed platform. Repository discovery was manually curated; all downstream stages are batchable and resumable.

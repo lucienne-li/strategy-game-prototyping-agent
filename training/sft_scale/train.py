@@ -157,6 +157,7 @@ def verify_freeze(args: argparse.Namespace, freeze: dict) -> None:
     expected = freeze["experiment"]
     training = expected["training"]
     checks = {
+        "quality-v2 freeze": freeze.get("freeze_name") == "m8-qwen3-4b-quality-v2",
         "dataset path": str(data.as_posix()) == freeze["dataset"]["path"],
         "dataset hash": digest == freeze["dataset"]["sha256"],
         "base model": args.model == expected["base_model"],

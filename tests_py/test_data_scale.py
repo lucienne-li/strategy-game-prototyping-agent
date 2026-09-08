@@ -55,7 +55,7 @@ class ScaleDatasetTests(unittest.TestCase):
         self.assertTrue(all(item["repository_family_id"] in allowed for item in units))
         self.assertTrue(all(item["granularity"] in {"G1", "G2"} for item in units))
 
-    def test_final_dataset_is_training_ready_and_reproducible(self) -> None:
+    def test_v1_frozen_dataset_remains_available_during_quality_v2_rebuild(self) -> None:
         accepted = rows("accepted.jsonl")
         self.assertEqual(len(accepted), 186)
         self.assertTrue(all(not item["metadata"]["repository_family_id"].startswith("benchmark:") for item in accepted))
@@ -63,18 +63,10 @@ class ScaleDatasetTests(unittest.TestCase):
             quality = item["metadata"]["quality"]
             self.assertEqual((quality["alignment"], quality["granularity_match"], quality["solvability"]), ("pass", "pass", "pass"))
 
-        with tempfile.TemporaryDirectory() as temporary:
-            output = Path(temporary)
-            subprocess.run([
-                sys.executable,
-                str(SCALE / "finalize_scale.py"),
-                "--accepted", str(output / "accepted.jsonl"),
-                "--rejected", str(output / "rejected.jsonl"),
-            ], cwd=ROOT, check=True, capture_output=True, text=True)
-            self.assertEqual((output / "accepted.jsonl").read_bytes(), (SCALE / "accepted.jsonl").read_bytes())
-            self.assertEqual((output / "rejected.jsonl").read_bytes(), (SCALE / "rejected.jsonl").read_bytes())
+        # quality-v2 is fail-closed and only replaces these artifacts after its
+        # strong-model review has actually completed.
 
-    def test_stratified_audit_and_freeze_are_complete(self) -> None:
+    def test_v1_stratified_audit_is_preserved_and_freeze_is_invalidated(self) -> None:
         audit = rows("quality-audit-reviewed.jsonl")
         self.assertEqual(len(audit), 48)
         self.assertEqual(Counter((item["category"], item["granularity"]) for item in audit), Counter({
@@ -90,11 +82,12 @@ class ScaleDatasetTests(unittest.TestCase):
         completed = subprocess.run(
             [sys.executable, str(SCALE / "verify_freeze.py")],
             cwd=ROOT,
-            check=True,
+            check=False,
             capture_output=True,
             text=True,
         )
-        self.assertIn('"status": "verified"', completed.stdout)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("frozen experiment mismatch", completed.stderr)
 
 
 if __name__ == "__main__":

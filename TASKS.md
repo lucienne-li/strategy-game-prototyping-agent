@@ -381,6 +381,29 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 - M8。
 
+### M8.1 — Data Quality Pipeline Repair
+
+**Objective**
+
+暂停 Qwen3-4B 正式训练，针对 440 个既有 code units 修复反向 instruction 生成与放行机制，不增加仓库或依赖重复人工抽检。
+
+**Acceptance Criteria**
+
+- [x] 移除 80-token 输出路径；结构化生成使用 512-token 上限，未完成响应重试后仍失败则 reject；
+- [x] 每条候选强制记录 target file、target symbol、expected behavior、constraints 和 required context；
+- [x] 确定性 gate 对 scope、完整句、上下文、粒度、target 结构和重复执行 fail-closed 检查；
+- [x] 对安全可独立执行的极窄代码单元运行 deterministic behavior harness，其余明确标记 `not_eligible`；
+- [x] 最终 reviewer 默认使用 `gpt-5.6`，只返回 pass/fail、失败类别和 reason；
+- [x] 生成、review 和 finalize 均支持 JSONL checkpoint/resume；
+- [!] 对固定 440 units 完成强模型全量重跑并替换 `accepted.jsonl`；当前执行环境没有 `OPENAI_API_KEY`，不得伪造结果或沿用旧 reviewer；
+- [ ] 生成新的 quality-v2 freeze manifest 后解除正式训练暂停。
+
+**Tests**
+
+- [x] 截断、scope mismatch、missing context 和缺少强 review 均有 fail-closed 回归测试；
+- [x] 440 个 target 均生成结构/执行资格记录；其中 438 个结构通过、2 个结构失败、1 个通过极窄 deterministic behavior test；
+- [ ] 记录全量 accepted 数与 reject reason 分布。
+
 ## 已完成
 
 - [x] 初始化 Git Repository。

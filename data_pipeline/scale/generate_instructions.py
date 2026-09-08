@@ -2,121 +2,109 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-import time
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from openai_json import request_json
+
+
+PIPELINE_VERSION = "quality-v2"
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "target_file": {"type": "string"},
+        "target_symbol": {"type": "string"},
+        "expected_behavior": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8},
+        "constraints": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 6},
+        "required_context": {"type": "array", "items": {"type": "string"}, "maxItems": 16},
+        "instruction": {"type": "string"},
+    },
+    "required": ["target_file", "target_symbol", "expected_behavior", "constraints", "required_context", "instruction"],
+    "additionalProperties": False,
+}
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate inverse instructions for extracted TypeScript units with checkpoint resume.")
+    parser = argparse.ArgumentParser(description="Generate scoped inverse instructions without accepting truncated output.")
     parser.add_argument("--input", default="data_pipeline/scale/units.jsonl")
-    parser.add_argument("--output", default="data_pipeline/scale/instructions.jsonl")
-    parser.add_argument("--model", default="Qwen/Qwen2.5-Coder-0.5B-Instruct")
-    parser.add_argument("--batch-size", type=int, default=4)
-    parser.add_argument("--max-new-tokens", type=int, default=96)
+    parser.add_argument("--output", default="data_pipeline/scale/instructions-v2.jsonl")
+    parser.add_argument("--failures", default="data_pipeline/scale/generation-failures-v2.jsonl")
+    parser.add_argument("--model", default=os.environ.get("DATA_GENERATOR_MODEL", "gpt-5.6"))
+    parser.add_argument("--max-output-tokens", type=int, default=512)
+    parser.add_argument("--workers", type=int, default=6)
     args = parser.parse_args()
-    torch.set_num_threads(min(8, torch.get_num_threads()))
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is required; quality-v2 never falls back to the old generator")
     units = read_jsonl(Path(args.input))
-    output = Path(args.output)
-    prior = {item["unit_id"]: item for item in read_jsonl(output)} if output.exists() else {}
+    output, failures = Path(args.output), Path(args.failures)
     completed = {
-        item["unit_id"]: {**item, "instruction": prior[item["unit_id"]].get("instruction"), "generation": prior[item["unit_id"]].get("generation")}
-        for item in units
-        if item["unit_id"] in prior
+        item["unit_id"]: item for item in read_jsonl(output)
+        if item.get("generation", {}).get("pipeline_version") == PIPELINE_VERSION
     }
+    failed = {item["unit_id"]: item for item in read_jsonl(failures)}
     pending = [item for item in units if item["unit_id"] not in completed]
-    if not pending:
-        write_jsonl(output, [completed[item["unit_id"]] for item in units])
-        print(f"[resume] all {len(units)} instructions already complete", flush=True)
-        return
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=torch.float32)
-    model.eval()
-    model.generation_config.temperature = None
-    model.generation_config.top_p = None
-    model.generation_config.top_k = None
 
-    for offset in range(0, len(pending), args.batch_size):
-        batch = pending[offset : offset + args.batch_size]
-        prompts = [render_prompt(item) for item in batch]
-        chats = [tokenizer.apply_chat_template(
-            [{"role": "user", "content": prompt}],
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        ) for prompt in prompts]
-        encoded = tokenizer(chats, return_tensors="pt", padding=True, truncation=True, max_length=1536)
-        started = time.perf_counter()
-        with torch.inference_mode():
-            generated = model.generate(
-                **encoded,
-                max_new_tokens=args.max_new_tokens,
-                do_sample=False,
-                pad_token_id=tokenizer.eos_token_id,
-            )
-        elapsed = time.perf_counter() - started
-        prompt_length = encoded["input_ids"].shape[1]
-        for item, tokens in zip(batch, generated):
-            raw = tokenizer.decode(tokens[prompt_length:], skip_special_tokens=True).strip()
-            instruction = parse_instruction(raw)
-            completed[item["unit_id"]] = {
-                **item,
-                "instruction": instruction,
-                "generation": {
-                    "model": args.model,
-                    "method": "code_to_instruction",
-                    "decode": "greedy",
-                    "parse_valid": instruction is not None,
-                    "raw_output": raw,
-                    "batch_seconds": round(elapsed, 3),
-                },
-            }
-        write_jsonl(output, [completed[item["unit_id"]] for item in units if item["unit_id"] in completed])
-        done = min(offset + len(batch), len(pending))
-        print(f"[{done}/{len(pending)}] checkpoint={output}", flush=True)
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {pool.submit(generate_one, item, args.model, args.max_output_tokens): item for item in pending}
+        for index, future in enumerate(as_completed(futures), start=1):
+            item = futures[future]
+            try:
+                completed[item["unit_id"]] = future.result()
+                failed.pop(item["unit_id"], None)
+            except Exception as error:
+                failed[item["unit_id"]] = {"unit_id": item["unit_id"], "reason": "GENERATION_FAILED", "error": str(error)[:1000]}
+            write_jsonl(output, [completed[item["unit_id"]] for item in units if item["unit_id"] in completed])
+            write_jsonl(failures, [failed[key] for key in sorted(failed)])
+            print(f"[{index}/{len(pending)}] generated={len(completed)} failed={len(failed)}", flush=True)
+
+
+def generate_one(item: dict, model: str, max_output_tokens: int) -> dict:
+    value, metadata = request_json(
+        model=model,
+        prompt=render_prompt(item),
+        schema_name="inverse_instruction",
+        schema=SCHEMA,
+        max_output_tokens=max_output_tokens,
+    )
+    return {
+        **item,
+        "scope": {
+            "target_file": value["target_file"],
+            "target_symbol": value["target_symbol"],
+            "expected_behavior": value["expected_behavior"],
+            "constraints": value["constraints"],
+            "required_context": value["required_context"],
+        },
+        "instruction": value["instruction"].strip(),
+        "generation": {
+            "pipeline_version": PIPELINE_VERSION,
+            "model": model,
+            "method": "structured_code_to_instruction",
+            "decode": "structured_json",
+            "max_output_tokens": max_output_tokens,
+            "response_completed": metadata["status"] == "completed",
+            **metadata,
+        },
+    }
 
 
 def render_prompt(item: dict) -> str:
-    return f"""Infer a precise coding instruction from this real TypeScript game code.
-Return exactly JSON: {{"instruction":"..."}}
-The instruction must:
-- explicitly name `{item['symbol']}` and preserve its public signature;
-- describe observable inputs, outputs, state changes, filtering, and edge cases actually present;
-- fit one {item['granularity']} code unit, not request a whole game;
-- not mention this repository, source code, or hidden implementation details;
-- use 35-75 English words.
+    return f"""Create one precise implementation task for this real TypeScript game code.
 
-Game category: {item['category']}
+The JSON fields target_file and target_symbol MUST exactly equal the supplied values. Describe only behavior visible in the target. Do not invent APIs, types, edge cases, or project requirements. expected_behavior must state observable inputs, outputs, errors, and state changes that the target actually implements. constraints must define the implementation boundary. required_context must contain only external symbols needed to solve the task and must be selected from Potential provided symbols.
+
+The instruction must be a complete 45-140 word English task. It must explicitly include the target file, target symbol, expected behavior, and necessary constraints. Do not mention a repository, hidden source, or unspecified/provided guidelines. Never end mid-sentence.
+
+Target file: {item['source_path']}
+Target symbol: {item['symbol']}
+Granularity: {item['granularity']}
 Signature: {item['signature']}
 Potential provided symbols: {json.dumps(item['provided_symbols'])}
-Code:
+Target:
 ```typescript
 {item['target']}
 ```"""
-
-
-def parse_instruction(raw: str) -> str | None:
-    match = re.search(r"\{.*\}", raw, flags=re.DOTALL)
-    if match:
-        try:
-            value = json.loads(match.group(0)).get("instruction")
-            if isinstance(value, str) and value.strip():
-                return value.strip()
-        except json.JSONDecodeError:
-            pass
-    fallback = re.search(r'"instruction"\s*:\s*"((?:\\.|[^"\\])*)', raw, flags=re.DOTALL)
-    if fallback:
-        try:
-            return json.loads(f'"{fallback.group(1)}"').strip()
-        except json.JSONDecodeError:
-            return None
-    return None
 
 
 def read_jsonl(path: Path) -> list[dict]:

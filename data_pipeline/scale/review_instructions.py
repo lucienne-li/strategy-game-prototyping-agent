@@ -2,89 +2,117 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-import time
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from openai_json import request_json
+from quality_checks import deterministic_reasons
 
 
-LABELS = {"PASS", "ALIGNMENT_FAIL", "GRANULARITY_FAIL", "SOLVABILITY_FAIL"}
+REVIEW_VERSION = "strong-review-v2"
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "decision": {"type": "string", "enum": ["pass", "fail"]},
+        "reason": {"type": "string"},
+        "failed_check": {"type": "string", "enum": ["none", "behavior_consistency", "granularity_match", "missing_context", "other"]},
+    },
+    "required": ["decision", "reason", "failed_check"],
+    "additionalProperties": False,
+}
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run a resumable static review pass over generated instructions.")
-    parser.add_argument("--input", default="data_pipeline/scale/instructions.jsonl")
-    parser.add_argument("--output", default="data_pipeline/scale/reviews.jsonl")
-    parser.add_argument("--model", default="Qwen/Qwen2.5-Coder-0.5B-Instruct")
-    parser.add_argument("--batch-size", type=int, default=12)
+    parser = argparse.ArgumentParser(description="Apply deterministic gates, then a resumable strong-model final review.")
+    parser.add_argument("--input", default="data_pipeline/scale/instructions-v2.jsonl")
+    parser.add_argument("--target-validation", default="data_pipeline/scale/target-validation-v2.jsonl")
+    parser.add_argument("--output", default="data_pipeline/scale/reviews-v2.jsonl")
+    parser.add_argument("--model", default=os.environ.get("DATA_REVIEWER_MODEL", "gpt-5.6"))
+    parser.add_argument("--workers", type=int, default=6)
     args = parser.parse_args()
     records = read_jsonl(Path(args.input))
+    validations = {item["unit_id"]: item for item in read_jsonl(Path(args.target_validation))}
     output = Path(args.output)
-    completed = {item["unit_id"]: item for item in read_jsonl(output)} if output.exists() else {}
-    pending = [item for item in records if item["unit_id"] not in completed]
-    if not pending:
-        print(f"[resume] all {len(records)} reviews already complete", flush=True)
-        return
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=torch.float32)
-    model.eval()
-    model.generation_config.temperature = None
-    model.generation_config.top_p = None
-    model.generation_config.top_k = None
+    completed = {
+        item["unit_id"]: item for item in read_jsonl(output)
+        if item.get("review_version") == REVIEW_VERSION and item.get("reviewer") in {args.model, "deterministic-quality-v2"}
+        and not str(item.get("reason", "")).startswith("REVIEW_REQUEST_FAILED")
+    }
+    pending_model: list[dict] = []
+    for record in records:
+        if record["unit_id"] in completed:
+            continue
+        reasons = deterministic_reasons(record, validations.get(record["unit_id"]))
+        if reasons:
+            completed[record["unit_id"]] = review_record(record, "deterministic-quality-v2", "fail", reasons[0], reasons[0], reasons)
+        else:
+            pending_model.append(record)
+    write_ordered(output, records, completed)
+    if pending_model and not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError(f"OPENAI_API_KEY is required to review {len(pending_model)} deterministic-pass candidates")
 
-    for offset in range(0, len(pending), args.batch_size):
-        batch = pending[offset : offset + args.batch_size]
-        chats = [tokenizer.apply_chat_template(
-            [{"role": "user", "content": prompt(item)}],
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        ) for item in batch]
-        encoded = tokenizer(chats, return_tensors="pt", padding=True, truncation=True, max_length=1536)
-        started = time.perf_counter()
-        with torch.inference_mode():
-            generated = model.generate(**encoded, max_new_tokens=12, do_sample=False, pad_token_id=tokenizer.eos_token_id)
-        elapsed = time.perf_counter() - started
-        prompt_length = encoded["input_ids"].shape[1]
-        for item, tokens in zip(batch, generated):
-            raw = tokenizer.decode(tokens[prompt_length:], skip_special_tokens=True).strip()
-            label = parse_label(raw)
-            completed[item["unit_id"]] = {
-                "unit_id": item["unit_id"],
-                "target_sha256": item["target_sha256"],
-                "reviewer": args.model,
-                "label": label,
-                "parse_valid": label in LABELS,
-                "raw_output": raw,
-                "batch_seconds": round(elapsed, 3),
-            }
-        write_jsonl(output, [completed[item["unit_id"]] for item in records if item["unit_id"] in completed])
-        print(f"[{min(offset + len(batch), len(pending))}/{len(pending)}] checkpoint={output}", flush=True)
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = {pool.submit(review_one, item, args.model): item for item in pending_model}
+        for index, future in enumerate(as_completed(futures), start=1):
+            item = futures[future]
+            try:
+                completed[item["unit_id"]] = future.result()
+            except Exception as error:
+                completed[item["unit_id"]] = review_record(item, args.model, "fail", "other", f"REVIEW_REQUEST_FAILED: {error}", [])
+            write_ordered(output, records, completed)
+            print(f"[{index}/{len(pending_model)}] reviewed={len(completed)}", flush=True)
+    request_failures = [item for item in completed.values() if str(item.get("reason", "")).startswith("REVIEW_REQUEST_FAILED")]
+    if request_failures:
+        raise RuntimeError(f"{len(request_failures)} review requests failed; rerun to resume instead of finalizing them as data rejects")
+
+
+def review_one(item: dict, model: str) -> dict:
+    value, metadata = request_json(
+        model=model,
+        prompt=prompt(item),
+        schema_name="instruction_code_review",
+        schema=SCHEMA,
+        max_output_tokens=256,
+    )
+    return {
+        **review_record(item, model, value["decision"], value["failed_check"], value["reason"], []),
+        "response": metadata,
+    }
+
+
+def review_record(item: dict, reviewer: str, decision: str, failed_check: str, reason: str, deterministic: list[str]) -> dict:
+    return {
+        "unit_id": item["unit_id"],
+        "target_sha256": item["target_sha256"],
+        "review_version": REVIEW_VERSION,
+        "reviewer": reviewer,
+        "decision": decision,
+        "failed_check": failed_check,
+        "reason": reason[:1000],
+        "deterministic_reasons": deterministic,
+    }
 
 
 def prompt(item: dict) -> str:
-    return f"""Review whether one instruction is a faithful, solvable G1/G2 task for its TypeScript target.
-Return exactly one label: PASS, ALIGNMENT_FAIL, GRANULARITY_FAIL, or SOLVABILITY_FAIL.
-PASS only if all requested behavior is implemented, scope matches one function/class, and provided names make the task answerable.
+    return f"""Act as the final independent quality gate for one TypeScript SFT pair. Fail closed.
 
-Instruction: {item.get('instruction')}
-Granularity: {item['granularity']}
-Provided symbols: {json.dumps(item['provided_symbols'])}
+Return pass only when all three conditions hold:
+1. behavior_consistency: every requested behavior is implemented by the target, with no contradiction or invented behavior;
+2. granularity_match: the task is exactly one {item['granularity']} unit and its requested scope matches the supplied target;
+3. missing_context: the task is solvable using the instruction, signature and declared context; no undeclared API or rule is required.
+
+Scope contract:
+{json.dumps(item['scope'], ensure_ascii=False, indent=2)}
+
+Signature: {item['signature']}
+Instruction:
+{item['instruction']}
+
 Target:
-{item['target']}"""
-
-
-def parse_label(raw: str) -> str:
-    upper = raw.upper()
-    for label in ("ALIGNMENT_FAIL", "GRANULARITY_FAIL", "SOLVABILITY_FAIL", "PASS"):
-        if re.search(rf"\b{label}\b", upper):
-            return label
-    return "INVALID"
+```typescript
+{item['target']}
+```"""
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -93,10 +121,11 @@ def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
-def write_jsonl(path: Path, records: list[dict]) -> None:
+def write_ordered(path: Path, records: list[dict], completed: dict[str, dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    rows = [completed[item["unit_id"]] for item in records if item["unit_id"] in completed]
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text("".join(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n" for record in records), encoding="utf-8")
+    temporary.write_text("".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows), encoding="utf-8")
     temporary.replace(path)
 
 

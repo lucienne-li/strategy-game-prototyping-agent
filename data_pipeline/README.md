@@ -33,11 +33,11 @@ candidates.json
 → batch_repositories.py
 → group_families.py
 → extract-units.mjs
-→ generate_instructions.py
-→ review_instructions.py
-→ sample_quality_audit.py / apply_quality_audit.py
+→ validate-targets.mjs
+→ generate_instructions.py (strict scoped JSON, 512-token budget)
+→ deterministic quality gates
+→ review_instructions.py (strong pass/fail reviewer)
 → finalize_scale.py
-→ freeze_release.py
 → accepted.jsonl / rejected.jsonl
 ```
 
@@ -50,7 +50,13 @@ npm run data:scale:run
 
 各阶段以 JSONL 原子写入 checkpoint；重新运行时跳过已绑定 commit/hash 的完成项。`repositories.jsonl` 保留 license、install、build 与拒绝证据，`reviews.jsonl` 将复核结果绑定到 target SHA-256，最终筛选同时执行 family cap、target 与 instruction 近重复 gate。该流程不包含自动 GitHub discovery、分布式队列或数据库。
 
-正式实验前固定抽检 48 条，最终冻结 186 条。运行 `python data_pipeline/scale/verify_freeze.py` 可检查 dataset、audit、24 个 holdout 和关键执行/训练代码是否仍与 freeze manifest 一致。
+旧流程的 48 条抽检和 186 条 freeze 保留为 v1 历史证据，但不再作为正式训练输入。quality-v2 只重处理已有 440 units，运行入口如下；需要 `OPENAI_API_KEY`，生成器和 reviewer 模型可分别由参数或 `DATA_GENERATOR_MODEL` / `DATA_REVIEWER_MODEL` 配置，默认均为 `gpt-5.6`：
+
+```bash
+npm run data:scale:quality-repair
+```
+
+命令按 target validation、结构化生成、确定性预检、强模型 review 和 finalization 顺序执行并可断点恢复。没有 strong review 的候选一律 reject；全量完成并生成新的 quality-v2 freeze 前，Qwen3-4B 正式训练保持暂停。
 
 约束：
 

@@ -24,6 +24,7 @@
     "data:pilot:validate": "node data_pipeline/validate-pilot.mjs",
     "data:expansion:validate": ".venv/bin/python -m unittest tests_py.test_data_expansion -v",
     "data:scale:run": ".venv/bin/python data_pipeline/scale/run_pipeline.py --checkout-root \"$SCALE_CHECKOUT_ROOT\"",
+    "data:scale:quality-repair": ".venv/bin/python data_pipeline/scale/run_quality_repair.py",
     "data:scale:finalize": ".venv/bin/python data_pipeline/scale/finalize_scale.py"
   },
   "devDependencies": {

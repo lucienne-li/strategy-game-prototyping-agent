@@ -279,3 +279,23 @@ M8 使用 28 个手工发现的 Browser/TypeScript 候选，并把之后的 clon
 本轮初筛达到 300–500 条实验规模，但正式训练前的 48 条分层抽检仅接受 14 条，暴露出 instruction 截断、欠规格和直接行为错配。全量应用明显缺陷 gate 并保留抽检决定后，正式冻结集为 186 条，而不是继续将 334 条都视为合格。候选 discovery、语义 family 检测和更强 reviewer 校准仍是未来扩张的主要缺口；本阶段按用户要求不再扩大数据。
 
 此外，当前 install 使用 `--ignore-scripts`，但随后执行的仓库 build 仍是第三方代码，临时目录不等于安全沙箱。扩到无人值守批量处理前必须加入一次性容器、网络/CPU/内存/磁盘限制；这属于离线构建安全边界，不应通过放宽 Online Agent Runtime 权限解决。
+
+## 16. Quality-v2 Repair Pipeline
+
+正式训练已暂停。quality-v2 只重处理既有 440 个 code units，不发现或下载新仓库：
+
+```text
+units.jsonl
+→ target structure / narrow behavior validation
+→ scoped structured instruction generation
+→ deterministic consistency gates
+→ gpt-5.6 pass/fail review
+→ duplicate/family gates
+→ accepted.jsonl + rejected.jsonl
+```
+
+生成输出必须包含 `target_file`、`target_symbol`、`expected_behavior`、`constraints`、`required_context` 和完整 `instruction`。Responses API 使用严格 JSON schema 与 512-token 输出预算；未完成响应会重试，最终失败记为 `GENERATION_FAILED`，不会从半截 JSON 或文本恢复。
+
+确定性 gate 检查完整句、45–140 words、精确文件与 symbol scope、behavior/constraint 在 instruction 中的覆盖、required context 是否属于已声明上下文、G1/G2 范围、target delimiter/symbol 结构以及 duplicate/family cap。任何一项失败均在调用强 reviewer 前直接 reject。通过者再由 `gpt-5.6` 独立判断 behavior consistency、granularity match 和 missing context，只有明确 `pass` 才可进入最终集。
+
+行为验证采取保守策略：仅对无参数、返回安全 literal/object 且可在 Node permission model 中独立执行的代码运行 deterministic harness；其余标为 `not_eligible`，不以 repository build 冒充 unit-level functional pass。当前静态重检发现 438/440 结构通过、2 条不完整 target 失败，1 条满足并通过窄行为执行条件。

@@ -200,3 +200,12 @@
 - **Why:** 已知存在明显错误时继续称 334 条全部合格会使正式实验结论失真；宁可降低样本量，也不通过训练吸收已确认的错误 instruction-target 对。
 - **Experiment:** Base 与 SFT 都使用 `Qwen/Qwen3-4B`、同 24-task holdout、greedy/no-thinking、512 new tokens、4 Agent iterations、每轮 8 tools 和 1 repair。
 - **Boundary:** 当前无 CUDA，只冻结和验证输入/脚本，不记录 loss、checkpoint 或 Base-vs-SFT 成绩。
+
+## D-025 — 以 quality-v2 生产门禁替代反复人工抽检
+
+- **Status:** Accepted / CONFIRMED
+- **Evidence:** 48 条分层审计暴露 80-token 截断、欠规格与行为错配；旧 0.5B reviewer 对全部可解析候选均判 PASS，不能承担最终放行。
+- **Decision:** 暂停正式训练并重处理原 440 个 code units。生成器必须输出严格 scope contract，完整响应上限改为 512 tokens；超限、响应未完成或 schema 无效只允许重试，不做残缺文本恢复。确定性 gate 先检查 target file/symbol、expected behavior、constraints、required context、完整性、粒度和 target 结构。之后由 `gpt-5.6` 独立执行 fail-closed 的 pass/fail + reason 最终 review。
+- **Behavior evidence:** 只执行可证明安全且自包含的极窄单元；其他样本保留 repository build 证据并标记 unit behavior test `not_eligible`，不得把 build 冒充功能正确性。
+- **Training boundary:** 旧 186 条 freeze 仅作为 v1 历史基线。`training/sft_scale/train.py` 拒绝非 `m8-qwen3-4b-quality-v2` freeze，直到强 reviewer 全量完成并重新冻结。
+- **Why:** 质量问题来自生产过程，继续人工抽检只能测量问题，无法修复它。结构化契约、自动 gate、独立强 reviewer 和有限行为证据使拒绝原因可复现，并阻止旧低质量记录静默进入训练。
