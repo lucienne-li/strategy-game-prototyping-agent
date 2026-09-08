@@ -191,3 +191,12 @@
 - **Why:** 0.5B 的 24-sample 结果只提供弱趋势，无法代表更实用的代码模型能力；4B 模型仍可用单卡 QLoRA 训练，同时显著减少把 scaffold/模型容量不足误判成数据问题的风险。
 - **Execution boundary:** 正式训练优先在云 GPU 上运行。没有 CUDA 或运行产物时，只能声明训练与评测入口已验证，不能填写 loss 或 Base-vs-SFT 成绩。
 - **Revisit when:** 人工双标校准显示 reviewer 偏差较大，或 family/near-duplicate 审计发现 leakage；扩到数千条前必须补 discovery coverage、人工抽样和更强隔离。
+
+## D-024 — 正式实验冻结 186 条质量清理样本，而非原始 334 条
+
+- **Status:** Accepted for M8 formal experiment
+- **Evidence:** 固定种子从六个 category/granularity 分层各抽 8 条，共 48 条并覆盖 15 个 family。逐条对照 instruction 与 target 后，仅 14 条未发现明显缺陷；34 条中包括截断 17、欠规格/粒度问题 11、直接错配 6。
+- **Decision:** 不补充新数据、不建设 reviewer 平台。将抽检暴露的截断与缺失规则引用转成全量 fail-closed gate，并保留逐条审计决定；最终冻结 186 条。冻结 manifest 以 SHA-256 绑定数据、审计、24 个 holdout、模型、decoding、Agent/repair 预算和关键代码。
+- **Why:** 已知存在明显错误时继续称 334 条全部合格会使正式实验结论失真；宁可降低样本量，也不通过训练吸收已确认的错误 instruction-target 对。
+- **Experiment:** Base 与 SFT 都使用 `Qwen/Qwen3-4B`、同 24-task holdout、greedy/no-thinking、512 new tokens、4 Agent iterations、每轮 8 tools 和 1 repair。
+- **Boundary:** 当前无 CUDA，只冻结和验证输入/脚本，不记录 loss、checkpoint 或 Base-vs-SFT 成绩。

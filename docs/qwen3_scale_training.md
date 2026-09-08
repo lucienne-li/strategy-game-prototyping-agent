@@ -5,7 +5,7 @@
 - Base model: `Qwen/Qwen3-4B`
 - Training method: QLoRA by default (LoRA is available by omitting `--qlora`)
 - Dataset: `data_pipeline/scale/accepted.jsonl`
-- Samples: 334
+- Samples: 186 (frozen after stratified quality audit)
 - Epochs: 1
 - Maximum sequence length: 1,024
 - Learning rate: 2e-4
@@ -19,12 +19,17 @@
 
 ```bash
 uv venv .venv
+uv pip install --python .venv/bin/python 'torch==2.8.0' --index-url https://download.pytorch.org/whl/cu126
 uv pip install --python .venv/bin/python -r training/requirements-scale.txt
 npm install
 npm test
 npm run sft:scale:train
 npm run sft:scale:evaluate
 ```
+
+After dependency installation, `npm run sft:scale:cloud` runs the same verification, test, training and evaluation sequence as one fail-fast command.
+
+Recommended hardware: one L4 24 GB or A10 24 GB. A 16 GB T4-class GPU is the expected minimum for QLoRA at sequence length 1,024 and micro-batch size 1, but will be slower and uses FP16; 24 GB provides safer activation and evaluator headroom. Full-precision or full-parameter training is out of scope.
 
 Training writes the adapter and reload check to `artifacts/sft-scale/checkpoint-final` and `artifacts/sft-scale/train-run.json`. Evaluation writes per-task Base/SFT traces and aggregate inputs to `artifacts/sft-scale/comparison-run.json`.
 

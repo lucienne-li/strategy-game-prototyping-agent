@@ -57,8 +57,7 @@ class ScaleDatasetTests(unittest.TestCase):
 
     def test_final_dataset_is_training_ready_and_reproducible(self) -> None:
         accepted = rows("accepted.jsonl")
-        self.assertGreaterEqual(len(accepted), 300)
-        self.assertLessEqual(len(accepted), 500)
+        self.assertEqual(len(accepted), 186)
         self.assertTrue(all(not item["metadata"]["repository_family_id"].startswith("benchmark:") for item in accepted))
         for item in accepted:
             quality = item["metadata"]["quality"]
@@ -74,6 +73,28 @@ class ScaleDatasetTests(unittest.TestCase):
             ], cwd=ROOT, check=True, capture_output=True, text=True)
             self.assertEqual((output / "accepted.jsonl").read_bytes(), (SCALE / "accepted.jsonl").read_bytes())
             self.assertEqual((output / "rejected.jsonl").read_bytes(), (SCALE / "rejected.jsonl").read_bytes())
+
+    def test_stratified_audit_and_freeze_are_complete(self) -> None:
+        audit = rows("quality-audit-reviewed.jsonl")
+        self.assertEqual(len(audit), 48)
+        self.assertEqual(Counter((item["category"], item["granularity"]) for item in audit), Counter({
+            ("card", "G1"): 8,
+            ("card", "G2"): 8,
+            ("tactics", "G1"): 8,
+            ("tactics", "G2"): 8,
+            ("tower-defense", "G1"): 8,
+            ("tower-defense", "G2"): 8,
+        }))
+        self.assertEqual(len({item["repository_family_id"] for item in audit}), 15)
+        self.assertEqual(sum(item["review"]["decision"] == "reject" for item in audit), 34)
+        completed = subprocess.run(
+            [sys.executable, str(SCALE / "verify_freeze.py")],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn('"status": "verified"', completed.stdout)
 
 
 if __name__ == "__main__":

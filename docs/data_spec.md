@@ -276,6 +276,6 @@ M8 使用 28 个手工发现的 Browser/TypeScript 候选，并把之后的 clon
 - `instructions.jsonl` / `reviews.jsonl`：生成与独立复核原始结果；
 - `accepted.jsonl` / `rejected.jsonl`：训练输入与 fail-closed 审计。
 
-本轮已经达到 300–500 条实验规模，但仍不能直接扩到 2 万条。最大风险是 0.5B 自动 reviewer 尚未用人工双标校准且本轮通过率过高；其次是候选 discovery 仍为人工清单、family 检测只覆盖共享文件、G2 上下文依赖仍是启发式提取。扩到数千条前应先做分层人工抽样、强 reviewer 校准和更可靠的语义/fork family 检查。
+本轮初筛达到 300–500 条实验规模，但正式训练前的 48 条分层抽检仅接受 14 条，暴露出 instruction 截断、欠规格和直接行为错配。全量应用明显缺陷 gate 并保留抽检决定后，正式冻结集为 186 条，而不是继续将 334 条都视为合格。候选 discovery、语义 family 检测和更强 reviewer 校准仍是未来扩张的主要缺口；本阶段按用户要求不再扩大数据。
 
 此外，当前 install 使用 `--ignore-scripts`，但随后执行的仓库 build 仍是第三方代码，临时目录不等于安全沙箱。扩到无人值守批量处理前必须加入一次性容器、网络/CPU/内存/磁盘限制；这属于离线构建安全边界，不应通过放宽 Online Agent Runtime 权限解决。

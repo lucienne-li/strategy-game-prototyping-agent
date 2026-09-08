@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M8：Data Scale-up 已完成，Qwen3-4B 云 GPU 实验待运行**。
+项目处于 **M8：质量抽检与实验冻结已完成，Qwen3-4B 云 GPU 实验待运行**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -24,7 +24,7 @@
 - 已用全部 24 条样本执行 response-only loss 的 2-epoch LoRA，并在 6 个 family 隔离 holdout 上完成同 Runtime Base-vs-SFT：最终功能通过 2/6 vs 3/6；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
-- 已对 28 个候选仓库运行可恢复的 license/install/build 批处理：17 个通过，抽取 440 个 G1/G2 候选并最终保留 334 条训练样本；
+- 已对 28 个候选仓库运行可恢复的 license/install/build 批处理：17 个通过，抽取 440 个 G1/G2 候选；初筛 334 条，经 48 条分层人工抽检和全量明显缺陷 gate 后冻结 186 条训练样本；
 - 已冻结 24 个 repository-family 隔离 holdout，并准备 `Qwen/Qwen3-4B` QLoRA 与同预算 Base-vs-SFT 入口；当前工作区无 CUDA，正式训练和对比尚未运行；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
 
@@ -117,4 +117,4 @@ npm run sft:scale:evaluate
 
 ## 下一步
 
-下一步是在云 GPU 上执行冻结的 Qwen3-4B QLoRA 和 24-task Base-vs-SFT；同时对 334 条数据做分层人工双标抽检。只有 reviewer 校准和 family/duplicate 审计通过后，才适合继续扩到数千条，更不能直接宣称已具备无人值守生成约 2 万条的质量保障。
+下一步是在 16 GB 最低、24 GB 推荐的云 GPU 上执行冻结的 Qwen3-4B QLoRA 和 24-task Base-vs-SFT：先安装依赖，再运行 `npm run sft:scale:cloud`。本轮不继续扩大数据；只有正式结果与更强 reviewer 校准完成后，才重新讨论数千条规模。

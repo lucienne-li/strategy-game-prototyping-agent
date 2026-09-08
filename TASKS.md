@@ -324,7 +324,7 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 **Objective**
 
-把已验证的离线流程扩成可恢复批处理，形成 300–500 条合格 G1/G2 样本和 20–30 个 family-isolated holdout，再以同一 `Qwen/Qwen3-4B` 基座完成 Base-vs-SFT 对比。
+把已验证的离线流程扩成可恢复批处理，对 300–500 条初筛 G1/G2 样本执行正式训练前质量抽检，冻结训练集和 20–30 个 family-isolated holdout，再以同一 `Qwen/Qwen3-4B` 基座完成 Base-vs-SFT 对比。
 
 **Modules / Files**
 
@@ -342,9 +342,11 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 自动提取 440 个唯一 G1/G2 候选代码单元；
 - [x] 为全部候选生成反向 instruction，并将生成元数据绑定 target hash；
 - [x] 全部 440 个 instruction 完成独立 target-bound review 与最终 quality/duplicate gate；
-- [x] 最终保留 334 条 accepted、106 条 rejected，并通过 finalization 可复现性测试；
+- [x] 初筛保留 334 条；48 条分层抽检发现 34 条明显问题，全量收紧 gate 后冻结 186 条训练样本；
+- [x] 用 SHA-256 manifest 冻结训练集、48 条审计记录、24 个 holdout、Runtime/repair contract、decoding 和预算；
 - [x] 冻结 24 个与训练 repository family 隔离的 external-evaluator tasks；
 - [x] 准备 Qwen3-4B QLoRA、checkpoint reload 与同预算 Base-vs-SFT 入口；
+- [x] 准备单命令云 GPU fail-fast 入口 `npm run sft:scale:cloud`，并支持 BF16/FP16 CUDA；
 - [!] 在 CUDA 云 GPU 上真实训练并运行 24-task Base-vs-SFT；当前工作区无 CUDA，尚无真实 loss/checkpoint/comparison 产物。
 
 **Tests**

@@ -9,11 +9,18 @@ from pathlib import Path
 
 
 FORBIDDEN = ("source code", "provided code", "repository", "above implementation", "given implementation")
-UNDERSPECIFIED_REFERENCES = ("following the provided guidelines", "following the provided signature and constraints")
+UNDERSPECIFIED_PATTERN = re.compile(
+    r"following (?:the )?(?:provided )?guidelines|"
+    r"(?:provided|specified) (?:signature|rules|instructions)|"
+    r"adheres? to (?:the )?(?:provided|specified)|"
+    r"g[12] code unit guidelines",
+    re.IGNORECASE,
+)
 def main() -> None:
     parser = argparse.ArgumentParser(description="Apply deterministic scale-up quality, family and duplicate gates.")
     parser.add_argument("--input", default="data_pipeline/scale/instructions.jsonl")
     parser.add_argument("--reviews", default="data_pipeline/scale/reviews.jsonl")
+    parser.add_argument("--audit", default="data_pipeline/scale/quality-audit-reviewed.jsonl")
     parser.add_argument("--accepted", default="data_pipeline/scale/accepted.jsonl")
     parser.add_argument("--rejected", default="data_pipeline/scale/rejected.jsonl")
     parser.add_argument("--max-per-family", type=int, default=36)
@@ -22,6 +29,8 @@ def main() -> None:
     args = parser.parse_args()
     records = read_jsonl(Path(args.input))
     reviews = {item["unit_id"]: item for item in read_jsonl(Path(args.reviews))}
+    audit_path = Path(args.audit)
+    audits = {item["sample_id"]: item for item in read_jsonl(audit_path)} if audit_path.exists() else {}
     accepted: list[dict] = []
     rejected: list[dict] = []
     family_counts: Counter[str] = Counter()
@@ -35,6 +44,9 @@ def main() -> None:
             reasons.append("INDEPENDENT_REVIEW_INVALID")
         elif review.get("label") != "PASS":
             reasons.append(f"INDEPENDENT_{review['label']}")
+        audit = audits.get(record["unit_id"])
+        if audit and audit.get("review", {}).get("decision") != "accept":
+            reasons.append(f"STRATIFIED_AUDIT_{audit['review']['primary_issue']}")
         family = record["repository_family_id"]
         target_tokens = tokens(normalize_code(record["target"]))
         instruction_tokens = tokens(record.get("instruction") or "")
@@ -60,6 +72,7 @@ def main() -> None:
             "target_sha256": record["target_sha256"],
             "generation": record["generation"],
             "independent_review": review,
+            "stratified_audit": audit,
             "quality": {
                 "method": "deterministic_contract_and_similarity_gates",
                 "alignment": "pass" if review and review.get("label") == "PASS" else "fail",
@@ -116,8 +129,10 @@ def validate(record: dict) -> list[str]:
         reasons.append("SYMBOL_NOT_NAMED")
     if any(phrase in instruction.lower() for phrase in FORBIDDEN):
         reasons.append("SOURCE_LEAKAGE_LANGUAGE")
-    if any(phrase in instruction.lower() for phrase in UNDERSPECIFIED_REFERENCES):
+    if UNDERSPECIFIED_PATTERN.search(instruction):
         reasons.append("UNDERSPECIFIED_REFERENCE")
+    if instruction.rstrip()[-1] not in ".!?`)]":
+        reasons.append("INSTRUCTION_TRUNCATED")
     code_hash = hashlib.sha256(record["target"].strip().encode()).hexdigest()
     if code_hash != record["target_sha256"]:
         reasons.append("TARGET_HASH_MISMATCH")

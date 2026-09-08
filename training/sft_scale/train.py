@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import random
 import time
@@ -26,7 +27,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--qlora", action="store_true")
     parser.add_argument("--allow-cpu", action="store_true")
+    parser.add_argument("--freeze", default="data_pipeline/scale/freeze-manifest.json")
     args = parser.parse_args()
+    freeze = json.loads(Path(args.freeze).read_text(encoding="utf-8"))
+    verify_freeze(args, freeze)
     if not torch.cuda.is_available() and not args.allow_cpu:
         raise RuntimeError("Qwen3-4B scale training requires a CUDA GPU; pass --allow-cpu only for diagnostics")
     random.seed(args.seed)
@@ -41,17 +45,18 @@ def main() -> None:
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     encoded = [encode_response_only(sample, tokenizer, args.max_length) for sample in samples]
+    cuda_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
     quantization = None
     if args.qlora:
         quantization = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_compute_dtype=cuda_dtype,
             bnb_4bit_use_double_quant=True,
         )
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
-        dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+        dtype=cuda_dtype if torch.cuda.is_available() else torch.float32,
         quantization_config=quantization,
         device_map="auto" if torch.cuda.is_available() else None,
     )
@@ -102,7 +107,7 @@ def main() -> None:
 
     reload_base = AutoModelForCausalLM.from_pretrained(
         args.model,
-        dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+        dtype=cuda_dtype if torch.cuda.is_available() else torch.float32,
         device_map="auto" if torch.cuda.is_available() else None,
     )
     reloaded = PeftModel.from_pretrained(reload_base, checkpoint)
@@ -119,6 +124,8 @@ def main() -> None:
     generated = tokenizer.decode(generation[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
     report = {
         "status": "passed",
+        "freeze_name": freeze["freeze_name"],
+        "dataset_sha256": freeze["dataset"]["sha256"],
         "base_model": args.model,
         "samples": len(samples),
         "epochs": args.epochs,
@@ -142,6 +149,26 @@ def main() -> None:
     }
     (output / "train-run.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
+
+
+def verify_freeze(args: argparse.Namespace, freeze: dict) -> None:
+    data = Path(args.data)
+    digest = hashlib.sha256(data.read_bytes()).hexdigest()
+    expected = freeze["experiment"]
+    training = expected["training"]
+    checks = {
+        "dataset path": str(data.as_posix()) == freeze["dataset"]["path"],
+        "dataset hash": digest == freeze["dataset"]["sha256"],
+        "base model": args.model == expected["base_model"],
+        "QLoRA mode": args.qlora and expected["sft_method"] == "QLoRA",
+        "epochs": args.epochs == training["epochs"],
+        "max length": args.max_length == training["max_length"],
+        "learning rate": args.learning_rate == training["learning_rate"],
+        "gradient accumulation": args.gradient_accumulation == training["gradient_accumulation"],
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    if failed:
+        raise ValueError(f"training arguments do not match frozen experiment: {', '.join(failed)}")
 
 
 if __name__ == "__main__":

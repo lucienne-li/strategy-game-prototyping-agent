@@ -19,6 +19,8 @@
     "sft:evaluate": "npm run build && node dist/src/sft-evaluation-cli.js",
     "sft:scale:train": ".venv/bin/python -m training.sft_scale.train --qlora",
     "sft:scale:evaluate": "npm run build && node dist/src/scale-evaluation-cli.js",
+    "sft:scale:verify": ".venv/bin/python data_pipeline/scale/verify_freeze.py",
+    "sft:scale:cloud": "bash training/sft_scale/cloud_run.sh",
     "data:pilot:validate": "node data_pipeline/validate-pilot.mjs",
     "data:expansion:validate": ".venv/bin/python -m unittest tests_py.test_data_expansion -v",
     "data:scale:run": ".venv/bin/python data_pipeline/scale/run_pipeline.py --checkout-root \"$SCALE_CHECKOUT_ROOT\"",

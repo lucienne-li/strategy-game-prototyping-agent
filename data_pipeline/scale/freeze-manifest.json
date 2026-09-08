@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "freeze_name": "m8-qwen3-4b-quality-freeze-v1",
+  "dataset": {
+    "path": "data_pipeline/scale/accepted.jsonl",
+    "sha256": "f32f49f5e6d8c7f1997e3d296d5032672a7268436416327400df2f3d9b186e5e",
+    "samples": 186,
+    "families": 15,
+    "granularity": {
+      "G1": 128,
+      "G2": 58
+    },
+    "category": {
+      "card": 43,
+      "tactics": 75,
+      "tower-defense": 68
+    }
+  },
+  "quality_audit": {
+    "path": "data_pipeline/scale/quality-audit-reviewed.jsonl",
+    "sha256": "770d3d08794e54c2fb7cee621a7fe8abbd4bf16e2a9e2d644d1351b5acab2ca7",
+    "reviewed": 48,
+    "accepted": 14,
+    "rejected": 34
+  },
+  "holdout": {
+    "tasks": [
+      "H07_DRAW_CARDS",
+      "H08_GAIN_BLOCK",
+      "H09_APPLY_DAMAGE",
+      "H10_SPEND_ENERGY",
+      "H11_DISCARD_HAND",
+      "H12_POISON_TICK",
+      "H13_HEX_NEIGHBORS",
+      "H14_MANHATTAN",
+      "H15_MOVEMENT_RANGE",
+      "H16_LOWEST_HP",
+      "H17_INITIATIVE",
+      "H18_TOWER_COOLDOWN",
+      "H19_TOWER_UPGRADE",
+      "H1_HELLO_FILE",
+      "H20_WAVE_SCHEDULE",
+      "H21_RESOURCE_TICK",
+      "H22_VICTORY",
+      "H23_CARD_PLAYABLE",
+      "H24_STATUS_TICK",
+      "H2_FIX_ADD",
+      "H3_CARD_STRIKE",
+      "H4_GRID_NEIGHBORS",
+      "H5_NEAREST_TARGET",
+      "H6_TURN_ORDER"
+    ],
+    "count": 24,
+    "source_sha256": {
+      "src/evaluation/sft-holdout.ts": "1bfb7c528952cc8b2bc824696caac63fa931bc7ada9a3d7029633f9736a05fc0",
+      "src/evaluation/scale-holdout.ts": "bbce5c454096f5cad6156c6487a784f96f2c2734d088caa49c76f4cc2d44278f"
+    },
+    "training_family_overlap": 0
+  },
+  "experiment": {
+    "base_model": "Qwen/Qwen3-4B",
+    "sft_method": "QLoRA",
+    "decoding": {
+      "do_sample": false,
+      "max_new_tokens": 512,
+      "thinking": false
+    },
+    "agent": {
+      "max_iterations": 4,
+      "max_tool_calls_per_iteration": 8,
+      "repair_budget": 1
+    },
+    "training": {
+      "epochs": 1,
+      "max_length": 1024,
+      "learning_rate": 0.0002,
+      "gradient_accumulation": 8,
+      "lora_rank": 8,
+      "lora_alpha": 16,
+      "lora_dropout": 0.05
+    }
+  },
+  "contract_sha256": {
+    "src/evaluation/sft-holdout.ts": "1bfb7c528952cc8b2bc824696caac63fa931bc7ada9a3d7029633f9736a05fc0",
+    "src/evaluation/scale-holdout.ts": "bbce5c454096f5cad6156c6487a784f96f2c2734d088caa49c76f4cc2d44278f",
+    "src/scale-evaluation-cli.ts": "5fd7ad599fe69222489e6c9b7d2b70b605235fc42306d3b6afcb01dc4e0ff217",
+    "src/agent/agent-loop.ts": "617401c61d9121d41d7ac01bc82dd77d8f1812a2105f759f646405c2ae30e080",
+    "src/repair/evaluator-repair-loop.ts": "3f6513518101b357787fa54969ab19b7e26d98c16c9044a2834442fb9500a85c",
+    "training/sft_scale/train.py": "efb7c69a20c5e9a1f434679aa70d3da0d03f453c27be293d9c35223ef3000ede"
+  }
+}

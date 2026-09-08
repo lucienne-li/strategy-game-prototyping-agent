@@ -16,7 +16,10 @@ def main() -> None:
         ["node", "data_pipeline/scale/extract-units.mjs", "--checkout-root", args.checkout_root, "--target", "520", "--limit-per-repo", "40"],
         [sys.executable, "data_pipeline/scale/generate_instructions.py", "--batch-size", "6", "--max-new-tokens", "80"],
         [sys.executable, "data_pipeline/scale/review_instructions.py", "--batch-size", "12"],
+        [sys.executable, "data_pipeline/scale/sample_quality_audit.py"],
+        [sys.executable, "data_pipeline/scale/apply_quality_audit.py"],
         [sys.executable, "data_pipeline/scale/finalize_scale.py"],
+        [sys.executable, "data_pipeline/scale/freeze_release.py"],
     ]
     for command in commands:
         print(f"running: {' '.join(command)}", flush=True)

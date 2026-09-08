@@ -1,4 +1,5 @@
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,31 @@ const baseModel = process.env.SFT_BASE_MODEL ?? "Qwen/Qwen3-4B";
 const adapter = process.env.SFT_ADAPTER ?? path.join(root, "artifacts/sft-scale/checkpoint-final");
 const dataset = process.env.SFT_DATASET ?? path.join(root, "data_pipeline/scale/accepted.jsonl");
 const reportPath = process.env.SFT_EVALUATION_REPORT ?? path.join(root, "artifacts/sft-scale/comparison-run.json");
+const freezePath = process.env.SFT_FREEZE ?? path.join(root, "data_pipeline/scale/freeze-manifest.json");
+const freeze = JSON.parse(await readFile(freezePath, "utf8")) as {
+  freeze_name: string;
+  dataset: { sha256: string; samples: number };
+  holdout: { tasks: string[]; count: number };
+  experiment: {
+    base_model: string;
+    decoding: { do_sample: boolean; max_new_tokens: number; thinking: boolean };
+    agent: { max_iterations: number; max_tool_calls_per_iteration: number; repair_budget: number };
+  };
+};
+const datasetBytes = await readFile(dataset);
+const datasetSha256 = createHash("sha256").update(datasetBytes).digest("hex");
+if (datasetSha256 !== freeze.dataset.sha256) throw new Error("dataset does not match frozen SHA-256");
+if (baseModel !== freeze.experiment.base_model) throw new Error("base model does not match frozen experiment");
+const actualTaskIds = [...SCALE_HOLDOUT_TASKS.map((task) => task.id)].sort();
+if (JSON.stringify(actualTaskIds) !== JSON.stringify([...freeze.holdout.tasks].sort())) throw new Error("holdout tasks do not match freeze manifest");
+if (freeze.holdout.count !== SCALE_HOLDOUT_TASKS.length) throw new Error("holdout count does not match freeze manifest");
+const frozenAgent = freeze.experiment.agent;
+if (frozenAgent.max_iterations !== 4 || frozenAgent.max_tool_calls_per_iteration !== 8 || frozenAgent.repair_budget !== 1) {
+  throw new Error("Agent budgets do not match frozen evaluation CLI");
+}
+if (freeze.experiment.decoding.do_sample || freeze.experiment.decoding.max_new_tokens !== 512 || freeze.experiment.decoding.thinking) {
+  throw new Error("decoding settings do not match frozen evaluation CLI");
+}
 const trainingFamilies = new Set(
   (await readFile(dataset, "utf8")).split("\n").filter(Boolean)
     .map((line) => (JSON.parse(line) as { metadata: { repository_family_id: string } }).metadata.repository_family_id)
@@ -24,6 +50,8 @@ if (leaked.length) throw new Error(`holdout repository-family leakage: ${leaked.
 const variants = [{ name: "base", adapter: undefined }, { name: "sft", adapter }] as const;
 const report = {
   baseModel,
+  freezeName: freeze.freeze_name,
+  datasetSha256,
   dataset,
   trainingFamilies: trainingFamilies.size,
   holdoutTasks: SCALE_HOLDOUT_TASKS.length,

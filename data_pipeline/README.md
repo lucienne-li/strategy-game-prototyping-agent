@@ -35,7 +35,9 @@ candidates.json
 → extract-units.mjs
 → generate_instructions.py
 → review_instructions.py
+→ sample_quality_audit.py / apply_quality_audit.py
 → finalize_scale.py
+→ freeze_release.py
 → accepted.jsonl / rejected.jsonl
 ```
 
@@ -47,6 +49,8 @@ npm run data:scale:run
 ```
 
 各阶段以 JSONL 原子写入 checkpoint；重新运行时跳过已绑定 commit/hash 的完成项。`repositories.jsonl` 保留 license、install、build 与拒绝证据，`reviews.jsonl` 将复核结果绑定到 target SHA-256，最终筛选同时执行 family cap、target 与 instruction 近重复 gate。该流程不包含自动 GitHub discovery、分布式队列或数据库。
+
+正式实验前固定抽检 48 条，最终冻结 186 条。运行 `python data_pipeline/scale/verify_freeze.py` 可检查 dataset、audit、24 个 holdout 和关键执行/训练代码是否仍与 freeze manifest 一致。
 
 约束：
 
