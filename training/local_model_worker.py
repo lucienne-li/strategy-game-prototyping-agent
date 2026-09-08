@@ -15,11 +15,16 @@ def main() -> None:
     parser.add_argument("--model", default="Qwen/Qwen2.5-Coder-0.5B-Instruct")
     parser.add_argument("--adapter")
     parser.add_argument("--max-new-tokens", type=int, default=512)
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     args = parser.parse_args()
 
     torch.set_num_threads(min(8, torch.get_num_threads()))
     tokenizer = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=torch.float32)
+    device = "cuda" if args.device == "auto" and torch.cuda.is_available() else args.device
+    if device == "auto":
+        device = "cpu"
+    dtype = torch.bfloat16 if device == "cuda" and torch.cuda.is_bf16_supported() else torch.float32
+    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=dtype).to(device)
     if args.adapter:
         model = PeftModel.from_pretrained(model, args.adapter)
     model.eval()
@@ -32,9 +37,9 @@ def main() -> None:
             request = json.loads(line)
             prompt = build_prompt(request)
             text = tokenizer.apply_chat_template(
-                [{"role": "user", "content": prompt}], tokenize=False, add_generation_prompt=True
+                [{"role": "user", "content": prompt}], tokenize=False, add_generation_prompt=True, enable_thinking=False
             )
-            inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=1536)
+            inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=1536).to(device)
             with torch.inference_mode():
                 output = model.generate(
                     **inputs,

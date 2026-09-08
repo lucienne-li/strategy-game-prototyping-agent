@@ -27,6 +27,7 @@ export type LocalQwenWorkerOptions = {
   model: string;
   adapter?: string;
   maxNewTokens?: number;
+  device?: "auto" | "cpu" | "cuda";
 };
 
 export class LocalQwenWorker implements CodeGenerator {
@@ -39,6 +40,7 @@ export class LocalQwenWorker implements CodeGenerator {
   constructor(options: LocalQwenWorkerOptions) {
     const args = [options.workerScript, "--model", options.model, "--max-new-tokens", String(options.maxNewTokens ?? 512)];
     if (options.adapter) args.push("--adapter", options.adapter);
+    if (options.device) args.push("--device", options.device);
     this.process = spawn(options.python, args, { shell: false, stdio: ["pipe", "pipe", "pipe"] });
     this.lines = createInterface({ input: this.process.stdout });
     this.lines.on("line", (line) => this.handleLine(line));

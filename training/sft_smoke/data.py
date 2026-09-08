@@ -53,6 +53,7 @@ def render_chat_samples(samples: Iterable[ChatSample], tokenizer: Any) -> list[d
             list(sample.messages),
             tokenize=False,
             add_generation_prompt=False,
+            enable_thinking=False,
         )
         if not isinstance(text, str) or not text.strip():
             raise ValueError(f"chat template returned empty text for {sample.sample_id}")
@@ -62,10 +63,10 @@ def render_chat_samples(samples: Iterable[ChatSample], tokenizer: Any) -> list[d
 
 def encode_response_only(sample: ChatSample, tokenizer: Any, max_length: int) -> dict[str, list[int]]:
     prompt_ids = tokenizer.apply_chat_template(
-        [sample.messages[0]], tokenize=True, add_generation_prompt=True
+        [sample.messages[0]], tokenize=True, add_generation_prompt=True, enable_thinking=False
     )
     full_ids = tokenizer.apply_chat_template(
-        list(sample.messages), tokenize=True, add_generation_prompt=False
+        list(sample.messages), tokenize=True, add_generation_prompt=False, enable_thinking=False
     )
     if full_ids[: len(prompt_ids)] != prompt_ids:
         raise ValueError(f"chat template prompt is not a prefix for {sample.sample_id}")

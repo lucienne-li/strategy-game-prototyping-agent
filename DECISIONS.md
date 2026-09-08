@@ -181,3 +181,13 @@
 - **Evidence:** Base final/functional 2/6，SFT 3/6；两者 build 均为 6/6。SFT 只额外通过 H4 grid-neighbors，属于初步正向信号而非有效性证明。
 - **Limit:** 独立 reviewer 与训练基座同属小模型家族，尚未进行人工双标校准；任务数为 6 且每题只跑一次；手工范围提取无法直接扩到 500+。
 - **Revisit when:** 完成 AST/symbol extraction、强 reviewer + sampled human agreement、跨仓 family/near-duplicate grouping、成本遥测和更大冻结 holdout 后。
+
+## D-023 — M8 采用可恢复批处理，并将正式实验基座升级为 Qwen3-4B
+
+- **Status:** Accepted for scale-up / CONFIRMED
+- **Data decision:** 规模化仍只接受根目录存在明确 LICENSE 的 MIT、BSD-2-Clause、BSD-3-Clause 或 Apache-2.0 Browser/TypeScript 项目。使用 JSONL checkpoint 串联 repository 检查、family 分组、G1/G2 提取、反向指令、独立复核与确定性过滤；每阶段可独立重跑，不引入数据库、任务平台或 crawler。
+- **Family/duplicate decision:** 通过规范化 TypeScript 文件 hash 的跨仓 Jaccard 证据聚合 repository family；target 与 instruction 分别执行近重复 gate，并对单 family 设置样本上限。阈值是本轮明确记录的工程参数，不声称等价于语义重复检测。
+- **Training decision:** `Qwen2.5-Coder-0.5B-Instruct` 只保留为 smoke-test、反向指令生成与自动复核工具；正式 Base-vs-SFT 使用同一个 `Qwen/Qwen3-4B` 基座与 LoRA/QLoRA。Base 与 SFT 共用 24 个 family-isolated tasks、Agent Runtime、4 次 iteration、1 次 repair 和 greedy decoding。
+- **Why:** 0.5B 的 24-sample 结果只提供弱趋势，无法代表更实用的代码模型能力；4B 模型仍可用单卡 QLoRA 训练，同时显著减少把 scaffold/模型容量不足误判成数据问题的风险。
+- **Execution boundary:** 正式训练优先在云 GPU 上运行。没有 CUDA 或运行产物时，只能声明训练与评测入口已验证，不能填写 loss 或 Base-vs-SFT 成绩。
+- **Revisit when:** 人工双标校准显示 reviewer 偏差较大，或 family/near-duplicate 审计发现 leakage；扩到数千条前必须补 discovery coverage、人工抽样和更强隔离。

@@ -24,6 +24,30 @@ fixed manifests + curated extraction spec
 
 它已经把阶段输入输出整理成可批处理文件，但代码单元选择仍是人工策展，reviewer 也尚未用人工双标校准，因此不能描述为可无人值守的大规模数据平台。
 
+## M8 batch scale-up
+
+`scale/` 将影响规模扩张的最小能力固化为可恢复批处理：
+
+```text
+candidates.json
+→ batch_repositories.py
+→ group_families.py
+→ extract-units.mjs
+→ generate_instructions.py
+→ review_instructions.py
+→ finalize_scale.py
+→ accepted.jsonl / rejected.jsonl
+```
+
+使用一个临时 checkout 根目录运行完整流程：
+
+```bash
+export SCALE_CHECKOUT_ROOT="$(mktemp -d)"
+npm run data:scale:run
+```
+
+各阶段以 JSONL 原子写入 checkpoint；重新运行时跳过已绑定 commit/hash 的完成项。`repositories.jsonl` 保留 license、install、build 与拒绝证据，`reviews.jsonl` 将复核结果绑定到 target SHA-256，最终筛选同时执行 family cap、target 与 instruction 近重复 gate。该流程不包含自动 GitHub discovery、分布式队列或数据库。
+
 约束：
 
 - 不提交第三方 Repository checkout、`node_modules`、构建产物或权利不明确的素材；

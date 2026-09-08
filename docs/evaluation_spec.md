@@ -249,4 +249,12 @@ M7 使用 6 个 project-authored TypeScript holdout tasks：精确 stdout、修�
 
 SFT 额外通过网格邻居任务，其他三个策略逻辑失败仍未被一次 repair 修复。该结果仅支持“观察到初步正向差异”，不支持统计显著性、因果归因或通用提升声明。后续必须扩大 family-isolated holdout、重复采样并报告区间。
 
+## 11. M8 Qwen3-4B Holdout Contract
+
+M8 将 holdout 扩为 24 个 project-authored TypeScript tasks，覆盖卡牌状态、网格/回合策略和塔防/资源逻辑。每题使用唯一 `benchmark:original:*` family；运行入口在加载模型前检查其与 15 个实际训练 family 零交集。全部 24 个 external evaluator 已用 gold implementations 验证可判定。
+
+正式比较固定使用同一个 `Qwen/Qwen3-4B` 基座。Base 和 SFT 共用 `runAgent`、三种 Tool、scaffolded local adapter、4 次 iteration、1 次 repair、每轮 8 个 Tool Call 上限、greedy decoding 与 512 new-token 上限。逐题记录 final success、build pass、functional pass、first-pass success、repairs used、iteration 和 Tool Call trace。
+
+当前仅完成评测代码和 24-task evaluator 回归测试；本工作区没有 CUDA，尚未产生 Qwen3-4B checkpoint 或 Base-vs-SFT 成绩。此前 Qwen2.5-Coder-0.5B 的 2/6 vs 3/6 不能替代本轮结果，也不会被混入 M8 报告。
+
 The first reference task and runtime comparison are recorded in `experiments/runtime-selection/`.

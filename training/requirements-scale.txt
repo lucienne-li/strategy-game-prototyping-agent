@@ -1,0 +1,3 @@
+-r requirements-smoke.txt
+accelerate==1.10.1
+bitsandbytes==0.47.0

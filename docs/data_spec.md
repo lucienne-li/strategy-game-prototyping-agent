@@ -262,3 +262,20 @@ Pipeline 的阶段边界、schema、provenance、review 和 rejection audit 已�
 - benchmark contamination 自动阻断。
 
 因此当前结论是“半自动 Pipeline 结构可扩展”，不是“已可直接自动生产 2 万条”。
+
+## 15. M8 Batch Scale-up Result
+
+M8 使用 28 个手工发现的 Browser/TypeScript 候选，并把之后的 clone、固定 commit、license/install/build、family、提取、反向 instruction、独立复核和最终筛选实现为可恢复批处理。仓库漏斗为 28 → 17；拒绝 11 个的原因包括 build 4、install 3，以及缺少 build script、缺少 package manifest、license 不明确/不允许和 timeout 各 1。
+
+17 个通过仓库中，规范化 TypeScript 文件 hash 没有发现满足“至少 3 个共享文件且 Jaccard ≥ 0.30”的跨仓合并证据，因此保留 17 个 family。两个通过仓库没有可提取单元；其余 15 个 family 贡献了 440 个唯一 target，经独立复核和确定性 gate 后保留 334 条（G1 191 / G2 143），拒绝 106 条。最终 gate 明确拒绝引用未提供“guidelines/constraints”的欠规格 instruction，没有为达到上限而放宽条件。
+
+机器可读制品位于 `data_pipeline/scale/`：
+
+- `repositories.jsonl`：固定 commit、许可证、安装、构建和拒绝证据；
+- `units.jsonl`：符号范围、上下文、family 和 target hash；
+- `instructions.jsonl` / `reviews.jsonl`：生成与独立复核原始结果；
+- `accepted.jsonl` / `rejected.jsonl`：训练输入与 fail-closed 审计。
+
+本轮已经达到 300–500 条实验规模，但仍不能直接扩到 2 万条。最大风险是 0.5B 自动 reviewer 尚未用人工双标校准且本轮通过率过高；其次是候选 discovery 仍为人工清单、family 检测只覆盖共享文件、G2 上下文依赖仍是启发式提取。扩到数千条前应先做分层人工抽样、强 reviewer 校准和更可靠的语义/fork family 检查。
+
+此外，当前 install 使用 `--ignore-scripts`，但随后执行的仓库 build 仍是第三方代码，临时目录不等于安全沙箱。扩到无人值守批量处理前必须加入一次性容器、网络/CPU/内存/磁盘限制；这属于离线构建安全边界，不应通过放宽 Online Agent Runtime 权限解决。

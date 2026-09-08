@@ -29,3 +29,17 @@ npm run sft:evaluate
 ```
 
 Outputs are written to ignored `artifacts/sft-evaluation/`. The comparison uses the existing Agent loop, restricted Executor and evaluator repair wrapper. A deterministic adapter scaffold handles read/write/run sequencing while the local Qwen worker supplies only the TypeScript contents; this experiment therefore measures code generation under the Runtime, not native local-model tool calling.
+
+## Qwen3-4B scale experiment
+
+The formal scale comparison uses `Qwen/Qwen3-4B`; the 0.5B model above remains a technical smoke-test model. Use a CUDA cloud machine and install the pinned scale requirements into the ignored environment:
+
+```bash
+uv pip install --python .venv/bin/python -r training/requirements-scale.txt
+npm run sft:scale:train
+npm run sft:scale:evaluate
+```
+
+The training command consumes every record in `data_pipeline/scale/accepted.jsonl`, applies assistant-response-only masking and defaults to one QLoRA epoch. The evaluation runs Base and the saved adapter over the same 24 repository-family-isolated tasks with 4 Agent iterations and one repair. Reports and checkpoints are written to ignored `artifacts/sft-scale/`.
+
+Do not interpret a prepared command as an executed experiment. A valid result requires the committed dataset plus `train-run.json` and `comparison-run.json` produced by a real CUDA run.

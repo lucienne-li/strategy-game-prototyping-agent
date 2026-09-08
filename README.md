@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M7：Small-scale SFT Evaluation 已完成**。
+项目处于 **M8：Data Scale-up 已完成，Qwen3-4B 云 GPU 实验待运行**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -24,7 +24,8 @@
 - 已用全部 24 条样本执行 response-only loss 的 2-epoch LoRA，并在 6 个 family 隔离 holdout 上完成同 Runtime Base-vs-SFT：最终功能通过 2/6 vs 3/6；
 - MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
 - 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
-- 尚未开始大规模数据收集或正式 SFT；
+- 已对 28 个候选仓库运行可恢复的 license/install/build 批处理：17 个通过，抽取 440 个 G1/G2 候选并最终保留 334 条训练样本；
+- 已冻结 24 个 repository-family 隔离 holdout，并准备 `Qwen/Qwen3-4B` QLoRA 与同预算 Base-vs-SFT 入口；当前工作区无 CUDA，正式训练和对比尚未运行；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
 
 ## 文档导航
@@ -103,6 +104,17 @@ npm run sft:evaluate
 
 实际运行记录见 [docs/sft_evaluation_run.md](docs/sft_evaluation_run.md)。Checkpoint 和机器可读运行报告写入 ignored `artifacts/sft-evaluation/`。
 
+批量数据流程与正式 Qwen3-4B 实验：
+
+```bash
+export SCALE_CHECKOUT_ROOT="$(mktemp -d)"
+npm run data:scale:run
+npm run sft:scale:train
+npm run sft:scale:evaluate
+```
+
+数据漏斗与限制见 [docs/data_scale_run.md](docs/data_scale_run.md)，冻结训练/评测配置见 [docs/qwen3_scale_training.md](docs/qwen3_scale_training.md)。正式训练需要 CUDA；没有真实 `train-run.json` 和 `comparison-run.json` 时不得声称已有 Qwen3-4B 结果。
+
 ## 下一步
 
-下一步不应直接跳到 2 万条。先扩到约 100–500 条，并补齐 AST/符号级提取、强 reviewer + 人工双标校准、family/near-duplicate 分组、可恢复任务队列和成本遥测；随后在更大的冻结 holdout 上复验初步趋势。
+下一步是在云 GPU 上执行冻结的 Qwen3-4B QLoRA 和 24-task Base-vs-SFT；同时对 334 条数据做分层人工双标抽检。只有 reviewer 校准和 family/duplicate 审计通过后，才适合继续扩到数千条，更不能直接宣称已具备无人值守生成约 2 万条的质量保障。

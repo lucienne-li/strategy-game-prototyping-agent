@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 7：Small-scale SFT Evaluation（完成）**
+**Phase 8：Data Scale-up + Qwen3-4B Evaluation（进行中）**
 
 ## Milestone Roadmap
 
@@ -320,34 +320,42 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 - M6 与 M6.1。
 
-### M8 — Dataset Scale-up and SFT
+### M8 — Batch Data Scale-up and Qwen3-4B Evaluation
 
 **Objective**
 
-冻结数据版本，训练候选模型并与基础模型比较。
+把已验证的离线流程扩成可恢复批处理，形成 300–500 条合格 G1/G2 样本和 20–30 个 family-isolated holdout，再以同一 `Qwen/Qwen3-4B` 基座完成 Base-vs-SFT 对比。
 
 **Modules / Files**
 
-- 数据版本清单
-- 训练配置
-- 训练与评测报告
+- `data_pipeline/scale/`
+- `training/sft_scale/`
+- `src/evaluation/scale-holdout.ts`
+- `src/scale-evaluation-cli.ts`
+- `tests_py/test_data_scale.py`
 
 **Acceptance Criteria**
 
-- 训练/验证/测试按 repository family 隔离；
-- 训练可复现，模型与数据版本可追踪；
-- 同一 Agent Runtime 下完成 Base vs SFT 对比；
-- 报告提升、退化、成本和统计不确定性。
+- [x] 28 个候选仓库支持 resumable clone/license/install/build 批处理；
+- [x] 仅接受明确 MIT/BSD-2-Clause/BSD-3-Clause/Apache-2.0 根 LICENSE；
+- [x] 17 个构建通过仓库完成跨仓 family 检查；
+- [x] 自动提取 440 个唯一 G1/G2 候选代码单元；
+- [x] 为全部候选生成反向 instruction，并将生成元数据绑定 target hash；
+- [x] 全部 440 个 instruction 完成独立 target-bound review 与最终 quality/duplicate gate；
+- [x] 最终保留 334 条 accepted、106 条 rejected，并通过 finalization 可复现性测试；
+- [x] 冻结 24 个与训练 repository family 隔离的 external-evaluator tasks；
+- [x] 准备 Qwen3-4B QLoRA、checkpoint reload 与同预算 Base-vs-SFT 入口；
+- [!] 在 CUDA 云 GPU 上真实训练并运行 24-task Base-vs-SFT；当前工作区无 CUDA，尚无真实 loss/checkpoint/comparison 产物。
 
 **Tests**
 
-- 数据泄漏与去重审计；
-- 训练 smoke test；
-- 冻结 Benchmark 评测。
+- [x] 46/46 Node Runtime、Agent 和 24-task evaluator tests 通过；
+- [x] scale repository/unit/final JSONL Python regression tests；
+- [ ] Qwen3-4B checkpoint reload 与真实 Base-vs-SFT run report。
 
 **Dependencies**
 
-- M7 证明数据方法有效；训练资源。
+- M7；可访问公开 GitHub 仓库；正式实验需要能够运行 Qwen3-4B QLoRA 的 CUDA 环境。
 
 ### M9 — Ablations and Final Evaluation
 

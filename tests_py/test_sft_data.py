@@ -7,13 +7,13 @@ from training.sft_smoke.data import encode_response_only, load_chat_samples, ren
 
 
 class FakeTokenizer:
-    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt, **kwargs):
         self.assertion = (tokenize, add_generation_prompt)
         return "\n".join(f"<{message['role']}>{message['content']}" for message in messages)
 
 
 class FakeTokenizingChatTokenizer:
-    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt):
+    def apply_chat_template(self, messages, *, tokenize, add_generation_prompt, **kwargs):
         if len(messages) == 1 and add_generation_prompt:
             return [10, 11, 12]
         if len(messages) == 2 and not add_generation_prompt:
