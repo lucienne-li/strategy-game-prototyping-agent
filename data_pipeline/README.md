@@ -62,6 +62,8 @@ npm run data:scale:quality-repair
 
 命令按 target validation、结构化生成、确定性预检、强模型 review 和 finalization 顺序执行并可断点恢复。没有 strong review 的候选一律 reject；全量完成并生成新的 quality-v2 freeze 前，Qwen3-4B 正式训练保持暂停。
 
+为避免已观察到的 API 限流和 generation 输出未完成问题，quality-repair 默认使用单并发，并为 inverse instruction generation 设置 1024 个输出 token。重新执行同一命令会跳过已经成功生成或完成 review 的记录；HTTP 失败日志会保留 API error code、响应正文和 `Retry-After`（如服务端提供），未完成响应会保留 `incomplete_details.reason`。
+
 quality-repair 的 Python 代码只依赖标准库，因此 `requirements-quality.txt` 有意不声明第三方包。不要为本地数据质量处理安装 `training/requirements-scale.txt`；后者包含 `bitsandbytes` 等云 GPU QLoRA 专用依赖。
 
 约束：

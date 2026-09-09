@@ -29,7 +29,7 @@ def main() -> None:
     parser.add_argument("--target-validation", default="data_pipeline/scale/target-validation-v2.jsonl")
     parser.add_argument("--output", default="data_pipeline/scale/reviews-v2.jsonl")
     parser.add_argument("--model", default=os.environ.get("DATA_REVIEWER_MODEL", "gpt-5.6"))
-    parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
     records = read_jsonl(Path(args.input))
     validations = {item["unit_id"]: item for item in read_jsonl(Path(args.target_validation))}

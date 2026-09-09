@@ -1,19 +1,25 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
+import urllib.error
+from email.message import Message
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCALE = ROOT / "data_pipeline" / "scale"
 sys.path.insert(0, str(SCALE))
 from quality_checks import deterministic_reasons  # noqa: E402
+from openai_json import request_json  # noqa: E402
+from run_quality_repair import main as run_quality_repair  # noqa: E402
 
 
 def record() -> dict:
@@ -42,6 +48,45 @@ def validation() -> dict:
 
 
 class DataQualityPipelineTests(unittest.TestCase):
+    @patch("run_quality_repair.subprocess.run")
+    def test_quality_repair_uses_conservative_resume_defaults(self, run) -> None:
+        with patch.object(sys, "argv", ["run_quality_repair.py"]):
+            run_quality_repair()
+        commands = [call.args[0] for call in run.call_args_list]
+        generation = commands[1]
+        review = commands[2]
+        self.assertEqual(generation[generation.index("--workers") + 1], "1")
+        self.assertEqual(generation[generation.index("--max-output-tokens") + 1], "1024")
+        self.assertEqual(review[review.index("--workers") + 1], "1")
+
+    @patch("openai_json.urllib.request.urlopen")
+    def test_incomplete_response_records_reason(self, urlopen) -> None:
+        response = urlopen.return_value.__enter__.return_value
+        response.read.return_value = json.dumps({
+            "status": "incomplete",
+            "incomplete_details": {"reason": "max_output_tokens"},
+        }).encode()
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+            with self.assertRaisesRegex(RuntimeError, r"incomplete_details\.reason=max_output_tokens"):
+                request_json(model="test", prompt="test", schema_name="test", schema={}, max_output_tokens=1, retries=0)
+
+    @patch("openai_json.urllib.request.urlopen")
+    def test_http_429_records_body_code_and_retry_after(self, urlopen) -> None:
+        headers = Message()
+        headers["Retry-After"] = "7"
+        body = json.dumps({"error": {"code": "rate_limit_exceeded", "message": "slow down"}}).encode()
+        urlopen.side_effect = urllib.error.HTTPError(
+            url="https://api.openai.com/v1/responses", code=429, msg="Too Many Requests",
+            hdrs=headers, fp=io.BytesIO(body),
+        )
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+            with self.assertRaises(RuntimeError) as context:
+                request_json(model="test", prompt="test", schema_name="test", schema={}, max_output_tokens=1, retries=0)
+        message = str(context.exception)
+        self.assertIn("error_code=rate_limit_exceeded", message)
+        self.assertIn("retry_after=7", message)
+        self.assertIn('response_body={"error":', message)
+
     def test_complete_scoped_record_passes_deterministic_gate(self) -> None:
         self.assertEqual(deterministic_reasons(record(), validation()), [])
 

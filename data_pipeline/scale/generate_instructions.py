@@ -31,8 +31,8 @@ def main() -> None:
     parser.add_argument("--output", default="data_pipeline/scale/instructions-v2.jsonl")
     parser.add_argument("--failures", default="data_pipeline/scale/generation-failures-v2.jsonl")
     parser.add_argument("--model", default=os.environ.get("DATA_GENERATOR_MODEL", "gpt-5.6"))
-    parser.add_argument("--max-output-tokens", type=int, default=512)
-    parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--max-output-tokens", type=int, default=1024)
+    parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
     if not os.environ.get("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required; quality-v2 never falls back to the old generator")

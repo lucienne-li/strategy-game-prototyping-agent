@@ -15,7 +15,7 @@ def main() -> None:
         [sys.executable, "data_pipeline/scale/group_families.py", "--checkout-root", args.checkout_root],
         ["node", "data_pipeline/scale/extract-units.mjs", "--checkout-root", args.checkout_root, "--target", "520", "--limit-per-repo", "40"],
         ["node", "data_pipeline/scale/validate-targets.mjs"],
-        [sys.executable, "data_pipeline/scale/generate_instructions.py", "--workers", str(args.workers), "--max-output-tokens", "512"],
+        [sys.executable, "data_pipeline/scale/generate_instructions.py", "--workers", str(args.workers), "--max-output-tokens", "1024"],
         [sys.executable, "data_pipeline/scale/review_instructions.py", "--workers", str(args.workers)],
         [sys.executable, "data_pipeline/scale/finalize_scale.py"],
     ]
