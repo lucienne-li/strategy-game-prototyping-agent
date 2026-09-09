@@ -268,3 +268,11 @@ M8 在 `data_pipeline/scale/` 增加最小、可恢复的批处理链路：候�
 `evals/agent_benchmark_v1/` 将原 B1–B4、B4-REPAIR 和已验证的 holdout evaluator 整理为最终 30-task 固定评测。`src/evaluation/agent-benchmark-v1.ts` 保存可执行 task/evaluator 映射，`agent-benchmark-runner.ts` 统一临时 workspace、Agent/repair 调用与指标聚合。任务覆盖单文件生成、带缺陷 seed 的修改、D1–D3 策略游戏逻辑、五个 D4 Browser 项目和三个受控 self-correction 场景。
 
 Evaluator 与隐藏断言只存在于 Repository 进程，不复制进临时 workspace。Agent 只能通过现有三种 Tool 接触 workspace；首次失败后只接收结构化 evaluation，不获得 evaluator 路径或源码。Project evaluator 在受限 HTTP launch 后由 Repository 侧 Playwright 驱动 headless Chromium，检查渲染、HUD/controls、overflow 和一次真实交互；页面脚本仍处于浏览器沙箱。Freeze manifest 绑定 30 个 task IDs、difficulty、family、预算、模型设置和 evaluator/runtime 源码 hash。GPT-5.6、Qwen3-4B Base 与 Qwen3-4B SFT 共用同一 runner 合同；Base/SFT 的 Qwen decoding 必须完全一致。
+
+## 10. Web Product Adapter
+
+`src/web/` 是展示层适配器，不是新的 Agent 架构。`SessionManager` 为每个请求创建临时 workspace，ReportingModel/ReportingExecutor 仅观察既有接口并将安全的生命周期、Tool Call 和 Observation 摘要映射为 SSE。它们不修改 `runAgent`、Tool schema、Model Adapter 或 repair loop。
+
+`web/public/` 使用 Bolt-style Chat + Workbench 布局。文件和下载 API 只枚举生成 workspace 中的常规非隐藏文件；Preview 通过 `/preview/:sessionId/` 加载到不含 `allow-same-origin` 的 sandbox iframe。服务器只在返回的 HTML 中注入一次性 visual bridge，该 bridge 不写入 workspace/ZIP，负责验证 HUD/controls、overflow 和 Strike 后状态并将结构化结果交给外部 evaluator。OpenAI Key 仅由服务器环境读取，API 只返回 Live Mode 是否可用。
+
+MVP 继续使用服务端 `ToolExecutor`，没有引入 WebContainer、Bolt MessageParser、ActionRunner、RAG、Memory、Planner 或 Multi-Agent。这样既保留已验证的权限/评测闭环，也避免为展示层重构 Runtime。

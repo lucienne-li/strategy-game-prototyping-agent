@@ -1,0 +1,7 @@
+{
+  "name": "strategy-game-agent-web",
+  "private": true,
+  "scripts": {
+    "start": "cd .. && npm run build && node dist/src/web-cli.js"
+  }
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strategy Forge · Game Agent</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Strategy Forge home"><span class="brand-mark">SF</span><span>Strategy Forge</span></a>
+    <div class="topbar-center"><span class="status-dot"></span><span id="runtime-status">Runtime ready</span></div>
+    <div class="top-actions"><span class="chip">Browser + TypeScript</span><span id="mode-badge" class="mode-badge">DEMO MODE</span></div>
+  </header>
+
+  <main class="workspace">
+    <section class="left-panel">
+      <div class="intro">
+        <div class="eyebrow">Strategy Game Prototyping Agent</div>
+        <h1>Turn game rules into<br /><span>a playable prototype.</span></h1>
+        <p>Describe a mechanic. The Agent creates files, builds the project, evaluates behavior, and prepares a live preview.</p>
+      </div>
+
+      <div class="conversation">
+        <div class="message agent-message">
+          <div class="avatar">✦</div>
+          <div><strong>Prototype Agent</strong><p>I can build a compact Browser + TypeScript strategy prototype. Demo Mode loads our verified Card Combat vertical slice.</p></div>
+        </div>
+        <div id="user-message" class="message user-message hidden"></div>
+        <div id="final-message" class="message agent-message hidden"><div class="avatar">✓</div><div><strong>Agent result</strong><p></p></div></div>
+      </div>
+
+      <form id="prompt-form" class="composer">
+        <textarea id="prompt" rows="4" aria-label="Game request">Create a card combat game where the player has 20 HP and 3 Energy. Add a Strike button that costs 1 Energy and deals 6 damage to an enemy with 20 HP.</textarea>
+        <div class="composer-footer">
+          <div class="mode-choice" id="mode-choice"><button type="button" data-mode="demo" class="active">Demo</button><button type="button" data-mode="live">Live model</button></div>
+          <button id="generate" class="generate" type="submit"><span>Generate prototype</span><span>→</span></button>
+        </div>
+      </form>
+
+      <section class="progress-card">
+        <div class="section-title"><span>Execution</span><span id="run-state" class="muted">Waiting</span></div>
+        <div id="progress" class="progress-list"><div class="empty-state">Start a run to see Agent events.</div></div>
+      </section>
+    </section>
+
+    <section class="right-panel">
+      <div class="workbench-bar">
+        <div class="window-controls"><i></i><i></i><i></i></div>
+        <div class="tabs"><button class="tab active" data-tab="preview">Preview</button><button class="tab" data-tab="code">Files</button></div>
+        <button id="reload-preview" class="icon-button" title="Reload preview">↻</button>
+      </div>
+
+      <div id="preview-view" class="workbench-view active">
+        <div class="address-bar"><span>🔒</span><span id="preview-address">No preview available</span></div>
+        <div class="preview-shell">
+          <div id="preview-placeholder" class="preview-placeholder"><div class="strategy-glyph">♜</div><strong>Your playable prototype appears here</strong><span>Build and evaluation output will stream on the left.</span></div>
+          <iframe id="preview-frame" title="Generated game preview" sandbox="allow-scripts"></iframe>
+        </div>
+      </div>
+
+      <div id="code-view" class="workbench-view code-view">
+        <aside><div class="pane-title">Project files</div><div id="file-tree" class="file-tree"><span class="muted">No files yet</span></div></aside>
+        <div class="code-pane"><div id="file-name" class="pane-title">Select a file</div><pre id="file-content"><code>// Generated source will appear here.</code></pre></div>
+      </div>
+
+      <div class="bottom-grid">
+        <section class="results-panel">
+          <div class="section-title"><span>Test results</span><span class="muted">External evaluator</span></div>
+          <div class="test-grid">
+            <div class="test-row"><span>Build</span><span id="test-build" class="test-status pending">Pending</span></div>
+            <div class="test-row"><span>Functional</span><span id="test-functional" class="test-status pending">Pending</span></div>
+            <div class="test-row"><span>Visual</span><span id="test-visual" class="test-status pending">Pending</span></div>
+            <div class="test-row"><span>Repair</span><span id="test-repair" class="test-status neutral">Not used</span></div>
+          </div>
+        </section>
+        <section class="terminal-panel">
+          <div class="section-title"><span>Execution log</span><span class="terminal-dot">●</span></div>
+          <pre id="terminal"><span class="muted">$ waiting for Agent run</span></pre>
+        </section>
+      </div>
+
+      <div class="download-bar">
+        <div><strong>Project package</strong><span id="file-count">No generated files</span></div>
+        <a id="download" class="download disabled" aria-disabled="true">↓ Download Project</a>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

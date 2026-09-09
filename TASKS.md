@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 8：Data Scale-up + Qwen3-4B Evaluation（进行中）**
+**Phase 9：Bolt-style Web Product MVP（进行中）**
 
 ## Milestone Roadmap
 
@@ -432,6 +432,31 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 既有单文件 evaluator、两个 D3 multi-system gold contracts、五个 browser project gold contracts 与修改 seed 失败验证；
 - [x] Playwright 浏览器存在时运行真实 render/interaction 回归；当前容器浏览器 CDN 下载失败时明确 skip，不降级为静态视觉通过；
 - [x] runner 指标聚合回归。
+
+### M9 — Bolt-style Web Product MVP
+
+**Objective**
+
+在不改写 Agent 核心的前提下，为现有 Model → Tool → Executor → Evaluator → Repair 闭环增加可演示的 Chat/Workbench Web 产品层。
+
+**Acceptance Criteria**
+
+- [x] `feature/data-scale-up` 的最终 Benchmark fast-forward 合并到 `main`，从最新 main 创建 `feature/web-product`；
+- [x] Chat 输入可启动独立 session；无 API Key 时明确显示 Demo Mode，不能冒充实时模型；
+- [x] SSE 展示高层状态、Tool Call 和 Observation 摘要，不展示 chain-of-thought；
+- [x] 生成文件可按树状列表查看内容，且 API 受 workspace 路径边界保护；
+- [x] sandboxed iframe 加载真实 Browser 游戏并执行 Strike，Energy 3→2、Enemy HP 20→14；
+- [x] 展示 Build、Functional、Visual、Repair 状态；
+- [x] ZIP 仅包含生成项目文件，不含 Key、evaluator、日志或内部文件；
+- [x] 提供 Dockerfile、Render Blueprint 和最简部署说明；
+- [ ] 公网 URL：需要用户在 Render 授权 GitHub 并创建 Blueprint，当前执行环境无该账户权限。
+
+**Tests**
+
+- [x] Demo Mode 通过现有 Agent Loop 和 ToolExecutor 真实写文件并 build；
+- [x] external B4 logic/DOM/launch evaluator 与浏览器 visual submission 共同通过；
+- [x] Preview HTML/module 可访问，ZIP 格式有效且排除内部信息；
+- [x] 全量 Node/Python 回归继续通过。
 
 ## 已完成
 

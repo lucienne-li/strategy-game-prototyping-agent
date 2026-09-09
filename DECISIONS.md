@@ -236,3 +236,14 @@
 - **Visual decision:** 固定 Playwright 1.62.1 + Chromium、1280×720 viewport。检查 HTTP render、可见非空内容、关键 HUD/controls 在 viewport 内、无明显横向/关键元素 overflow，并真实点击一次后验证状态文本；保存截图 SHA-256，不加入付费 VLM 或像素审美评分。
 - **Isolation:** Chromium 由 workspace 外 evaluator 驱动；生成项目仅以受限 HTTP 页面运行，server 写权限仍只到该 workspace 的 `dist/`。Agent 无 evaluator 文件访问权。
 - **Freeze rule:** manifest 与独立 SHA-256 完成后，GPT-5.6、Qwen3-4B Base、Qwen3-4B SFT 必须使用同一任务、evaluator、decoding、iterations、tool/repair budget。任何合同修改都创建新版本，不回写 v1。
+
+## D-029 — Web MVP 复用 Bolt 产品模式而不引入其 WebContainer Runtime
+
+- **Status:** Accepted for M9
+- **Evidence:** 官方 Bolt.new 的 Preview/FileTree/Workbench 依赖 Remix/React、Nanostores、CodeMirror、WebContainer、ActionRunner 与 Bolt message protocol。直接复制会替换当前已经验证的服务端 workspace、ToolExecutor 和 evaluator 边界。
+- **Decision:** 复用 Bolt 的 Chat + Workbench 信息架构、Preview/Files tab、iframe address/reload、文件导航与 terminal-style progress patterns；用轻量 HTML/CSS/JS 和 Node HTTP API 实现，不复制 Bolt Agent/Model/Parser/ActionRunner。
+- **Runtime:** SessionManager 通过 reporting wrappers 观察现有 Model/Executor 并输出 SSE；Agent Loop、三种 Tool、external B4 evaluator 和 repair loop 原样复用。Demo Mode 使用确定性 Model，但明确标识。
+- **Preview security:** 生成页面进入不含 `allow-same-origin` 的 sandbox iframe；visual bridge 由服务端响应时注入，不进入 Agent workspace 或 ZIP。服务器自行根据全部检查字段计算 visual pass。
+- **Download:** 使用标准库生成 store-only ZIP，只枚举 session workspace 中的常规非隐藏文件，不复制环境变量、evaluator、日志或 Repository 文件。
+- **License:** Bolt.new 为 MIT；本项目没有逐文件复制其源码，只使用其公开交互模式，并在 `docs/web_demo.md` 记录来源与复用边界。
+- **Deployment:** 采用 Node Docker 服务和 Render Blueprint；MVP workspace 是 ephemeral `/tmp`，不承诺持久化或多实例 session 迁移。

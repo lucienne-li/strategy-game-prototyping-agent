@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M8.1 Data Quality 修复进行中；M8.2 Agent Benchmark v1 已冻结；Qwen3-4B 正式训练暂停**。
+项目处于 **M9 Bolt-style Web Product MVP；Agent Benchmark v1 已冻结；数据扩张与 Qwen3-4B 训练暂停**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -28,6 +28,7 @@
 - 已冻结 24 个 repository-family 隔离 holdout，并准备 `Qwen/Qwen3-4B` QLoRA 与同预算 Base-vs-SFT 入口；当前工作区无 CUDA，正式训练和对比尚未运行；
 - 已将 80-token 生成路径替换为 strict scoped JSON + 512-token 完整响应，并增加确定性 consistency gate、窄行为执行和 `gpt-5.6` 最终 reviewer；旧 186 条 freeze 只保留为历史基线，quality-v2 全量 review 前训练入口会拒绝启动；
 - 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
+- 已实现 Bolt-style Web MVP：Chat、SSE Progress、文件查看、执行日志、Test Results、沙箱 iframe Live Preview 和安全 ZIP 下载；无 Key 时明确运行 Demo Mode。
 
 ## 文档导航
 
@@ -38,6 +39,7 @@
 - [docs/product_spec.md](docs/product_spec.md)：产品目标、用户、范围与假设
 - [docs/evaluation_spec.md](docs/evaluation_spec.md)：评测任务、指标、基线和验收规则
 - [docs/data_spec.md](docs/data_spec.md)：离线数据来源、清洗、反向指令与 SFT 格式
+- [docs/web_demo.md](docs/web_demo.md)：Web MVP、Bolt 复用边界、本地运行与部署
 
 ## 安装与运行
 
@@ -50,6 +52,14 @@ npm run demo -- ./agent-workspace "创建一个 TypeScript 文件并验证输出
 ```
 
 Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。模型单轮可以返回有序 Tool Call 批次；Runtime 默认每轮最多接受 8 个，并为每个调用分别校验、执行和记录 Observation。
+
+Web 产品演示：
+
+```bash
+npm --prefix web start
+```
+
+打开 <http://localhost:3000>。没有 `OPENAI_API_KEY` 时页面会明确显示 **Demo Mode**，并通过现有 Agent Runtime 创建已验证的 Card Combat 项目；配置服务器环境变量后可选择 Live Model。Preview、文件查看、评测状态和 ZIP 下载均在同一页面。详见 [docs/web_demo.md](docs/web_demo.md)。
 
 真实模型 B1 运行：
 
@@ -141,4 +151,4 @@ npm run sft:scale:evaluate
 
 ## 下一步
 
-下一步是先在配置 `OPENAI_API_KEY` 的环境完成固定 440 units 的 quality-v2 生成与强 review，记录最终 accepted/reject reasons 并重新冻结。之后才在 16 GB 最低、24 GB 推荐的云 GPU 上运行 Qwen3-4B QLoRA；本轮不新增仓库或样本来源。
+当前优先完成 Web MVP 的公开部署验收。数据扩张和 Qwen3-4B QLoRA 按用户要求暂停；Web 分支验收后再进入 Data Pipeline v3。

@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.env*
+artifacts
+upload
+.venv*
+__pycache__
+tests
+tests_py
+data_pipeline
+training
+experiments
+evals
+artifacts
+docs
