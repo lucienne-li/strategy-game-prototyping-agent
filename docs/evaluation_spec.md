@@ -259,8 +259,8 @@ M8 将 holdout 扩为 24 个 project-authored TypeScript tasks，覆盖卡牌状
 
 ## 12. Agent Benchmark v1（正式 Agent 合同）
 
-后续 Agent 级比较由 `evals/agent_benchmark_v1/freeze-manifest.json` 取代零散 B1–B4 报告和只含单文件任务的旧 24-task holdout。v1 固定 25 题：Code Generation 4、Code Modification 4、Game Logic 12、Project-Level Browser Game 2、Repair/Self-correction 3。
+后续 Agent 级比较由 `evals/agent_benchmark_v1/freeze-manifest.json` 取代零散 B1–B4 报告和只含单文件任务的旧 24-task holdout。最终 v1 固定 30 题：Code Generation 4、Code Modification 4、Game Logic 14、Project-Level Browser Game 5、Repair/Self-correction 3。全部任务按真实复杂度标注 D1–D4；五个 Project-Level 任务均为 D4，并覆盖卡牌战斗、回合制战术、塔防、Deckbuilder 抽牌与资源管理。
 
-所有模型使用同一任务、external evaluator、临时 workspace、三种 Tool、Node 命令白名单、6 iterations/attempt、8 tools/turn 和 1 repair。统一报告 task success、first-pass、build、functional、repair success、average repairs、average Agent iterations 与 tool-call failure；精确定义和分母见 `docs/agent_evaluation.md`。Qwen3-4B Base/SFT 必须使用相同 greedy/no-thinking/4096-token 设置。既有 GPT-5.6 的 B1–B4/repair 通过结果只算历史覆盖，不拼接为正式 v1 baseline。
+所有模型使用同一任务、external evaluator、临时 workspace、三种 Tool、Node 命令白名单、6 iterations/attempt、8 tools/turn 和 1 repair。Project-Level evaluator 保留文件/build/logic/DOM/launch，并增加 Playwright Chromium 的真实渲染、可见性、overflow 和点击后状态检查。统一报告 task success、first-pass、build、functional、visual、repair success、average repairs、average Agent iterations 与 tool-call failure；精确定义和分母见 `docs/agent_evaluation.md`。Qwen3-4B Base/SFT 必须使用相同 greedy/no-thinking/4096-token 设置。既有 GPT-5.6 的 B1–B4/repair 通过结果只算历史覆盖，不拼接为正式 v1 baseline。
 
 The first reference task and runtime comparison are recorded in `experiments/runtime-selection/`.

@@ -7,7 +7,7 @@ import { runAgent } from "../src/agent/agent-loop.js";
 import { B4_REQUEST, evaluateB4 } from "../src/evaluation/b4-evaluator.js";
 import { OpenAIResponsesModel } from "../src/model/openai-responses-model.js";
 import { ToolExecutor } from "../src/runtime/tool-executor.js";
-import { referenceGame, referenceIndex, referenceProjectScript } from "./fixtures/b4-reference.js";
+import { passingVisualEvaluator, referenceGame, referenceIndex, referenceProjectScript } from "./fixtures/b4-reference.js";
 
 function responseWith(output: unknown[]): Response {
   return new Response(JSON.stringify({ output }), {
@@ -52,7 +52,7 @@ test("existing Agent Runtime generates and externally validates the B4 project",
     executor: new ToolExecutor({ workspace, allowedCommands: ["node"] }),
     maxIterations: 6
   });
-  const evaluation = await evaluateB4(workspace);
+  const evaluation = await evaluateB4(workspace, { visualEvaluator: passingVisualEvaluator });
 
   assert.equal(result.status, "success");
   assert.equal(result.iterations, 2);

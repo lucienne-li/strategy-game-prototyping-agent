@@ -11,8 +11,11 @@ import {
   referenceGame,
   referenceIndex,
   referenceProjectScript,
+  passingVisualEvaluator,
   writeReferenceProject
 } from "./fixtures/b4-reference.js";
+
+const evaluateReferenceB4 = (workspace: string) => evaluateB4(workspace, { visualEvaluator: passingVisualEvaluator });
 
 const repairTask = "Create the same playable Browser + TypeScript card prototype as B4 and verify its build.";
 const brokenGame = referenceGame.replace("enemyHp - 6", "enemyHp - 5");
@@ -64,7 +67,7 @@ test("evaluator feedback repairs the intentionally wrong B4 strike damage", asyn
   const result = await runWithEvaluatorRepair(repairTask, {
     model: createRepairingModel(),
     executor,
-    evaluator: () => evaluateB4(workspace)
+    evaluator: () => evaluateReferenceB4(workspace)
   });
 
   assert.equal(result.status, "success");
@@ -107,7 +110,7 @@ test("repair loop preserves every failed attempt and stops at the repair limit",
   const result = await runWithEvaluatorRepair(repairTask, {
     model: nonRepairingModel,
     executor,
-    evaluator: () => evaluateB4(workspace),
+    evaluator: () => evaluateReferenceB4(workspace),
     maxRepairs: 1
   });
 
@@ -146,7 +149,7 @@ test("a controlled initial request does not replace the repair target", async (c
   const result = await runWithEvaluatorRepair(repairTask, {
     model: recordingModel,
     executor: new ToolExecutor({ workspace, allowedCommands: ["node"] }),
-    evaluator: () => evaluateB4(workspace),
+    evaluator: () => evaluateReferenceB4(workspace),
     initialRequest: "Create the controlled candidate with the known five-damage defect."
   });
 

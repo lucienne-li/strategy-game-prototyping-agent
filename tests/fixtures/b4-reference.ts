@@ -2,6 +2,19 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ToolExecutor } from "../../src/runtime/tool-executor.js";
+import type { BrowserVisualContract, BrowserVisualResult } from "../../src/evaluation/browser-visual-evaluator.js";
+
+export async function passingVisualEvaluator(_baseUrl: string, _contract: BrowserVisualContract): Promise<BrowserVisualResult> {
+  return {
+    passed: true,
+    rendered: true,
+    nonBlank: true,
+    controlsVisible: true,
+    noObviousOverflow: true,
+    interactionPassed: true,
+    screenshotSha256: "deterministic-browser-fixture"
+  };
+}
 
 export const referenceIndex = `<!doctype html>
 <html><body>

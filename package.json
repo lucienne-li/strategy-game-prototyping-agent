@@ -17,6 +17,7 @@
     "b4:real": "npm run build && node dist/src/b4-real-model-cli.js",
     "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js",
     "eval:agent:v1:gpt": "npm run build && node dist/src/agent-benchmark-v1-cli.js",
+    "eval:install-browser": "playwright install chromium",
     "sft:evaluate": "npm run build && node dist/src/sft-evaluation-cli.js",
     "sft:scale:train": ".venv/bin/python -m training.sft_scale.train --qlora",
     "sft:scale:evaluate": "npm run build && node dist/src/scale-evaluation-cli.js",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "24.10.1",
+    "playwright": "1.62.1",
     "typescript": "7.0.2"
   }
 }

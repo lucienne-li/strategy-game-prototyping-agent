@@ -226,3 +226,13 @@
 - **Family boundary:** 每题使用独立的 `agent-benchmark-v1:*` synthetic family，并对固定 440-unit source family 做零交集回归检查。
 - **Why:** 先固定端到端验收和预算，后续数据扩张及 SFT 才有不随结果移动的比较目标；复用已有 evaluator 能避免为了 Benchmark 增加新服务或框架。
 - **Baseline boundary:** 既有五个 GPT-5.6 B1–B4/repair 通过结果只作为历史切片证据；完整 25-task v1 baseline 必须在有 API credit 的环境重新运行，不能拼接成正式总分。
+
+## D-028 — Agent Benchmark v1 final freeze 使用 30 题与轻量真实浏览器验收
+
+- **Status:** Accepted / FINAL FREEZE
+- **Supersedes:** D-027 的 25-task 候选冻结；该版本尚未产生正式完整 baseline，因此可以在结果出现前一次性补齐。
+- **Decision:** 最终 v1 固定为 30 题：Code Generation 4、Code Modification 4、Game Logic 14、Project-Level 5、Repair 3。Difficulty 按真实依赖标为 D1=10、D2=12、D3=2、D4=6；两个 D3 分别组合卡牌回合系统和战术移动/攻击/胜利系统。
+- **Project contract:** 五个 D4 项目覆盖 Card Combat、Turn-based Tactics、Tower Defense、Deckbuilder Draw、Resource Management。全部要求自然语言输入、多文件产物、build、run、hidden functional/DOM 和 Playwright visual interaction。
+- **Visual decision:** 固定 Playwright 1.62.1 + Chromium、1280×720 viewport。检查 HTTP render、可见非空内容、关键 HUD/controls 在 viewport 内、无明显横向/关键元素 overflow，并真实点击一次后验证状态文本；保存截图 SHA-256，不加入付费 VLM 或像素审美评分。
+- **Isolation:** Chromium 由 workspace 外 evaluator 驱动；生成项目仅以受限 HTTP 页面运行，server 写权限仍只到该 workspace 的 `dist/`。Agent 无 evaluator 文件访问权。
+- **Freeze rule:** manifest 与独立 SHA-256 完成后，GPT-5.6、Qwen3-4B Base、Qwen3-4B SFT 必须使用同一任务、evaluator、decoding、iterations、tool/repair budget。任何合同修改都创建新版本，不回写 v1。

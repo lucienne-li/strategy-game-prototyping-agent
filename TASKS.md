@@ -414,19 +414,23 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 
 **Acceptance Criteria**
 
-- [x] 冻结 25 tasks：Code Generation 4、Code Modification 4、Game Logic 12、Browser Project 2、Repair 3；
+- [x] 最终冻结 30 tasks：Code Generation 4、Code Modification 4、Game Logic 14、Browser Project 5、Repair 3；
+- [x] 所有任务按真实复杂度标注 D1–D4（10/12/2/6），D3 使用真实多系统逻辑而非按配额标注；
+- [x] 五个 D4 Project-Level 任务覆盖 Card、Tactics、Tower Defense、Deckbuilder 和 Resource Management；
+- [x] Project-Level 保留 build/logic/DOM/launch，并增加 Playwright render、非白屏、HUD/control、overflow 和交互状态检查；
 - [x] 每题使用 Agent workspace 外的 external evaluator，修改 seed 在 Agent 执行前均确定性失败；
 - [x] benchmark synthetic family 与固定 440-unit repository families 零交集；
 - [x] 固定 6 iterations、8 tools/turn、1 repair、10 秒 command timeout 和模型设置；
 - [x] 统一记录 task/first-pass/build/functional/repair、repairs、iterations 和 tool failure 指标；
-- [x] 生成 task catalog、baseline status、评测说明和 SHA-256 freeze manifest；
+- [x] 重新生成 task catalog、baseline status、评测说明、SHA-256 freeze manifest 和独立 freeze hash；
 - [x] 提供 `npm run eval:agent:v1:gpt`，无 API credit 时不伪造完整 baseline；
-- [ ] 在有 API credit 的环境运行完整 GPT-5.6 25-task baseline。
+- [ ] 在已安装 Playwright Chromium 且有 API credit 的环境运行完整 GPT-5.6 30-task baseline。
 
 **Tests**
 
 - [x] task 数量、类别、ID/family 唯一性、family isolation 和预算回归；
-- [x] 既有单文件 evaluator gold contracts、两个 browser project evaluator 与修改 seed 失败验证；
+- [x] 既有单文件 evaluator、两个 D3 multi-system gold contracts、五个 browser project gold contracts 与修改 seed 失败验证；
+- [x] Playwright 浏览器存在时运行真实 render/interaction 回归；当前容器浏览器 CDN 下载失败时明确 skip，不降级为静态视觉通过；
 - [x] runner 指标聚合回归。
 
 ## 已完成

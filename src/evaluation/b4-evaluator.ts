@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import path from "node:path";
 import { ToolExecutor } from "../runtime/tool-executor.js";
+import { evaluateBrowserVisual, type BrowserVisualContract, type BrowserVisualResult } from "./browser-visual-evaluator.js";
 
 export const B4_REQUIRED_FILES = ["index.html", "src/game.ts", "project.mjs", "dist/game.js"] as const;
 export const B4_REQUEST = [
@@ -24,6 +25,8 @@ export type B4Evaluation = {
   logicPassed: boolean;
   uiPassed: boolean;
   launchPassed: boolean;
+  visualPassed: boolean;
+  visual?: BrowserVisualResult;
   stdout: string;
   stderr: string;
   exitCode: number | null;
@@ -38,23 +41,43 @@ export type BrowserProjectContract = {
   expectedStdout: string;
   pageMarkers: readonly string[];
   moduleMarkers: readonly string[];
+  visual: BrowserVisualContract;
 };
 
-const B4_CONTRACT: BrowserProjectContract = {
+export type BrowserEvaluationOptions = {
+  visualEvaluator?: typeof evaluateBrowserVisual;
+};
+
+export const B4_CONTRACT: BrowserProjectContract = {
   requiredFiles: B4_REQUIRED_FILES,
   sourceFile: "src/game.ts",
   buildArtifact: "dist/game.js",
   createEvaluatorScript,
   expectedStdout: "M4 evaluator passed",
   pageMarkers: ["strike-button"],
-  moduleMarkers: ["mountGame"]
+  moduleMarkers: ["mountGame"],
+  visual: {
+    viewport: { width: 1280, height: 720 },
+    requiredVisibleSelectors: ["#player-hp", "#player-energy", "#enemy-hp", "#strike-button"],
+    interaction: {
+      selector: "#strike-button",
+      expectations: [
+        { selector: "#player-energy", before: "3", after: "2" },
+        { selector: "#enemy-hp", before: "20", after: "14" }
+      ]
+    }
+  }
 };
 
-export async function evaluateB4(workspace: string): Promise<B4Evaluation> {
-  return evaluateBrowserProject(workspace, B4_CONTRACT);
+export async function evaluateB4(workspace: string, options: BrowserEvaluationOptions = {}): Promise<B4Evaluation> {
+  return evaluateBrowserProject(workspace, B4_CONTRACT, options);
 }
 
-export async function evaluateBrowserProject(workspace: string, contract: BrowserProjectContract): Promise<B4Evaluation> {
+export async function evaluateBrowserProject(
+  workspace: string,
+  contract: BrowserProjectContract,
+  options: BrowserEvaluationOptions = {}
+): Promise<B4Evaluation> {
   try {
     await assertRegularFiles(workspace, contract.requiredFiles);
     const [html, source, built] = await Promise.all([
@@ -85,24 +108,27 @@ export async function evaluateBrowserProject(workspace: string, contract: Browse
         logicPassed: false,
         uiPassed: false,
         launchPassed: false,
+        visualPassed: false,
         stdout,
         stderr,
         exitCode: result.exitCode ?? null,
         error: result.error ?? "M4 behavior did not satisfy the contract"
       };
     }
-    const launch = await verifyGeneratedServer(workspace, contract.pageMarkers, contract.moduleMarkers);
+    const launch = await verifyGeneratedServer(workspace, contract, options.visualEvaluator ?? evaluateBrowserVisual);
     return {
-      passed: launch.passed,
+      passed: launch.launchPassed && launch.visual.passed,
       filesValid: true,
       buildArtifactMatches: true,
       logicPassed: true,
       uiPassed: true,
-      launchPassed: launch.passed,
+      launchPassed: launch.launchPassed,
+      visualPassed: launch.visual.passed,
+      visual: launch.visual,
       stdout,
       stderr,
       exitCode: result.exitCode ?? null,
-      ...(launch.passed ? {} : { error: launch.error })
+      ...(launch.launchPassed && launch.visual.passed ? {} : { error: launch.error ?? launch.visual.error })
     };
   } catch (error) {
     return failure(error instanceof Error ? error.message : "M4 evaluation failed");
@@ -149,18 +175,18 @@ function createEvaluatorScript(html: string): string {
 
 async function verifyGeneratedServer(
   workspace: string,
-  pageMarkers: readonly string[],
-  moduleMarkers: readonly string[]
-): Promise<{ passed: boolean; error?: string }> {
+  contract: BrowserProjectContract,
+  visualEvaluator: typeof evaluateBrowserVisual
+): Promise<{ launchPassed: boolean; visual: BrowserVisualResult; error?: string }> {
   const canonicalWorkspace = realpathSync(workspace);
   const distPath = path.join(canonicalWorkspace, "dist");
   const distStats = await lstat(distPath);
   if (!distStats.isDirectory() || distStats.isSymbolicLink()) {
-    return { passed: false, error: "dist must be a regular directory inside the B4 workspace" };
+    return launchFailure("dist must be a regular directory inside the B4 workspace");
   }
   const canonicalDist = realpathSync(distPath);
   if (path.dirname(canonicalDist) !== canonicalWorkspace) {
-    return { passed: false, error: "dist resolves outside the B4 workspace" };
+    return launchFailure("dist resolves outside the B4 workspace");
   }
   const port = await reservePort();
   const child = spawn(
@@ -197,10 +223,11 @@ async function verifyGeneratedServer(
         if (
           page.status === 200
           && moduleResponse.status === 200
-          && pageMarkers.every((marker) => pageText.includes(marker))
-          && moduleMarkers.every((marker) => moduleText.includes(marker))
+          && contract.pageMarkers.every((marker) => pageText.includes(marker))
+          && contract.moduleMarkers.every((marker) => moduleText.includes(marker))
         ) {
-          return { passed: true };
+          const visual = await visualEvaluator(base, contract.visual);
+          return { launchPassed: true, visual, ...(visual.passed ? {} : { error: visual.error }) };
         }
         lastError = `unexpected HTTP response: page=${page.status}, module=${moduleResponse.status}`;
       } catch (error) {
@@ -208,7 +235,7 @@ async function verifyGeneratedServer(
       }
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    return { passed: false, error: stderr.trim() || lastError };
+    return launchFailure(stderr.trim() || lastError);
   } finally {
     child.kill("SIGKILL");
     await new Promise<void>((resolve) => {
@@ -239,9 +266,26 @@ function failure(error: string, filesValid = false, buildArtifactMatches = false
     logicPassed: false,
     uiPassed: false,
     launchPassed: false,
+    visualPassed: false,
     stdout: "",
     stderr: "",
     exitCode: null,
+    error
+  };
+}
+
+function launchFailure(error: string): { launchPassed: false; visual: BrowserVisualResult; error: string } {
+  return {
+    launchPassed: false,
+    visual: {
+      passed: false,
+      rendered: false,
+      nonBlank: false,
+      controlsVisible: false,
+      noObviousOverflow: false,
+      interactionPassed: false,
+      error: "visual evaluation skipped because launch validation failed"
+    },
     error
   };
 }

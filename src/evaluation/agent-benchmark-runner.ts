@@ -11,6 +11,7 @@ import {
   normalizeAgentBenchmarkEvaluation,
   prepareAgentBenchmarkWorkspace,
   type AgentBenchmarkCategory,
+  type AgentBenchmarkDifficulty,
   type AgentBenchmarkEvaluation,
   type AgentBenchmarkTask
 } from "./agent-benchmark-v1.js";
@@ -47,12 +48,14 @@ export type AgentBenchmarkRunOptions = {
 type AgentBenchmarkTaskResult = {
   taskId: string;
   category: AgentBenchmarkCategory;
+  difficulty: AgentBenchmarkDifficulty;
   familyId: string;
   evaluatorId: string;
   success: boolean;
   firstPassSuccess: boolean;
   buildPass: boolean;
   functionalPass: boolean;
+  visualPass: boolean | null;
   repairAttempted: boolean;
   repairSuccess: boolean;
   repairsUsed: number;
@@ -95,12 +98,14 @@ export async function runAgentBenchmarkV1(options: AgentBenchmarkRunOptions) {
     results.push({
       taskId: task.id,
       category: task.category,
+      difficulty: task.difficulty,
       familyId: task.familyId,
       evaluatorId: task.evaluatorId,
       success: final.passed,
       firstPassSuccess: first.passed,
       buildPass: final.buildPass,
       functionalPass: final.functionalPass,
+      visualPass: final.visualPass,
       repairAttempted: result.attempts.length > 1,
       repairSuccess: !first.passed && final.passed,
       repairsUsed: result.repairsUsed,
@@ -126,6 +131,7 @@ export async function runAgentBenchmarkV1(options: AgentBenchmarkRunOptions) {
     const repairAttempts = items.filter((result) => result.repairAttempted);
     const totalToolCalls = items.reduce((sum, result) => sum + result.toolCalls, 0);
     const totalFailedToolCalls = items.reduce((sum, result) => sum + result.failedToolCalls, 0);
+    const visualTasks = items.filter((result) => result.visualPass !== null);
     const rate = (count: number, denominator = items.length) => denominator === 0 ? null : count / denominator;
     return {
       tasks: items.length,
@@ -133,6 +139,7 @@ export async function runAgentBenchmarkV1(options: AgentBenchmarkRunOptions) {
       firstPassSuccessRate: rate(items.filter((result) => result.firstPassSuccess).length),
       buildPassRate: rate(items.filter((result) => result.buildPass).length),
       functionalPassRate: rate(items.filter((result) => result.functionalPass).length),
+      visualPassRate: rate(visualTasks.filter((result) => result.visualPass).length, visualTasks.length),
       repairSuccessRate: rate(repairAttempts.filter((result) => result.repairSuccess).length, repairAttempts.length),
       averageRepairsUsed: items.length === 0 ? null : items.reduce((sum, result) => sum + result.repairsUsed, 0) / items.length,
       averageAgentIterations: items.length === 0 ? null : items.reduce((sum, result) => sum + result.agentIterations, 0) / items.length,
@@ -149,6 +156,10 @@ export async function runAgentBenchmarkV1(options: AgentBenchmarkRunOptions) {
     byCategory: Object.fromEntries(
       [...new Set(tasks.map((task) => task.category))]
         .map((category) => [category, summarize(results.filter((result) => result.category === category))])
+    ),
+    byDifficulty: Object.fromEntries(
+      (["D1", "D2", "D3", "D4"] as const)
+        .map((difficulty) => [difficulty, summarize(results.filter((result) => result.difficulty === difficulty))])
     ),
     results
   };
