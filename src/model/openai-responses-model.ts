@@ -8,6 +8,7 @@ type OpenAIResponsesModelOptions = {
   env?: NodeJS.ProcessEnv;
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
+  maxOutputTokens?: number;
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -120,12 +121,14 @@ export class OpenAIResponsesModel implements AgentModel {
   private readonly apiKey: string;
   private readonly request: typeof globalThis.fetch;
   private readonly timeoutMs: number;
+  private readonly maxOutputTokens?: number;
 
-  private constructor(apiKey: string, modelName: string, request: typeof globalThis.fetch, timeoutMs: number) {
+  private constructor(apiKey: string, modelName: string, request: typeof globalThis.fetch, timeoutMs: number, maxOutputTokens?: number) {
     this.apiKey = apiKey;
     this.modelName = modelName;
     this.request = request;
     this.timeoutMs = timeoutMs;
+    this.maxOutputTokens = maxOutputTokens;
   }
 
   static fromEnv(options: OpenAIResponsesModelOptions = {}): OpenAIResponsesModel {
@@ -135,7 +138,11 @@ export class OpenAIResponsesModel implements AgentModel {
     const modelName = env.OPENAI_MODEL?.trim() || DEFAULT_MODEL;
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     if (!Number.isInteger(timeoutMs) || timeoutMs < 1) throw new Error("model timeout must be a positive integer");
-    return new OpenAIResponsesModel(apiKey, modelName, options.fetch ?? globalThis.fetch, timeoutMs);
+    const maxOutputTokens = options.maxOutputTokens;
+    if (maxOutputTokens !== undefined && (!Number.isInteger(maxOutputTokens) || maxOutputTokens < 1)) {
+      throw new Error("maxOutputTokens must be a positive integer");
+    }
+    return new OpenAIResponsesModel(apiKey, modelName, options.fetch ?? globalThis.fetch, timeoutMs, maxOutputTokens);
   }
 
   async next(context: ModelContext): Promise<ModelOutput> {
@@ -155,7 +162,8 @@ export class OpenAIResponsesModel implements AgentModel {
           instructions,
           input: [{ role: "user", content: [{ type: "input_text", text: renderContext(context) }] }],
           tools,
-          tool_choice: "auto"
+          tool_choice: "auto",
+          ...(this.maxOutputTokens === undefined ? {} : { max_output_tokens: this.maxOutputTokens })
         }),
         signal: controller.signal
       });

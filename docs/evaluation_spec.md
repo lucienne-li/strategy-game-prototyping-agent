@@ -257,4 +257,10 @@ M8 将 holdout 扩为 24 个 project-authored TypeScript tasks，覆盖卡牌状
 
 当前仅完成评测代码和 24-task evaluator 回归测试；本工作区没有 CUDA，尚未产生 Qwen3-4B checkpoint 或 Base-vs-SFT 成绩。此前 Qwen2.5-Coder-0.5B 的 2/6 vs 3/6 不能替代本轮结果，也不会被混入 M8 报告。
 
+## 12. Agent Benchmark v1（正式 Agent 合同）
+
+后续 Agent 级比较由 `evals/agent_benchmark_v1/freeze-manifest.json` 取代零散 B1–B4 报告和只含单文件任务的旧 24-task holdout。v1 固定 25 题：Code Generation 4、Code Modification 4、Game Logic 12、Project-Level Browser Game 2、Repair/Self-correction 3。
+
+所有模型使用同一任务、external evaluator、临时 workspace、三种 Tool、Node 命令白名单、6 iterations/attempt、8 tools/turn 和 1 repair。统一报告 task success、first-pass、build、functional、repair success、average repairs、average Agent iterations 与 tool-call failure；精确定义和分母见 `docs/agent_evaluation.md`。Qwen3-4B Base/SFT 必须使用相同 greedy/no-thinking/4096-token 设置。既有 GPT-5.6 的 B1–B4/repair 通过结果只算历史覆盖，不拼接为正式 v1 baseline。
+
 The first reference task and runtime comparison are recorded in `experiments/runtime-selection/`.

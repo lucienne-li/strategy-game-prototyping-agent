@@ -262,3 +262,9 @@ M7 将离线侧拆成三个显式批处理阶段：固定范围提取、独立�
 M8 在 `data_pipeline/scale/` 增加最小、可恢复的批处理链路：候选 manifest → clone/license/install/build checkpoint → repository-family grouping → G1/G2 symbol extraction → code-to-instruction generation → 独立 review → 48 条分层人工抽检 → deterministic quality/duplicate gates → SHA-256 freeze manifest。阶段间只交换版本化 JSONL；失败保留 reason code 和日志摘要，第三方 checkout 与依赖留在临时目录。抽检暴露明显系统性问题后，正式训练集从初筛 334 条收紧到 186 条。
 
 正式规模实验不会修改 Online Agent。`training/sft_scale/` 使用 `Qwen/Qwen3-4B` 的 LoRA/QLoRA adapter；`src/scale-evaluation-cli.ts` 让 Base 与 SFT 依次经过完全相同的 scaffold、Agent loop、三种 Tool、external evaluator、iteration 和 repair budget。训练 checkpoint 与机器可读结果仍写入 ignored `artifacts/`。
+
+## 9. Agent Benchmark v1
+
+`evals/agent_benchmark_v1/` 将原 B1–B4、B4-REPAIR 和已验证的 holdout evaluator 整理为 25-task 固定评测。`src/evaluation/agent-benchmark-v1.ts` 保存可执行 task/evaluator 映射，`agent-benchmark-runner.ts` 统一临时 workspace、Agent/repair 调用与指标聚合。任务覆盖单文件生成、带缺陷 seed 的修改、策略游戏逻辑、两个可启动 Browser 项目和三个受控 self-correction 场景。
+
+Evaluator 与隐藏断言只存在于 Repository 进程，不复制进临时 workspace。Agent 只能通过现有三种 Tool 接触 workspace；首次失败后只接收结构化 evaluation，不获得 evaluator 路径或源码。Freeze manifest 绑定 25 个 task IDs、family、预算、模型设置和 evaluator/runtime 源码 hash。GPT-5.6、Qwen3-4B Base 与 Qwen3-4B SFT 共用同一 runner 合同；Base/SFT 的 Qwen decoding 必须完全一致。

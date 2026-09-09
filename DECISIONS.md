@@ -205,7 +205,7 @@
 
 - **Status:** Accepted / CONFIRMED
 - **Evidence:** 48 条分层审计暴露 80-token 截断、欠规格与行为错配；旧 0.5B reviewer 对全部可解析候选均判 PASS，不能承担最终放行。
-- **Decision:** 暂停正式训练并重处理原 440 个 code units。生成器必须输出严格 scope contract，完整响应上限改为 512 tokens；超限、响应未完成或 schema 无效只允许重试，不做残缺文本恢复。确定性 gate 先检查 target file/symbol、expected behavior、constraints、required context、完整性、粒度和 target 结构。之后由 `gpt-5.6` 独立执行 fail-closed 的 pass/fail + reason 最终 review。
+- **Decision:** 暂停正式训练并重处理原 440 个 code units。生成器必须输出严格 scope contract，完整响应上限改为 1024 tokens；超限、响应未完成或 schema 无效只允许重试，不做残缺文本恢复。确定性 gate 先检查 target file/symbol、expected behavior、constraints、required context、完整性、粒度和 target 结构。之后由 `gpt-5.6` 独立执行 fail-closed 的 pass/fail + reason 最终 review。
 - **Behavior evidence:** 只执行可证明安全且自包含的极窄单元；其他样本保留 repository build 证据并标记 unit behavior test `not_eligible`，不得把 build 冒充功能正确性。
 - **Training boundary:** 旧 186 条 freeze 仅作为 v1 历史基线。`training/sft_scale/train.py` 拒绝非 `m8-qwen3-4b-quality-v2` freeze，直到强 reviewer 全量完成并重新冻结。
 - **Why:** 质量问题来自生产过程，继续人工抽检只能测量问题，无法修复它。结构化契约、自动 gate、独立强 reviewer 和有限行为证据使拒绝原因可复现，并阻止旧低质量记录静默进入训练。
@@ -216,3 +216,13 @@
 - **Decision:** `data:scale:quality-repair` 使用 `python3` 或 `QUALITY_PYTHON` 指定的独立解释器；`data_pipeline/requirements-quality.txt` 只描述质量流程依赖，当前因全部使用标准库而不含第三方包。`training/requirements-scale.txt` 保留给云 GPU QLoRA。
 - **Why:** `bitsandbytes` 是量化训练依赖，不支持当前 Intel macOS 环境，也不参与 instruction 生成、API review、JSONL finalization 或 Node target validation。把它装进本地质量环境会制造不必要的平台阻塞。
 - **Affected:** 仅安装与运行说明、npm 入口和依赖文件；不改变 quality-v2 Pipeline 逻辑或数据输出。
+
+## D-027 — Agent Benchmark v1 先于后续数据扩张冻结
+
+- **Status:** Accepted / CONFIRMED
+- **Decision:** 暂停 3K 数据扩张，将既有 B1/B2/B3/B4/B4-REPAIR 与 holdout evaluator 整理为 25-task `Agent Benchmark v1`。分布固定为 Code Generation 4、Code Modification 4、Game Logic 12、Project-Level Browser Game 2、Repair/Self-correction 3。
+- **Runtime contract:** 每次 Agent attempt 最多 6 iterations、每轮 8 tools（派生上限 48）、最多 1 次 evaluator-guided repair；工具仍只有 read/write/run，命令仍只有 Node。Evaluator 在任务 workspace 外运行。
+- **Metrics:** 统一输出 task success、first-pass、build、functional、repair success、repairs used、Agent iterations 和 tool-call failure。GPT-5.6、Qwen3-4B Base 与 Qwen3-4B SFT 必须复用相同 task/evaluator/runtime/budget。
+- **Family boundary:** 每题使用独立的 `agent-benchmark-v1:*` synthetic family，并对固定 440-unit source family 做零交集回归检查。
+- **Why:** 先固定端到端验收和预算，后续数据扩张及 SFT 才有不随结果移动的比较目标；复用已有 evaluator 能避免为了 Benchmark 增加新服务或框架。
+- **Baseline boundary:** 既有五个 GPT-5.6 B1–B4/repair 通过结果只作为历史切片证据；完整 25-task v1 baseline 必须在有 API credit 的环境重新运行，不能拼接成正式总分。

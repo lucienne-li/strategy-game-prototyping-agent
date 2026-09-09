@@ -30,18 +30,42 @@ export type B4Evaluation = {
   error?: string;
 };
 
+export type BrowserProjectContract = {
+  requiredFiles: readonly string[];
+  sourceFile: string;
+  buildArtifact: string;
+  createEvaluatorScript: (html: string) => string;
+  expectedStdout: string;
+  pageMarkers: readonly string[];
+  moduleMarkers: readonly string[];
+};
+
+const B4_CONTRACT: BrowserProjectContract = {
+  requiredFiles: B4_REQUIRED_FILES,
+  sourceFile: "src/game.ts",
+  buildArtifact: "dist/game.js",
+  createEvaluatorScript,
+  expectedStdout: "M4 evaluator passed",
+  pageMarkers: ["strike-button"],
+  moduleMarkers: ["mountGame"]
+};
+
 export async function evaluateB4(workspace: string): Promise<B4Evaluation> {
+  return evaluateBrowserProject(workspace, B4_CONTRACT);
+}
+
+export async function evaluateBrowserProject(workspace: string, contract: BrowserProjectContract): Promise<B4Evaluation> {
   try {
-    await assertRegularFiles(workspace);
+    await assertRegularFiles(workspace, contract.requiredFiles);
     const [html, source, built] = await Promise.all([
       readFile(path.join(workspace, "index.html"), "utf8"),
-      readFile(path.join(workspace, "src/game.ts"), "utf8"),
-      readFile(path.join(workspace, "dist/game.js"), "utf8")
+      readFile(path.join(workspace, contract.sourceFile), "utf8"),
+      readFile(path.join(workspace, contract.buildArtifact), "utf8")
     ]);
     const buildArtifactMatches = source === built;
-    if (!buildArtifactMatches) return failure("dist/game.js does not match src/game.ts", true, false);
+    if (!buildArtifactMatches) return failure(`${contract.buildArtifact} does not match ${contract.sourceFile}`, true, false);
 
-    const evaluatorScript = createEvaluatorScript(html);
+    const evaluatorScript = contract.createEvaluatorScript(html);
     const result = (
       await new ToolExecutor({ workspace, allowedCommands: ["node"], nodeFsAccess: "read-only" }).execute({
         tool: "run_command",
@@ -52,7 +76,7 @@ export async function evaluateB4(workspace: string): Promise<B4Evaluation> {
     ).result;
     const stdout = result.stdout ?? "";
     const stderr = result.stderr ?? "";
-    const behaviorPassed = result.ok && result.exitCode === 0 && stdout.trim() === "M4 evaluator passed" && stderr === "";
+    const behaviorPassed = result.ok && result.exitCode === 0 && stdout.trim() === contract.expectedStdout && stderr === "";
     if (!behaviorPassed) {
       return {
         passed: false,
@@ -67,7 +91,7 @@ export async function evaluateB4(workspace: string): Promise<B4Evaluation> {
         error: result.error ?? "M4 behavior did not satisfy the contract"
       };
     }
-    const launch = await verifyGeneratedServer(workspace);
+    const launch = await verifyGeneratedServer(workspace, contract.pageMarkers, contract.moduleMarkers);
     return {
       passed: launch.passed,
       filesValid: true,
@@ -85,8 +109,8 @@ export async function evaluateB4(workspace: string): Promise<B4Evaluation> {
   }
 }
 
-async function assertRegularFiles(workspace: string): Promise<void> {
-  for (const relativePath of B4_REQUIRED_FILES) {
+async function assertRegularFiles(workspace: string, requiredFiles: readonly string[]): Promise<void> {
+  for (const relativePath of requiredFiles) {
     const stats = await lstat(path.join(workspace, relativePath));
     if (!stats.isFile() || stats.isSymbolicLink()) throw new Error(`${relativePath} must be a regular file`);
   }
@@ -123,7 +147,11 @@ function createEvaluatorScript(html: string): string {
   ].join("\n");
 }
 
-async function verifyGeneratedServer(workspace: string): Promise<{ passed: boolean; error?: string }> {
+async function verifyGeneratedServer(
+  workspace: string,
+  pageMarkers: readonly string[],
+  moduleMarkers: readonly string[]
+): Promise<{ passed: boolean; error?: string }> {
   const canonicalWorkspace = realpathSync(workspace);
   const distPath = path.join(canonicalWorkspace, "dist");
   const distStats = await lstat(distPath);
@@ -166,7 +194,12 @@ async function verifyGeneratedServer(workspace: string): Promise<{ passed: boole
         const moduleResponse = await fetch(`${base}/dist/game.js`);
         const pageText = await page.text();
         const moduleText = await moduleResponse.text();
-        if (page.status === 200 && moduleResponse.status === 200 && pageText.includes("strike-button") && moduleText.includes("mountGame")) {
+        if (
+          page.status === 200
+          && moduleResponse.status === 200
+          && pageMarkers.every((marker) => pageText.includes(marker))
+          && moduleMarkers.every((marker) => moduleText.includes(marker))
+        ) {
           return { passed: true };
         }
         lastError = `unexpected HTTP response: page=${page.status}, module=${moduleResponse.status}`;

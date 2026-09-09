@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "benchmark": "agent-benchmark-v1",
+  "formal_gpt_5_6_baseline": "not_run",
+  "reason": "No API key or credit-backed full 25-task run was available in the implementation environment.",
+  "historical_evidence_only": [
+    {"task_id":"ABV1-CG-01","legacy_run":"B1","passed":true},
+    {"task_id":"ABV1-CM-01","legacy_run":"B2","passed":true},
+    {"task_id":"ABV1-GL-01","legacy_run":"B3","passed":true},
+    {"task_id":"ABV1-PJ-01","legacy_run":"B4","passed":true},
+    {"task_id":"ABV1-RP-01","legacy_run":"B4-REPAIR","passed":true,"repairs_used":1}
+  ],
+  "warning": "Legacy runs prove evaluator/runtime slices but are not a formal Benchmark v1 aggregate because they were not executed together under the frozen v1 manifest."
+}

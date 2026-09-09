@@ -406,6 +406,29 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 440 个 target 均生成结构/执行资格记录；其中 438 个结构通过、2 个结构失败、1 个通过极窄 deterministic behavior test；
 - [ ] 记录全量 accepted 数与 reject reason 分布。
 
+### M8.2 — Agent Benchmark v1 Freeze
+
+**Objective**
+
+在继续扩张数据或正式训练前，将零散 B1–B4/repair 与 holdout evaluator 固定为所有 Agent/Base/SFT 共用的 Evaluation-First 合同。
+
+**Acceptance Criteria**
+
+- [x] 冻结 25 tasks：Code Generation 4、Code Modification 4、Game Logic 12、Browser Project 2、Repair 3；
+- [x] 每题使用 Agent workspace 外的 external evaluator，修改 seed 在 Agent 执行前均确定性失败；
+- [x] benchmark synthetic family 与固定 440-unit repository families 零交集；
+- [x] 固定 6 iterations、8 tools/turn、1 repair、10 秒 command timeout 和模型设置；
+- [x] 统一记录 task/first-pass/build/functional/repair、repairs、iterations 和 tool failure 指标；
+- [x] 生成 task catalog、baseline status、评测说明和 SHA-256 freeze manifest；
+- [x] 提供 `npm run eval:agent:v1:gpt`，无 API credit 时不伪造完整 baseline；
+- [ ] 在有 API credit 的环境运行完整 GPT-5.6 25-task baseline。
+
+**Tests**
+
+- [x] task 数量、类别、ID/family 唯一性、family isolation 和预算回归；
+- [x] 既有单文件 evaluator gold contracts、两个 browser project evaluator 与修改 seed 失败验证；
+- [x] runner 指标聚合回归。
+
 ## 已完成
 
 - [x] 初始化 Git Repository。

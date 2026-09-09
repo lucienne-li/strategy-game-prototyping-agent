@@ -15,6 +15,7 @@ test("reads credentials from the environment and converts a function call", asyn
     assert.equal(headers.get("authorization"), "Bearer test-key");
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     assert.equal(body.model, "test-model");
+    assert.equal(body.max_output_tokens, 4096);
     assert.equal(JSON.stringify(body).includes("test-key"), false);
     return responseWith([
       {
@@ -26,7 +27,8 @@ test("reads credentials from the environment and converts a function call", asyn
   }) as typeof globalThis.fetch;
   const model = OpenAIResponsesModel.fromEnv({
     env: { OPENAI_API_KEY: "test-key", OPENAI_MODEL: "test-model" },
-    fetch: fakeFetch
+    fetch: fakeFetch,
+    maxOutputTokens: 4096
   });
 
   const output = await model.next({ request: "create a file", iteration: 1, events: [] });

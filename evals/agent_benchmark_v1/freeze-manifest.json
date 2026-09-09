@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "freeze_name": "agent-benchmark-v1",
+  "frozen_at": "2026-09-09",
+  "task_count": 25,
+  "category_distribution": {
+    "code-generation": 4,
+    "code-modification": 4,
+    "game-logic": 12,
+    "project-browser-game": 2,
+    "repair-self-correction": 3
+  },
+  "task_ids": [
+    "ABV1-CG-01", "ABV1-CG-02", "ABV1-CG-03", "ABV1-CG-04",
+    "ABV1-CM-01", "ABV1-CM-02", "ABV1-CM-03", "ABV1-CM-04",
+    "ABV1-GL-01", "ABV1-GL-02", "ABV1-GL-03", "ABV1-GL-04",
+    "ABV1-GL-05", "ABV1-GL-06", "ABV1-GL-07", "ABV1-GL-08",
+    "ABV1-GL-09", "ABV1-GL-10", "ABV1-GL-11", "ABV1-GL-12",
+    "ABV1-PJ-01", "ABV1-PJ-02",
+    "ABV1-RP-01", "ABV1-RP-02", "ABV1-RP-03"
+  ],
+  "evaluator_version": "external-evaluator-v1",
+  "agent_runtime_commit": "bc625be7539b3e75ec2119c9e4f2f8a7333c80d3",
+  "family_isolation": {
+    "namespace": "agent-benchmark-v1:*",
+    "compared_against": "data_pipeline/scale/units.jsonl",
+    "training_repository_family_overlap": 0
+  },
+  "tools": ["read_file", "write_file", "run_command"],
+  "runtime_budget": {
+    "max_iterations_per_agent_run": 6,
+    "max_tool_calls_per_iteration": 8,
+    "derived_max_tool_calls_per_agent_run": 48,
+    "repair_budget": 1,
+    "command_timeout_ms": 10000,
+    "allowed_commands": ["node"]
+  },
+  "model_settings": {
+    "gpt-5.6": {
+      "adapter": "OpenAIResponsesModel",
+      "tool_choice": "auto",
+      "sampling": "provider-managed",
+      "max_output_tokens": 4096
+    },
+    "Qwen/Qwen3-4B-base": {
+      "do_sample": false,
+      "thinking": false,
+      "max_new_tokens": 4096
+    },
+    "Qwen/Qwen3-4B-sft": {
+      "do_sample": false,
+      "thinking": false,
+      "max_new_tokens": 4096
+    }
+  },
+  "metrics": [
+    "task_success_rate",
+    "first_pass_success_rate",
+    "build_pass_rate",
+    "functional_pass_rate",
+    "repair_success_rate",
+    "average_repairs_used",
+    "average_agent_iterations",
+    "tool_call_failure_rate"
+  ],
+  "sha256": {
+    "evals/agent_benchmark_v1/tasks.json": "ec53184fb474e01d7b4192d8df35d0ff67b269e1d63ace302601539dcc95afe8",
+    "src/agent-benchmark-v1-cli.ts": "6278c447c4236dba2e070f8719f46198c2b8c43db756ed0bf1ae5f34a28a670f",
+    "src/evaluation/agent-benchmark-v1.ts": "23efe6f542b9d6eef9fb850679501db167fc6f885b6a0de7e1081c4f0e1a52a1",
+    "src/evaluation/agent-benchmark-runner.ts": "c0d015f7f094ef6fc4ad97acff5d5bc37fe4e9e516f2fef08e5f1bbe927b0bfe",
+    "src/evaluation/b4-evaluator.ts": "2384a7a61e376bf61e0a81fd1f5aaf3a1d7fcf7c12451ef4129559a328d3e934",
+    "src/evaluation/sft-holdout.ts": "1bfb7c528952cc8b2bc824696caac63fa931bc7ada9a3d7029633f9736a05fc0",
+    "src/evaluation/scale-holdout.ts": "bbce5c454096f5cad6156c6487a784f96f2c2734d088caa49c76f4cc2d44278f",
+    "src/agent/agent-loop.ts": "617401c61d9121d41d7ac01bc82dd77d8f1812a2105f759f646405c2ae30e080",
+    "src/repair/evaluator-repair-loop.ts": "3f6513518101b357787fa54969ab19b7e26d98c16c9044a2834442fb9500a85c",
+    "src/runtime/tool-executor.ts": "6308719a81b5a125caaf8ecea0305465505f70fb527d170c537debf9c11a6396",
+    "src/model/openai-responses-model.ts": "551bd41a7b9e9bd1e23b736830d29720eb3f5f301cbf482d986f5bb98ad96145"
+  }
+}

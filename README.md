@@ -10,7 +10,7 @@
 
 ## 当前状态
 
-项目处于 **M8.1：修复 Data Quality Pipeline；Qwen3-4B 正式训练暂停**。
+项目处于 **M8.1 Data Quality 修复进行中；M8.2 Agent Benchmark v1 已冻结；Qwen3-4B 正式训练暂停**。
 
 - 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
 - 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
@@ -117,6 +117,15 @@ npm run data:scale:quality-repair
 ```
 
 `requirements-quality.txt` 当前不包含第三方 Python 包，因为 quality-repair 只使用 Python 标准库；它不会安装 `bitsandbytes`、CUDA、PyTorch 或训练依赖。`training/requirements-scale.txt` 仅供后续云 GPU QLoRA 使用。若本机已有可用的 Python 3 和仓库 Node 依赖，也可不创建虚拟环境，直接设置 Key 后运行 npm 命令。
+
+冻结的 25-task Agent Benchmark v1 可在有 API credit 时运行 GPT-5.6 baseline：
+
+```bash
+export OPENAI_API_KEY="..."
+OPENAI_MODEL=gpt-5.6 npm run eval:agent:v1:gpt
+```
+
+任务分布、指标定义与 freeze 规则见 [docs/agent_evaluation.md](docs/agent_evaluation.md)。运行报告写入 ignored `artifacts/agent-benchmark-v1/`。
 
 批量数据流程与正式 Qwen3-4B 实验：
 
