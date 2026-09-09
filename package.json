@@ -27,7 +27,12 @@
     "data:expansion:validate": ".venv/bin/python -m unittest tests_py.test_data_expansion -v",
     "data:scale:run": ".venv/bin/python data_pipeline/scale/run_pipeline.py --checkout-root \"$SCALE_CHECKOUT_ROOT\"",
     "data:scale:quality-repair": "${QUALITY_PYTHON:-python3} data_pipeline/scale/run_quality_repair.py",
-    "data:scale:finalize": ".venv/bin/python data_pipeline/scale/finalize_scale.py"
+    "data:scale:finalize": ".venv/bin/python data_pipeline/scale/finalize_scale.py",
+    "data:v3:generate": "python3 -m data_pipeline.v3.run",
+    "data:v3:freeze": "python3 -m data_pipeline.v3.freeze --confirm",
+    "data:v3:verify": "python3 -m data_pipeline.v3.verify_freeze",
+    "sft:final:train": ".venv/bin/python -m training.final.train",
+    "sft:final:evaluate": "npm run build && node dist/src/final-sft-evaluation-cli.js"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

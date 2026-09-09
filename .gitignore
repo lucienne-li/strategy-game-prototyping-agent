@@ -41,3 +41,13 @@ export_presets.cfg
 # Generated experiment artifacts
 artifacts/
 /reports/
+
+# Data Pipeline v3 transient checkpoints (frozen outputs are committed explicitly)
+.data-v3-checkouts/
+data_pipeline/v3/source-units.jsonl
+data_pipeline/v3/source-validations.jsonl
+data_pipeline/v3/targets.jsonl
+data_pipeline/v3/generated.jsonl
+data_pipeline/v3/generation-failures.jsonl
+data_pipeline/v3/reviews.jsonl
+data_pipeline/v3/review-failures.jsonl

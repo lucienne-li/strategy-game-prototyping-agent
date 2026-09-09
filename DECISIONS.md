@@ -236,3 +236,12 @@
 - **Visual decision:** 固定 Playwright 1.62.1 + Chromium、1280×720 viewport。检查 HTTP render、可见非空内容、关键 HUD/controls 在 viewport 内、无明显横向/关键元素 overflow，并真实点击一次后验证状态文本；保存截图 SHA-256，不加入付费 VLM 或像素审美评分。
 - **Isolation:** Chromium 由 workspace 外 evaluator 驱动；生成项目仅以受限 HTTP 页面运行，server 写权限仍只到该 workspace 的 `dist/`。Agent 无 evaluator 文件访问权。
 - **Freeze rule:** manifest 与独立 SHA-256 完成后，GPT-5.6、Qwen3-4B Base、Qwen3-4B SFT 必须使用同一任务、evaluator、decoding、iterations、tool/repair budget。任何合同修改都创建新版本，不回写 v1。
+
+## D-029 — Final SFT 采用用户确认式数据冻结和统一 artifact scaffold
+
+- **Status:** Accepted for engineering support；真实实验结果仍为 TBD。
+- **Data:** v3 从已通过 license/build/family 检查的 TypeScript code units 构造不同结构的 D1–D4 targets；每个 target 只分配一个 generation/modification/bug-fixing/constraint-addition/extension/refactor 任务，不用 paraphrase 扩增。非 generation 任务必须具有与目标路径一致且实质不同的 seed。
+- **Quality:** 继续 fail closed：确定性 scope/difficulty/task-type/seed/duplicate gate 后使用强模型 pass/fail review。429、incomplete 和网络错误单独 checkpoint，不能转成数据质量 reject。生成结束只写 candidate manifest；用户确认且 accepted 在 2.5K–3.5K 后才允许 freeze。
+- **Training:** Qwen3-4B + QLoRA，完整冻结集、assistant-response-only loss、固定单组参数。Base/SFT 共用 artifact JSON scaffold，将模型输出确定性映射到已有 Tool Calls；不修改 Agent Loop、evaluator、repair 或 Benchmark tasks。
+- **Execution:** 本地 Mac 负责 API-backed Data v3；RunPod 24 GB+ CUDA GPU 负责 train/reload 和 Agent Benchmark v1。没有实际 artifacts 时不填写 loss 或结果。
+- **Benchmark integrity:** 为增加根目录的一键 npm scripts，只刷新 frozen manifest 中 `package.json` 的非语义 hash 和 manifest 自身 hash；30 个 task、evaluator、Runtime 源码、预算与模型设置不变。

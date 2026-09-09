@@ -303,3 +303,9 @@ units.jsonl
 ### Dependency boundary
 
 quality-v2 的 Python 阶段只使用标准库，依赖文件为 `data_pipeline/requirements-quality.txt`；Node target validation 复用仓库已有 devDependencies。本地质量处理不得安装 `training/requirements-scale.txt`，其中的 PyTorch、Accelerate 和 bitsandbytes 只属于云 GPU QLoRA 训练。
+
+## 17. Data Pipeline v3 candidate and freeze contract
+
+`data_pipeline/v3/` 复用既有 license/build/family 与 quality-v2 fail-closed 边界，将通过结构验证的单元组合为 D1 单机制、D2 同文件多符号子系统、D3 跨文件多系统和 D4 至少三文件项目切片。每个不同 target 只分配一个 task type；非 generation 样本必须包含路径一致、实质不同的 seed。模型请求失败单独 checkpoint，不能计为质量 reject。
+
+生成阶段只产生 candidate manifest。只有用户检查 summary/rejects 后显式运行 freeze，且 accepted 为 2,500–3,500、零未解决请求失败、全部自动与强 review 门禁通过时，才写入 dataset SHA-256 freeze manifest。

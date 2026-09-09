@@ -9,7 +9,7 @@
 
 ## 当前阶段
 
-**Phase 8：Data Scale-up + Qwen3-4B Evaluation（进行中）**
+**Phase 10：Final SFT experiment engineering support（进行中）**
 
 ## Milestone Roadmap
 
@@ -432,6 +432,18 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [x] 既有单文件 evaluator、两个 D3 multi-system gold contracts、五个 browser project gold contracts 与修改 seed 失败验证；
 - [x] Playwright 浏览器存在时运行真实 render/interaction 回归；当前容器浏览器 CDN 下载失败时明确 skip，不降级为静态视觉通过；
 - [x] runner 指标聚合回归。
+
+### M10 — Data Pipeline v3 + final Qwen3-4B experiment support
+
+**Acceptance Criteria**
+
+- [x] 从最新 `main` 创建 `feature/final-sft`；
+- [x] 提供可恢复的 `data:v3:generate`，API request failure 与质量 reject 分离；
+- [x] 提供真实 D1–D4 结构组合、多 task type、quality-v2 strong-review、family/duplicate filtering；
+- [x] dataset freeze 需要用户确认、2.5K–3.5K accepted、零未解决请求失败和 hash verification；
+- [x] 提供 Qwen3-4B QLoRA、assistant-only loss、loss log、checkpoint reload 与 frozen Benchmark Base-vs-SFT 入口；
+- [ ] 用户在本地完成真实 API-backed v3 生成并确认数据；
+- [ ] 用户在 RunPod 完成正式训练与评测并提交真实 artifacts。
 
 ## 已完成
 

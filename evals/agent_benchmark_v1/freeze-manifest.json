@@ -98,7 +98,7 @@
     "src/repair/evaluator-repair-loop.ts": "3f6513518101b357787fa54969ab19b7e26d98c16c9044a2834442fb9500a85c",
     "src/runtime/tool-executor.ts": "6308719a81b5a125caaf8ecea0305465505f70fb527d170c537debf9c11a6396",
     "src/model/openai-responses-model.ts": "551bd41a7b9e9bd1e23b736830d29720eb3f5f301cbf482d986f5bb98ad96145",
-    "package.json": "c3496a1ecdabbe3f077ea5e67ca3da9596d02a4f6ae6b2014e06dfbb83ddeec7",
+    "package.json": "a7230f6fcdc8c74907a0b7b4f23681900f059be64e5ab0fc65b5b0d7ef024e01",
     "package-lock.json": "88c7c58dddb21d8837c4e70eab8863021110767a84f597f39d90287de7b33766"
   }
 }

@@ -33,8 +33,13 @@ def load_chat_samples(path: str | Path) -> list[ChatSample]:
                 raise ValueError(f"{source}:{line_number}: duplicate sample_id {sample_id}")
 
             messages = _validate_messages(record.get("messages"), source, line_number)
-            quality = record.get("metadata", {}).get("quality", {})
-            for gate in ("alignment", "granularity_match", "solvability"):
+            quality = record.get("quality") or record.get("metadata", {}).get("quality", {})
+            gates = (
+                ("behavior_consistency", "granularity_match", "missing_context", "task_type_match")
+                if quality.get("pipeline_version") == "data-v3-quality-v2"
+                else ("alignment", "granularity_match", "solvability")
+            )
+            for gate in gates:
                 if quality.get(gate) != "pass":
                     raise ValueError(f"{source}:{line_number}: accepted sample failed {gate}")
 
