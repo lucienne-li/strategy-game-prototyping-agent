@@ -31,6 +31,7 @@
 
 ## 文档导航
 
+- [docs/project_summary.md](docs/project_summary.md)：项目复盘、当前证据与全部 Planned 工作完成后的整体蓝图
 - [ARCHITECTURE.md](ARCHITECTURE.md)：在线 Agent、离线数据系统与模块边界
 - [TASKS.md](TASKS.md)：Roadmap、Milestone 与当前进度
 - [DECISIONS.md](DECISIONS.md)：产品、架构和技术决策记录
