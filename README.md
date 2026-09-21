@@ -1,145 +1,51 @@
 # Strategy Game Prototyping Agent
 
-一个面向独立游戏开发者、游戏设计师、游戏开发学生和 Game Jam 团队的策略游戏快速原型 Coding Agent。
+这是一个 Python-first 的策略游戏原型 Coding Agent。用户给出自然语言玩法规则，Agent 通过模型、受限工具和外部评测器生成、运行并修复可编辑的浏览器游戏项目。
 
-本项目希望缩短以下路径：
-
-> 自然语言玩法规则 → 结构化规格 → 开发计划 → 可运行原型 → 自动测试 → 迭代修复 → 可编辑源码项目
-
-本项目不承诺通过一句话生成可商业发布的完整游戏。第一阶段关注可运行、可测试、可继续修改的玩法原型。
+项目核心实现使用 Python：Agent Loop、Pydantic Tool Schema、OpenAI/本地模型适配、工作区隔离、External Evaluator、Repair Loop、Benchmark 编排、数据处理和训练入口。Node 与 JavaScript 只出现在浏览器交付物的运行边界；训练数据可保留真实开源仓库中的 TypeScript 目标代码。
 
 ## 当前状态
 
-项目处于 **M8.1 Data Quality 修复进行中；M8.2 Agent Benchmark v1 已冻结；Qwen3-4B 正式训练暂停**。
+- Python Runtime 支持 `read_file`、`write_file`、`run_command`，每轮顺序执行最多 8 个 Tool Calls；
+- 文件路径限制在独立任务工作区，命令不经过 shell，Node 子进程启用 permission model；
+- OpenAI Responses Adapter、Fake Model、本地 Qwen worker 与 evaluator-feedback repair loop 已迁移到 Python；
+- Python External Evaluator 覆盖单文件行为、项目 build/launch、DOM 合约和 Playwright 视觉交互；
+- 原 Agent Benchmark v1 保留为 TypeScript Runtime 的历史冻结版本；Python Runtime 使用 30-task Benchmark v2；
+- 数据抽取、target validation、quality pipeline、SFT/QLoRA 脚本均由 Python 编排；
+- 已有实验结果不因代码迁移自动继承，Benchmark v2 需要重新跑模型 baseline。
 
-- 已用确定性 Fake Model 跑通 Model → Tool Call → Executor → Observation 闭环；
-- 已实现 OpenAI Responses API Adapter 和独立 B1 验收器；
-- B1、B2、B3 已完成真实模型与独立 evaluator 验收；
-- B4 已完成真实模型验收，覆盖构建、状态逻辑、Strike 点击和 HTTP 启动；
-- 已实现外层 evaluator-feedback repair loop，默认最多修复 2 次并保留每次 Agent 与评测轨迹；
-- M5 已完成 `gpt-5.6` 真实 repair 验收：一次 repair 后通过 logic、UI 和 launch evaluator；
-- 已完成 5 个公开仓库的保守许可证与构建检查，提取 8 个 G1/G2 单元并保留 7 条 SFT JSONL；
-- 已使用 Qwen2.5-Coder-0.5B-Instruct + CPU LoRA 跑通 3-step SFT、checkpoint 保存、重载和生成；
-- 已将数据扩至 25 个候选，经独立模型复核后保留 24 个 G1/G2 样本；
-- 已用全部 24 条样本执行 response-only loss 的 2-epoch LoRA，并在 6 个 family 隔离 holdout 上完成同 Runtime Base-vs-SFT：最终功能通过 2/6 vs 3/6；
-- MVP 技术栈已通过最小实验暂定为 Browser + TypeScript；
-- 真实 API 运行需要通过环境变量提供 `OPENAI_API_KEY`；
-- 已对 28 个候选仓库运行可恢复的 license/install/build 批处理：17 个通过，抽取 440 个 G1/G2 候选；初筛 334 条，经 48 条分层人工抽检和全量明显缺陷 gate 后冻结 186 条训练样本；
-- 已冻结 24 个 repository-family 隔离 holdout，并准备 `Qwen/Qwen3-4B` QLoRA 与同预算 Base-vs-SFT 入口；当前工作区无 CUDA，正式训练和对比尚未运行；
-- 已将 80-token 生成路径替换为 strict scoped JSON + 512-token 完整响应，并增加确定性 consistency gate、窄行为执行和 `gpt-5.6` 最终 reviewer；旧 186 条 freeze 只保留为历史基线，quality-v2 全量 review 前训练入口会拒绝启动；
-- 当前文档中的状态标签为 `CONFIRMED`、`WORKING ASSUMPTION` 和 `TBD`。
+## 安装
 
-## 文档导航
-
-- [docs/project_summary.md](docs/project_summary.md)：项目复盘、当前证据与全部 Planned 工作完成后的整体蓝图
-- [ARCHITECTURE.md](ARCHITECTURE.md)：在线 Agent、离线数据系统与模块边界
-- [TASKS.md](TASKS.md)：Roadmap、Milestone 与当前进度
-- [DECISIONS.md](DECISIONS.md)：产品、架构和技术决策记录
-- [AGENTS.md](AGENTS.md)：后续 Coding Agent 的仓库工作规则
-- [docs/product_spec.md](docs/product_spec.md)：产品目标、用户、范围与假设
-- [docs/evaluation_spec.md](docs/evaluation_spec.md)：评测任务、指标、基线和验收规则
-- [docs/data_spec.md](docs/data_spec.md)：离线数据来源、清洗、反向指令与 SFT 格式
-
-## 安装与运行
-
-需要 Node.js 24+。Node 子进程使用 permission model 限制任务工作区外的文件访问。
+需要 Python 3.11+。Node 24+ 只用于执行 Agent 生成的 JavaScript 项目和 evaluator；浏览器评测还需要 Chromium。
 
 ```bash
-npm install
-npm test
-npm run demo -- ./agent-workspace "创建一个 TypeScript 文件并验证输出 hello agent"
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-runtime.txt
+.venv/bin/python -m playwright install chromium
 ```
 
-Demo 会在指定工作目录创建 `hello-agent.ts`，以无 shell 的 `node` 子进程执行，并输出完整 Agent 事件记录。当前工具范围为 `read_file`、`write_file` 和 `run_command`。模型单轮可以返回有序 Tool Call 批次；Runtime 默认每轮最多接受 8 个，并为每个调用分别校验、执行和记录 Observation。
-
-真实模型 B1 运行：
+## 运行
 
 ```bash
+.venv/bin/python -m strategy_game_agent.cli demo
+.venv/bin/python -m unittest discover -s tests_py -p 'test_*.py'
+
 export OPENAI_API_KEY="..."
-export OPENAI_MODEL="gpt-5.6" # 可选
-npm run b1:real
+export OPENAI_MODEL="gpt-5.6"  # 可选
+.venv/bin/python -m strategy_game_agent.cli real-task ABV2-CG-01
+.venv/bin/python -m strategy_game_agent.cli benchmark
 ```
 
-B2/B3 使用同一个 Key 和 Model 配置：
+兼容原工作流的 `npm run demo`、`npm test`、`npm run b1:real` 等别名仍保留，但它们现在只调用 Python 模块，不再编译 TypeScript Agent 源码。
 
-```bash
-npm run b2:real
-npm run b3:real
-```
+## 主要目录
 
-`b2:real` 会把带有减法缺陷的 `math.ts` 复制到新的临时工作目录，让 Agent 修改；`b3:real` 从空临时目录创建 `card-game.ts`。两者都会在 Agent 结束后调用工作目录外的独立 evaluator，并以 JSON 输出模型、iterations、Tool Call 顺序和验收证据。
+- `strategy_game_agent/`：Python Agent Runtime、模型、工具、repair 和 evaluator；
+- `tests_py/`：Python 单元与集成测试；
+- `evals/agent_benchmark_v1/`：历史冻结 Benchmark；
+- `evals/agent_benchmark_v2/`：Python-first Benchmark freeze；
+- `data_pipeline/`：开源代码筛选、抽取、反向 instruction 与质量检查；
+- `training/`：小模型 smoke、LoRA/QLoRA 和本地模型 worker；
+- `experiments/runtime-selection/`：早期 Godot 与 Browser 技术栈实验。
 
-M4 可玩浏览器原型使用相同配置：
-
-```bash
-npm run b4:real
-```
-
-`b4:real` 要求 Agent 生成 `index.html`、`src/game.ts` 和 `project.mjs`，再构建 `dist/game.js`。运行结果会保留临时工作目录并输出其绝对路径。验收通过后，可进入该目录运行 `node project.mjs serve`，再打开 `http://127.0.0.1:4173`。
-
-M5 真实模型 repair 验收使用一个受控首轮缺陷：首轮要求真实模型生成 Strike Damage=5 的完整候选，external evaluator 失败后，repair request 改以标准 B4 的 Damage=6 为目标并附上完整失败 JSON：
-
-```bash
-npm run b4:repair:real
-```
-
-命令会保留临时 workspace，并输出模型、每轮 Agent iterations、每轮 Tool Call 顺序、完整 evaluator 结果、`repairsUsed` 和是否达到 repair limit。退出码 `0` 表示最终通过；退出码 `1` 表示达到上限或运行异常。
-
-Key 只从环境变量读取；不要写入 `.env.example`、源码、日志或 commit。每次 B1 运行创建独立临时工作目录，结束后由仓库外部的验收逻辑检查目标文件和真实执行结果。
-
-技术栈选择实验见 [experiments/runtime-selection/RESULTS.md](experiments/runtime-selection/RESULTS.md)。
-
-Data Pilot 制品可用以下命令检查：
-
-```bash
-npm run data:pilot:validate
-```
-
-结果与限制见 [data_pipeline/reports/pilot-report.md](data_pipeline/reports/pilot-report.md) 和 [data_pipeline/reports/expansion-v2-report.md](data_pipeline/reports/expansion-v2-report.md)。当前训练集位于 [data_pipeline/samples/accepted-v2.jsonl](data_pipeline/samples/accepted-v2.jsonl)。
-
-小规模训练和 Base-vs-SFT 对比：
-
-```bash
-.venv/bin/python -m training.sft_evaluation.train
-npm run sft:evaluate
-```
-
-实际运行记录见 [docs/sft_evaluation_run.md](docs/sft_evaluation_run.md)。Checkpoint 和机器可读运行报告写入 ignored `artifacts/sft-evaluation/`。
-
-只重处理固定 440 code units 的 quality-v2 流程：
-
-```bash
-python3 -m venv .venv-quality
-.venv-quality/bin/python -m pip install -r data_pipeline/requirements-quality.txt
-npm install
-export OPENAI_API_KEY="..."
-export QUALITY_PYTHON="$PWD/.venv-quality/bin/python"
-npm run data:scale:quality-repair
-```
-
-`requirements-quality.txt` 当前不包含第三方 Python 包，因为 quality-repair 只使用 Python 标准库；它不会安装 `bitsandbytes`、CUDA、PyTorch 或训练依赖。`training/requirements-scale.txt` 仅供后续云 GPU QLoRA 使用。若本机已有可用的 Python 3 和仓库 Node 依赖，也可不创建虚拟环境，直接设置 Key 后运行 npm 命令。
-
-最终冻结的 30-task Agent Benchmark v1 使用 Playwright 做五个项目任务的真实浏览器验收；首次运行先安装固定 Chromium：
-
-```bash
-npm run eval:install-browser
-export OPENAI_API_KEY="..."
-OPENAI_MODEL=gpt-5.6 npm run eval:agent:v1:gpt
-```
-
-任务分布、指标定义与 freeze 规则见 [docs/agent_evaluation.md](docs/agent_evaluation.md)。运行报告写入 ignored `artifacts/agent-benchmark-v1/`。
-
-批量数据流程与正式 Qwen3-4B 实验：
-
-```bash
-export SCALE_CHECKOUT_ROOT="$(mktemp -d)"
-npm run data:scale:run
-npm run sft:scale:train
-npm run sft:scale:evaluate
-```
-
-数据漏斗与限制见 [docs/data_scale_run.md](docs/data_scale_run.md)，冻结训练/评测配置见 [docs/qwen3_scale_training.md](docs/qwen3_scale_training.md)。正式训练需要 CUDA；没有真实 `train-run.json` 和 `comparison-run.json` 时不得声称已有 Qwen3-4B 结果。
-
-## 下一步
-
-下一步是先在配置 `OPENAI_API_KEY` 的环境完成固定 440 units 的 quality-v2 生成与强 review，记录最终 accepted/reject reasons 并重新冻结。之后才在 16 GB 最低、24 GB 推荐的云 GPU 上运行 Qwen3-4B QLoRA；本轮不新增仓库或样本来源。
+架构边界见 [ARCHITECTURE.md](ARCHITECTURE.md)，完整项目复盘见 [docs/project_summary.md](docs/project_summary.md)，当前任务见 [TASKS.md](TASKS.md)。

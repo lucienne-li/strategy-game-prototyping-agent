@@ -1,5 +1,7 @@
 # Agent Evaluation — Benchmark v1
 
+> v1 已冻结并绑定迁移前的 TypeScript Agent Runtime，因此本文件后续内容作为历史实验契约保留。Python-first 实现使用 `evals/agent_benchmark_v2/`；任务类别、难度和预算保持一致，但目标文件改为不需要 tsc 的原生 JavaScript，并用 Python 驱动 evaluator。v1 结果不能直接记为 v2 baseline。
+
 ## 1. Evaluation goal
 
 `Agent Benchmark v1` is the fixed end-to-end evaluation for the GPT-5.6 Agent, Qwen3-4B Base Agent, and Qwen3-4B SFT Agent. It measures whether the same Agent Runtime can turn a frozen request into externally verified code under the same execution and repair budgets. It does not use code similarity as a success criterion.
@@ -72,7 +74,7 @@ Difficulty reflects implementation dependencies, not file length or a desired qu
 
 The five Project-Level tasks are Card Combat, Turn-based Tactics, Tower Defense, Deckbuilder Draw, and Resource Management. Each starts from a natural-language request and must create a multi-file project, build it, serve it, pass hidden functional checks, render in Chromium, expose its required HUD/control elements within a 1280×720 viewport, avoid horizontal/key-element overflow, and update frozen UI state after one click.
 
-The visual evaluator records a screenshot SHA-256 as execution evidence, but does not use pixel matching or a VLM judge. “Non-blank” is determined from rendered visible content and required elements, not source-text presence alone. Install the pinned browser once with `npm run eval:install-browser`.
+The visual evaluator records interaction evidence but does not use pixel matching or a VLM judge. “Non-blank” is determined from rendered visible content and required elements, not source-text presence alone. Python-first 环境使用 `.venv/bin/python -m playwright install chromium` 安装浏览器。
 
 ## 7. Family isolation and freeze
 
@@ -85,6 +87,12 @@ Every benchmark task has a unique synthetic family under `agent-benchmark-v1:*`.
 ```bash
 npm run eval:install-browser
 OPENAI_MODEL=gpt-5.6 npm run eval:agent:v1:gpt
+```
+
+Python v2 的对应命令为：
+
+```bash
+OPENAI_MODEL=gpt-5.6 .venv/bin/python -m strategy_game_agent.cli benchmark
 ```
 
 The full report is saved under `artifacts/agent-benchmark-v1/`. Task failures remain in the report and do not make the process fail; a non-zero exit means the benchmark runner itself could not complete.

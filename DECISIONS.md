@@ -1,5 +1,12 @@
 # Decision Log
 
+## Python documentation synchronization — 2026-09-21
+
+- 用户要求将可用 Python 实现的系统代码和对应说明统一为 Python，并同步至 `feature/final-sft`。
+- 当前入口、模块路径、数据辅助脚本和训练/评测命令随实现更新；旧 Milestone、运行报告和 v1 freeze 保留历史含义，不改写实验结果。
+- Node/Chromium 仅承担游戏交付物执行；训练数据中的 TypeScript 保留。Web 分支尚未接入 Python 后端，不声称已完成。
+- Python 39 项自动测试通过；未调用真实模型 API、未训练、未将 mock visual 测试当作真实浏览器验收。
+
 记录已做出的重要决策及理由。`Proposed` 不代表已确认；只有 `Accepted` 才是当前有效决定。
 
 ## D-001 — 在线与离线系统严格分离
@@ -35,8 +42,8 @@
 ## D-005 — 技术栈选择
 
 - **Status:** Accepted for MVP
-- **Decision:** 第一版使用 Browser + TypeScript。Godot 4 + GDScript 保留为后续专业引擎扩展。
-- **Evidence:** 两个实现均通过同一最小卡牌任务的逻辑测试和运行 smoke test。Browser 方案所需引擎概念和环境准备更少，TypeScript 编译、Node 测试和 HTTP 验证更直接，普通文本代码也更便于 Agent 修改。
+- **Decision:** 第一版使用 Browser 项目。真实训练数据可为 TypeScript；Python-first Benchmark 和最小交付默认使用不需要编译器的原生 JavaScript。Godot 4 + GDScript 保留为后续专业引擎扩展。
+- **Evidence:** 两个实现均通过同一最小卡牌任务的逻辑测试和运行 smoke test。Browser 方案所需引擎概念和环境准备更少，Node 测试和 HTTP 验证更直接，普通文本代码也更便于 Agent 修改。迁移后移除 tsc，可减少一个与玩法无关的构建故障点。
 - **Trade-off:** Godot 的项目结构更接近专业游戏开发，项目级数据语义可能更一致；Browser 数据候选更多，但需更强的游戏项目筛选和去噪。
 - **Why:** MVP 首要目标是验证 Agent 的生成—执行—评测—修复闭环，暂不让场景绑定、资源导入和引擎安装成为主要故障来源。
 - **Revisit when:** Browser MVP 闭环稳定后需要验证专业引擎迁移，或离线数据试点表明 Browser 游戏数据质量不足。
@@ -245,3 +252,12 @@
 - **Training:** Qwen3-4B + QLoRA，完整冻结集、assistant-response-only loss、固定单组参数。Base/SFT 共用 artifact JSON scaffold，将模型输出确定性映射到已有 Tool Calls；不修改 Agent Loop、evaluator、repair 或 Benchmark tasks。
 - **Execution:** 本地 Mac 负责 API-backed Data v3；RunPod 24 GB+ CUDA GPU 负责 train/reload 和 Agent Benchmark v1。没有实际 artifacts 时不填写 loss 或结果。
 - **Benchmark integrity:** 为增加根目录的一键 npm scripts，只刷新 frozen manifest 中 `package.json` 的非语义 hash 和 manifest 自身 hash；30 个 task、evaluator、Runtime 源码、预算与模型设置不变。
+## D-030 — Python-first implementation boundary
+
+- **Status:** Accepted / CONFIRMED
+- **Decision:** Agent Runtime、模型 Adapter、Tool Executor、Repair、Evaluator 编排、数据 Pipeline 和训练入口统一使用 Python；结构校验使用 Pydantic。
+- **Why:** 项目负责人主要使用 Python，同时模型训练、数据处理和 QLoRA 已经在 Python 生态中。保留两套 Agent 实现会增加解释和维护成本。
+- **Browser exception:** HTML/CSS/JavaScript 是生成游戏和 Web UI 的运行格式。Python 可以控制和测试浏览器，但不能替代浏览器原生脚本执行。
+- **Data exception:** 真实 TypeScript 代码仍可作为 SFT assistant target；数据格式不等于系统实现语言。
+- **Compatibility:** 保留少量 npm aliases 以兼容已有运行手册，但这些 aliases 只调用 Python。Node 只执行生成 artifact。
+- **Evaluation consequence:** Benchmark v1 绑定旧 Runtime，作为历史 freeze 保留；Python Runtime 使用 v2 并必须重新建立 baseline，不能改写旧结果。

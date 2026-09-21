@@ -1,0 +1,36 @@
+{
+  "benchmarkVersion": "agent-benchmark-v2-python-first",
+  "status": "frozen",
+  "taskCount": 30,
+  "evaluatorVersion": "python-external-evaluator-v2",
+  "agentRuntimeCommit": "d3ab39de0fd79fdecc4f2560e437faece1373b83",
+  "budget": {
+    "maxIterationsPerAgentRun": 6,
+    "maxToolCallsPerIteration": 8,
+    "maxToolCallsPerAgentRun": 48,
+    "repairBudget": 1,
+    "commandTimeoutMs": 10000
+  },
+  "modelSettings": {
+    "gpt": {
+      "toolChoice": "auto",
+      "sampling": "provider-managed",
+      "maxOutputTokens": 4096
+    },
+    "qwen": {
+      "doSample": false,
+      "maxNewTokens": 4096,
+      "thinking": false
+    }
+  },
+  "tasksSha256": "6a7e1c0e558ba6a51a3499112593411e22d07bf85c8ec336bb9df9b55926461a",
+  "sourceSha256": {
+    "strategy_game_agent/agent.py": "7a367433e690a0d25b59306e6e73eb32f4c654fbb5239d27000bac5a4cdf26af",
+    "strategy_game_agent/models.py": "9f045df7c49265ec55e339783412ff01465fc7a9d20cfe654c3e2b60670d61b4",
+    "strategy_game_agent/runtime.py": "41a4a9fe85c4d5b91deaf8dc6ff27a295ccc94b3ddd1dd50929eb6583daeb1e0",
+    "strategy_game_agent/repair.py": "7cdc36ab8312ef413e44d501698f134b351227930d62b7788ef7f6e7181ef856",
+    "strategy_game_agent/evaluators.py": "39d03cf62b8ed1397ff09f762f97b20827415b4f588e48071cb5e006fc7b2e1a",
+    "strategy_game_agent/benchmark.py": "3cd512715a81d8d33d885060c5ab9ceb3373c9619e8de27a8160ae7d47e61036"
+  },
+  "historicalBenchmark": "evals/agent_benchmark_v1 remains unchanged and is not comparable without an explicit migration note"
+}

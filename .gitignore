@@ -20,13 +20,14 @@ temp/
 # Python tooling (future offline pipeline)
 __pycache__/
 *.py[cod]
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .venv/
 venv/
 
-# Node / TypeScript tooling (runtime experiment candidate)
+# Browser artifact runtime and historical Node experiment output
 node_modules/
 dist/
 coverage/

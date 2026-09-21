@@ -9,7 +9,9 @@
 
 ## 当前阶段
 
-**Phase 10：Final SFT experiment engineering support（进行中）**
+**Python-first 文档与实现同步；正式 SFT 仍未运行。**
+
+当前模块位于 `strategy_game_agent/`，用 `python3 -m strategy_game_agent.cli` 运行。下文早期 Milestone 的 `src/*.ts` 路径和 Node 测试数字是历史记录；对应的当前代码为 `agent.py`、`runtime.py`、`evaluators.py`、`repair.py`、`local_models.py` 和 `final_evaluation.py`。历史通过结果不等于 Python 迁移后的真实验收。
 
 ## Milestone Roadmap
 
@@ -504,3 +506,13 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [ ] 在扩到约 100—500 条前，实现 AST/符号提取、强 reviewer + 人工双标校准、跨仓 family/near-duplicate 分组和成本遥测。
 - [ ] 扩张后冻结更大的 repository-family holdout，增加重复采样并重新验证趋势。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。
+# Python-first migration
+
+- [x] 将 Model contract、Agent loop、Tool validation、workspace guard 和 executor 迁移到 Python + Pydantic；
+- [x] 将 OpenAI Adapter、本地 Qwen adapter 和 evaluator repair loop 迁移到 Python；
+- [x] 将 external evaluator、browser launch 编排和 Playwright 调用迁移到 Python；
+- [x] 将三个遗留 Node 数据脚本迁移到 Python，并更新 v3/quality/scale 入口；
+- [x] 移除 Agent TypeScript 源码、tsc 和 TypeScript 测试依赖；早期 browser experiment 改为原生 JavaScript；
+- [x] 建立 Python Benchmark v2 freeze；v1 历史证据保持不变；
+- [ ] 在真实模型上重新运行 Python Benchmark v2；旧 v1 baseline 不自动继承；
+- [ ] 合并 Web 产品时将后端接到 Python Runtime，只保留必要的浏览器 JavaScript UI。

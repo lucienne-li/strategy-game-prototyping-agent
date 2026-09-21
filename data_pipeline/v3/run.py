@@ -18,8 +18,8 @@ def main() -> None:
     commands = [
         [sys.executable, "data_pipeline/scale/batch_repositories.py", "--checkout-root", checkout, "--workers", workers],
         [sys.executable, "data_pipeline/scale/group_families.py", "--checkout-root", checkout],
-        ["node", "data_pipeline/scale/extract-units.mjs", "--checkout-root", checkout, "--output", "data_pipeline/v3/source-units.jsonl", "--target", "5000", "--limit-per-repo", "200"],
-        ["node", "data_pipeline/scale/validate-targets.mjs", "--input", "data_pipeline/v3/source-units.jsonl", "--output", "data_pipeline/v3/source-validations.jsonl"],
+        [sys.executable, "-m", "data_pipeline.scale.extract_units", "--checkout-root", checkout, "--output", "data_pipeline/v3/source-units.jsonl", "--target", "5000", "--limit-per-repo", "200"],
+        [sys.executable, "-m", "data_pipeline.scale.validate_targets", "--input", "data_pipeline/v3/source-units.jsonl", "--output", "data_pipeline/v3/source-validations.jsonl"],
         [sys.executable, "-m", "data_pipeline.v3.build_targets", "--target", "3600"],
         [sys.executable, "-m", "data_pipeline.v3.generate", "--workers", workers],
         [sys.executable, "-m", "data_pipeline.v3.finalize", "--workers", workers],

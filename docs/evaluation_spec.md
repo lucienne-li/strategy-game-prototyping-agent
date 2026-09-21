@@ -1,5 +1,7 @@
 # Evaluation Specification
 
+> 当前实现使用 Python：`strategy_game_agent/agent.py`、`runtime.py`、`evaluators.py`、`repair.py` 和 `benchmark.py`。当前任务集为 `evals/agent_benchmark_v2/`，运行入口是 `python3 -m strategy_game_agent.cli benchmark`。下文 M0–M8、B1–B4 和 v1 的接口名、TypeScript 路径及运行成绩属于迁移前的历史契约，不是当前启动说明。迁移后的真实模型与浏览器验收仍需单独运行。
+
 ## 1. Evaluation-First Strategy
 
 评测分两次冻结：

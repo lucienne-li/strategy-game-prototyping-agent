@@ -1,0 +1,771 @@
+[
+  {
+    "id": "ABV2-CG-01",
+    "category": "code-generation",
+    "difficulty": "D1",
+    "target_request": "Create hello-agent.js so running it prints exactly hello agent followed by a newline.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cg-01",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "hello-agent.js",
+      "request": "Create hello-agent.js so running it prints exactly hello agent followed by a newline.",
+      "evaluator_script": "await import('./hello-agent.js');",
+      "expected_stdout": "hello agent",
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cg-01"
+  },
+  {
+    "id": "ABV2-CG-02",
+    "category": "code-generation",
+    "difficulty": "D1",
+    "target_request": "Create grid-neighbors.js exporting orthogonalNeighbors(x, y, width, height). Return in-bounds up/down/left/right cells as objects with x and y, with no diagonal or out-of-bounds cells.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cg-02",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "grid-neighbors.js",
+      "request": "Create grid-neighbors.js exporting orthogonalNeighbors(x, y, width, height). Return in-bounds up/down/left/right cells as objects with x and y, with no diagonal or out-of-bounds cells.",
+      "evaluator_script": "const m=await import('./grid-neighbors.js');const norm=x=>x.map(p=>`${p.x},${p.y}`).sort();if(JSON.stringify(norm(m.orthogonalNeighbors(1,1,3,3)))!==JSON.stringify(['0,1','1,0','1,2','2,1']))throw Error('center');if(JSON.stringify(norm(m.orthogonalNeighbors(0,0,3,2)))!==JSON.stringify(['0,1','1,0']))throw Error('corner');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cg-02"
+  },
+  {
+    "id": "ABV2-CG-03",
+    "category": "code-generation",
+    "difficulty": "D1",
+    "target_request": "Create hex.js exporting hexNeighbors(q, r). Return the six unique axial-coordinate neighbors, excluding the original cell.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cg-03",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "hex.js",
+      "request": "Create hex.js exporting hexNeighbors(q, r). Return the six unique axial-coordinate neighbors, excluding the original cell.",
+      "evaluator_script": "const m=await import('./hex.js');const n=m.hexNeighbors(2,3),s=new Set(n.map(x=>`${x.q},${x.r}`));for(const x of ['3,3','1,3','2,4','2,2','3,2','1,4'])if(!s.has(x))throw Error(x);if(n.length!==6||s.has('2,3'))throw Error('shape');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cg-03"
+  },
+  {
+    "id": "ABV2-CG-04",
+    "category": "code-generation",
+    "difficulty": "D1",
+    "target_request": "Create distance.js exporting manhattanDistance(a, b). Return Manhattan distance without mutating either point.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cg-04",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "distance.js",
+      "request": "Create distance.js exporting manhattanDistance(a, b). Return Manhattan distance without mutating either point.",
+      "evaluator_script": "const m=await import('./distance.js');if(m.manhattanDistance({x:1,y:2},{x:4,y:-2})!==7||m.manhattanDistance({x:0,y:0},{x:0,y:0})!==0)throw Error('distance');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cg-04"
+  },
+  {
+    "id": "ABV2-CM-01",
+    "category": "code-modification",
+    "difficulty": "D1",
+    "target_request": "Read math.js and fix the exported add(a, b) function so it returns the arithmetic sum without changing its name.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cm-01",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "math.js",
+      "request": "Read math.js and fix the exported add(a, b) function so it returns the arithmetic sum without changing its name.",
+      "evaluator_script": "const m=await import('./math.js');for(const [a,b,e] of [[2,3,5],[-4,7,3],[1.5,2.25,3.75]])if(m.add(a,b)!==e)throw Error('add');",
+      "expected_stdout": null,
+      "seed": "export function add(a,b){return a-b;}\n"
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cm-01"
+  },
+  {
+    "id": "ABV2-CM-02",
+    "category": "code-modification",
+    "difficulty": "D1",
+    "target_request": "Read energy.js and fix spendEnergy(state, cost). For a non-negative affordable cost, return a new state with energy reduced; otherwise clone unchanged.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cm-02",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "energy.js",
+      "request": "Read energy.js and fix spendEnergy(state, cost). For a non-negative affordable cost, return a new state with energy reduced; otherwise clone unchanged.",
+      "evaluator_script": "const m=await import('./energy.js');const s={energy:3,hp:20};if(m.spendEnergy(s,2).energy!==1||m.spendEnergy(s,4).energy!==3||m.spendEnergy(s,-1).energy!==3||s.energy!==3)throw Error('energy');",
+      "expected_stdout": null,
+      "seed": "export function spendEnergy(state,cost){return {...state,energy:state.energy+cost};}\n"
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cm-02"
+  },
+  {
+    "id": "ABV2-CM-03",
+    "category": "code-modification",
+    "difficulty": "D1",
+    "target_request": "Read target.js and fix selectLowestHp(enemies). Ignore dead enemies, preserve input order for hp ties, or return null.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cm-03",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "target.js",
+      "request": "Read target.js and fix selectLowestHp(enemies). Ignore dead enemies, preserve input order for hp ties, or return null.",
+      "evaluator_script": "const m=await import('./target.js');const a={id:'a',hp:4,alive:true},b={id:'b',hp:2,alive:false},c={id:'c',hp:4,alive:true};if(m.selectLowestHp([a,b,c])!==a||m.selectLowestHp([b])!==null)throw Error('target');",
+      "expected_stdout": null,
+      "seed": "export function selectLowestHp(enemies){return enemies.filter(x=>x.alive).at(-1)??null;}\n"
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cm-03"
+  },
+  {
+    "id": "ABV2-CM-04",
+    "category": "code-modification",
+    "difficulty": "D1",
+    "target_request": "Read resources.js and fix produceResources(state, turns). Add productionPerTurn times non-negative whole turns, flooring fractions, without mutation.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-cm-04",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "resources.js",
+      "request": "Read resources.js and fix produceResources(state, turns). Add productionPerTurn times non-negative whole turns, flooring fractions, without mutation.",
+      "evaluator_script": "const m=await import('./resources.js');const s={resources:4,productionPerTurn:3};if(m.produceResources(s,2.8).resources!==10||m.produceResources(s,-2).resources!==4||s.resources!==4)throw Error('resources');",
+      "expected_stdout": null,
+      "seed": "export function produceResources(state,turns){state.resources+=state.productionPerTurn*Math.ceil(turns);return state;}\n"
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-cm-04"
+  },
+  {
+    "id": "ABV2-GL-01",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create card-game.js exporting createInitialState() returning playerHp 20, playerEnergy 3, enemyHp 20, and strike(state) returning a new state after spending 1 energy and dealing 6 enemy damage.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-01",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "card-game.js",
+      "request": "Create card-game.js exporting createInitialState() returning playerHp 20, playerEnergy 3, enemyHp 20, and strike(state) returning a new state after spending 1 energy and dealing 6 enemy damage.",
+      "evaluator_script": "const m=await import('./card-game.js');const s=m.createInitialState();if(JSON.stringify(s)!==JSON.stringify({playerHp:20,playerEnergy:3,enemyHp:20}))throw Error('initial');const n=m.strike(s);if(JSON.stringify(n)!==JSON.stringify({playerHp:20,playerEnergy:2,enemyHp:14})||s.playerEnergy!==3)throw Error('strike');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-01"
+  },
+  {
+    "id": "ABV2-GL-02",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create target-selection.js exporting chooseNearestTarget(tower, enemies, range). Ignore dead or out-of-range enemies and return the nearest eligible enemy, or null.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-02",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "target-selection.js",
+      "request": "Create target-selection.js exporting chooseNearestTarget(tower, enemies, range). Ignore dead or out-of-range enemies and return the nearest eligible enemy, or null.",
+      "evaluator_script": "const m=await import('./target-selection.js');const t={x:0,y:0},a={id:'a',x:3,y:4,alive:true},b={id:'b',x:1,y:1,alive:false},c={id:'c',x:2,y:0,alive:true};if(m.chooseNearestTarget(t,[a,b,c],5)!==c||m.chooseNearestTarget(t,[a],4)!==null)throw Error('target');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-02"
+  },
+  {
+    "id": "ABV2-GL-03",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create turn-order.js exporting nextTurn(state, playerCount). Immutably advance playerIndex circularly and increment round only on wrap.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-03",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "turn-order.js",
+      "request": "Create turn-order.js exporting nextTurn(state, playerCount). Immutably advance playerIndex circularly and increment round only on wrap.",
+      "evaluator_script": "const m=await import('./turn-order.js');const a={playerIndex:1,round:4};if(JSON.stringify(m.nextTurn(a,3))!==JSON.stringify({playerIndex:2,round:4})||a.playerIndex!==1)throw Error('advance');if(JSON.stringify(m.nextTurn({playerIndex:2,round:4},3))!==JSON.stringify({playerIndex:0,round:5}))throw Error('wrap');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-03"
+  },
+  {
+    "id": "ABV2-GL-04",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create draw-cards.js exporting drawCards(state, count). Immutably move up to count cards from the front of deck to the end of hand.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-04",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "draw-cards.js",
+      "request": "Create draw-cards.js exporting drawCards(state, count). Immutably move up to count cards from the front of deck to the end of hand.",
+      "evaluator_script": "const m=await import('./draw-cards.js');const s={deck:['a','b'],hand:['x']},n=m.drawCards(s,3);if(JSON.stringify(n)!==JSON.stringify({deck:[],hand:['x','a','b']})||s.deck.length!==2)throw Error('draw');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-04"
+  },
+  {
+    "id": "ABV2-GL-05",
+    "category": "game-logic",
+    "difficulty": "D1",
+    "target_request": "Create block.js exporting gainBlock(state, amount). Immutably add non-negative amount to block; negative amounts add zero.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-05",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "block.js",
+      "request": "Create block.js exporting gainBlock(state, amount). Immutably add non-negative amount to block; negative amounts add zero.",
+      "evaluator_script": "const m=await import('./block.js');const s={hp:10,block:3};if(m.gainBlock(s,4).block!==7||m.gainBlock(s,-2).block!==3||s.block!==3)throw Error('block');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-05"
+  },
+  {
+    "id": "ABV2-GL-06",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create damage.js exporting applyDamage(state, damage). Block absorbs non-negative damage first; clamp block and hp at zero; do not mutate.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-06",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "damage.js",
+      "request": "Create damage.js exporting applyDamage(state, damage). Block absorbs non-negative damage first; clamp block and hp at zero; do not mutate.",
+      "evaluator_script": "const m=await import('./damage.js');if(JSON.stringify(m.applyDamage({hp:20,block:5},8))!==JSON.stringify({hp:17,block:0})||JSON.stringify(m.applyDamage({hp:2,block:1},9))!==JSON.stringify({hp:0,block:0}))throw Error('damage');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-06"
+  },
+  {
+    "id": "ABV2-GL-07",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create discard.js exporting discardHand(state). Immutably append hand to discardPile in order and clear hand.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-07",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "discard.js",
+      "request": "Create discard.js exporting discardHand(state). Immutably append hand to discardPile in order and clear hand.",
+      "evaluator_script": "const m=await import('./discard.js');const s={hand:['a','b'],discardPile:['x'],deck:[]},n=m.discardHand(s);if(JSON.stringify(n)!==JSON.stringify({hand:[],discardPile:['x','a','b'],deck:[]})||s.hand.length!==2)throw Error('discard');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-07"
+  },
+  {
+    "id": "ABV2-GL-08",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create poison.js exporting tickPoison(state). Immutably reduce hp by poison and poison by one, both clamped at zero.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-08",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "poison.js",
+      "request": "Create poison.js exporting tickPoison(state). Immutably reduce hp by poison and poison by one, both clamped at zero.",
+      "evaluator_script": "const m=await import('./poison.js');if(JSON.stringify(m.tickPoison({hp:10,poison:3}))!==JSON.stringify({hp:7,poison:2})||JSON.stringify(m.tickPoison({hp:1,poison:4}))!==JSON.stringify({hp:0,poison:3}))throw Error('poison');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-08"
+  },
+  {
+    "id": "ABV2-GL-09",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create movement.js exporting cellsInRange(origin, range, width, height). Return unique in-bounds cells within non-negative Manhattan range, including origin.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-09",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "movement.js",
+      "request": "Create movement.js exporting cellsInRange(origin, range, width, height). Return unique in-bounds cells within non-negative Manhattan range, including origin.",
+      "evaluator_script": "const m=await import('./movement.js');const n=m.cellsInRange({x:0,y:0},1,3,3),s=new Set(n.map(x=>`${x.x},${x.y}`));if(JSON.stringify([...s].sort())!==JSON.stringify(['0,0','0,1','1,0'])||n.length!==s.size)throw Error('range');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-09"
+  },
+  {
+    "id": "ABV2-GL-10",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create cooldown.js exporting tickCooldown(tower, delta) and canFire(tower). Clamp cooldown at zero and fire exactly at zero or less.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-10",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "cooldown.js",
+      "request": "Create cooldown.js exporting tickCooldown(tower, delta) and canFire(tower). Clamp cooldown at zero and fire exactly at zero or less.",
+      "evaluator_script": "const m=await import('./cooldown.js');if(m.tickCooldown({cooldown:2,range:5},3).cooldown!==0||!m.canFire({cooldown:0})||m.canFire({cooldown:.1}))throw Error('cooldown');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-10"
+  },
+  {
+    "id": "ABV2-GL-11",
+    "category": "game-logic",
+    "difficulty": "D2",
+    "target_request": "Create upgrade.js exporting upgradeTower(tower, gold). On affordable cost, clone and add one level and damage; return remainingGold; otherwise clone unchanged.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-11",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "upgrade.js",
+      "request": "Create upgrade.js exporting upgradeTower(tower, gold). On affordable cost, clone and add one level and damage; return remainingGold; otherwise clone unchanged.",
+      "evaluator_script": "const m=await import('./upgrade.js');const t={level:1,damage:3,upgradeCost:5},a=m.upgradeTower(t,7);if(JSON.stringify(a)!==JSON.stringify({tower:{level:2,damage:4,upgradeCost:5},remainingGold:2}))throw Error('up');const b=m.upgradeTower(t,4);if(b.remainingGold!==4||b.tower.level!==1||t.level!==1)throw Error('guard');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-11"
+  },
+  {
+    "id": "ABV2-GL-12",
+    "category": "game-logic",
+    "difficulty": "D1",
+    "target_request": "Create victory.js exporting battleOutcome(playerHp, enemies). Defeat when player hp is non-positive; otherwise victory if all enemies are defeated; else ongoing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-gl-12",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "victory.js",
+      "request": "Create victory.js exporting battleOutcome(playerHp, enemies). Defeat when player hp is non-positive; otherwise victory if all enemies are defeated; else ongoing.",
+      "evaluator_script": "const m=await import('./victory.js');if(m.battleOutcome(0,[{hp:0}])!=='defeat'||m.battleOutcome(2,[{hp:0},{hp:-1}])!=='victory'||m.battleOutcome(2,[{hp:1}])!=='ongoing')throw Error('outcome');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-12"
+  },
+  {
+    "id": "ABV2-GL-13",
+    "category": "game-logic",
+    "difficulty": "D3",
+    "target_request": "Create card-turn.js exporting immutable playCard(state, card) and endTurn(state), covering energy, damage, discard, draw and turn progression.",
+    "evaluator_id": "python-external-evaluator-v2:gl13",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "card-turn.js",
+      "request": "Create card-turn.js exporting immutable playCard(state, card) and endTurn(state), covering energy, damage, discard, draw and turn progression.",
+      "evaluator_script": "const m=await import('./card-turn.js');const s={energy:3,enemyHp:12,hand:['guard'],deck:['a','b','c'],discardPile:[],turn:1};const p=m.playCard(s,{id:'strike',cost:1,damage:4});if(p.energy!==2||p.enemyHp!==8||p.discardPile[0]!=='strike'||s.energy!==3)throw Error('play');const e=m.endTurn(s);if(JSON.stringify(e)!==JSON.stringify({energy:3,enemyHp:12,hand:['a','b'],deck:['c'],discardPile:['guard'],turn:2}))throw Error('end');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-13"
+  },
+  {
+    "id": "ABV2-GL-14",
+    "category": "game-logic",
+    "difficulty": "D3",
+    "target_request": "Create tactics-turn.js exporting immutable resolveTurn(state, action) for one-step 4x4 movement, adjacent attack, action points and victory.",
+    "evaluator_id": "python-external-evaluator-v2:gl14",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "tactics-turn.js",
+      "request": "Create tactics-turn.js exporting immutable resolveTurn(state, action) for one-step 4x4 movement, adjacent attack, action points and victory.",
+      "evaluator_script": "const m=await import('./tactics-turn.js');const s={actionPoints:2,player:{x:0,y:0},enemy:{x:1,y:1,hp:5},battleStatus:'ongoing'};const a=m.resolveTurn(s,{type:'move',x:1,y:0}),b=m.resolveTurn(a,{type:'attack'});if(a.actionPoints!==1||b.enemy.hp!==0||b.battleStatus!=='victory'||s.player.x!==0)throw Error('turn');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-gl-14"
+  },
+  {
+    "id": "ABV2-PJ-01",
+    "category": "project-browser-game",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript card combat prototype in the empty workspace. Create index.html with visible element IDs player-hp, player-energy, enemy-hp, strike-button. Create src/game.js exporting createInitialState, strike, mountGame. Initial state is {'playerHp': 20, 'playerEnergy': 3, 'enemyHp': 20}; one action produces {'playerHp': 20, 'playerEnergy': 2, 'enemyHp': 14}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-pj-01",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.strike, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"playerHp\":20,\"playerEnergy\":3,\"enemyHp\":20});\nassert.deepEqual(game.strike(initial),{\"playerHp\":20,\"playerEnergy\":2,\"enemyHp\":14});\nassert.deepEqual(initial,{\"playerHp\":20,\"playerEnergy\":3,\"enemyHp\":20});\nconst listeners=new Map();\nconst elements=new Map([\"player-hp\", \"player-energy\", \"enemy-hp\", \"strike-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('player-energy').textContent,'3');\nassert.equal(elements.get('enemy-hp').textContent,'20');\nlisteners.get('strike-button:click')();\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('player-energy').textContent,'2');\nassert.equal(elements.get('enemy-hp').textContent,'14');\nconsole.log(\"card combat evaluator passed\");",
+      "expected_stdout": "card combat evaluator passed",
+      "page_markers": [
+        "player-hp",
+        "player-energy",
+        "enemy-hp",
+        "strike-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "strike",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#player-hp",
+        "#player-energy",
+        "#enemy-hp",
+        "#strike-button"
+      ],
+      "interaction_selector": "#strike-button",
+      "expectations": [
+        {
+          "selector": "#player-energy",
+          "before": "3",
+          "after": "2"
+        },
+        {
+          "selector": "#enemy-hp",
+          "before": "20",
+          "after": "14"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-pj-01"
+  },
+  {
+    "id": "ABV2-PJ-02",
+    "category": "project-browser-game",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript tactics prototype in the empty workspace. Create index.html with visible element IDs player-hp, action-points, enemy-hp, attack-button. Create src/game.js exporting createInitialState, attack, mountGame. Initial state is {'playerHp': 20, 'actionPoints': 2, 'enemyHp': 12}; one action produces {'playerHp': 20, 'actionPoints': 1, 'enemyHp': 8}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-pj-02",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.attack, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"playerHp\":20,\"actionPoints\":2,\"enemyHp\":12});\nassert.deepEqual(game.attack(initial),{\"playerHp\":20,\"actionPoints\":1,\"enemyHp\":8});\nassert.deepEqual(initial,{\"playerHp\":20,\"actionPoints\":2,\"enemyHp\":12});\nconst listeners=new Map();\nconst elements=new Map([\"player-hp\", \"action-points\", \"enemy-hp\", \"attack-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('action-points').textContent,'2');\nassert.equal(elements.get('enemy-hp').textContent,'12');\nlisteners.get('attack-button:click')();\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('action-points').textContent,'1');\nassert.equal(elements.get('enemy-hp').textContent,'8');\nconsole.log(\"tactics evaluator passed\");",
+      "expected_stdout": "tactics evaluator passed",
+      "page_markers": [
+        "player-hp",
+        "action-points",
+        "enemy-hp",
+        "attack-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "attack",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#player-hp",
+        "#action-points",
+        "#enemy-hp",
+        "#attack-button"
+      ],
+      "interaction_selector": "#attack-button",
+      "expectations": [
+        {
+          "selector": "#action-points",
+          "before": "2",
+          "after": "1"
+        },
+        {
+          "selector": "#enemy-hp",
+          "before": "12",
+          "after": "8"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-pj-02"
+  },
+  {
+    "id": "ABV2-PJ-03",
+    "category": "project-browser-game",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript tower defense prototype in the empty workspace. Create index.html with visible element IDs gold, wave, enemy-hp, fire-button. Create src/game.js exporting createInitialState, fire, mountGame. Initial state is {'gold': 10, 'wave': 1, 'enemyHp': 12}; one action produces {'gold': 10, 'wave': 1, 'enemyHp': 8}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-pj-03",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.fire, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"gold\":10,\"wave\":1,\"enemyHp\":12});\nassert.deepEqual(game.fire(initial),{\"gold\":10,\"wave\":1,\"enemyHp\":8});\nassert.deepEqual(initial,{\"gold\":10,\"wave\":1,\"enemyHp\":12});\nconst listeners=new Map();\nconst elements=new Map([\"gold\", \"wave\", \"enemy-hp\", \"fire-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('gold').textContent,'10');\nassert.equal(elements.get('wave').textContent,'1');\nassert.equal(elements.get('enemy-hp').textContent,'12');\nlisteners.get('fire-button:click')();\nassert.equal(elements.get('gold').textContent,'10');\nassert.equal(elements.get('wave').textContent,'1');\nassert.equal(elements.get('enemy-hp').textContent,'8');\nconsole.log(\"tower defense evaluator passed\");",
+      "expected_stdout": "tower defense evaluator passed",
+      "page_markers": [
+        "gold",
+        "wave",
+        "enemy-hp",
+        "fire-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "fire",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#gold",
+        "#wave",
+        "#enemy-hp",
+        "#fire-button"
+      ],
+      "interaction_selector": "#fire-button",
+      "expectations": [
+        {
+          "selector": "#enemy-hp",
+          "before": "12",
+          "after": "8"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-pj-03"
+  },
+  {
+    "id": "ABV2-PJ-04",
+    "category": "project-browser-game",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript deckbuilder prototype in the empty workspace. Create index.html with visible element IDs deck-count, hand-count, energy, draw-button. Create src/game.js exporting createInitialState, drawCard, mountGame. Initial state is {'deckCount': 5, 'handCount': 0, 'energy': 3}; one action produces {'deckCount': 4, 'handCount': 1, 'energy': 3}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-pj-04",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.drawCard, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"deckCount\":5,\"handCount\":0,\"energy\":3});\nassert.deepEqual(game.drawCard(initial),{\"deckCount\":4,\"handCount\":1,\"energy\":3});\nassert.deepEqual(initial,{\"deckCount\":5,\"handCount\":0,\"energy\":3});\nconst listeners=new Map();\nconst elements=new Map([\"deck-count\", \"hand-count\", \"energy\", \"draw-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('deck-count').textContent,'5');\nassert.equal(elements.get('hand-count').textContent,'0');\nassert.equal(elements.get('energy').textContent,'3');\nlisteners.get('draw-button:click')();\nassert.equal(elements.get('deck-count').textContent,'4');\nassert.equal(elements.get('hand-count').textContent,'1');\nassert.equal(elements.get('energy').textContent,'3');\nconsole.log(\"deckbuilder evaluator passed\");",
+      "expected_stdout": "deckbuilder evaluator passed",
+      "page_markers": [
+        "deck-count",
+        "hand-count",
+        "energy",
+        "draw-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "drawCard",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#deck-count",
+        "#hand-count",
+        "#energy",
+        "#draw-button"
+      ],
+      "interaction_selector": "#draw-button",
+      "expectations": [
+        {
+          "selector": "#deck-count",
+          "before": "5",
+          "after": "4"
+        },
+        {
+          "selector": "#hand-count",
+          "before": "0",
+          "after": "1"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-pj-04"
+  },
+  {
+    "id": "ABV2-PJ-05",
+    "category": "project-browser-game",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript resource management prototype in the empty workspace. Create index.html with visible element IDs wood, workers, turn, gather-button. Create src/game.js exporting createInitialState, gather, mountGame. Initial state is {'wood': 0, 'workers': 2, 'turn': 1}; one action produces {'wood': 4, 'workers': 2, 'turn': 2}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-pj-05",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.gather, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"wood\":0,\"workers\":2,\"turn\":1});\nassert.deepEqual(game.gather(initial),{\"wood\":4,\"workers\":2,\"turn\":2});\nassert.deepEqual(initial,{\"wood\":0,\"workers\":2,\"turn\":1});\nconst listeners=new Map();\nconst elements=new Map([\"wood\", \"workers\", \"turn\", \"gather-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('wood').textContent,'0');\nassert.equal(elements.get('workers').textContent,'2');\nassert.equal(elements.get('turn').textContent,'1');\nlisteners.get('gather-button:click')();\nassert.equal(elements.get('wood').textContent,'4');\nassert.equal(elements.get('workers').textContent,'2');\nassert.equal(elements.get('turn').textContent,'2');\nconsole.log(\"resource management evaluator passed\");",
+      "expected_stdout": "resource management evaluator passed",
+      "page_markers": [
+        "wood",
+        "workers",
+        "turn",
+        "gather-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "gather",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#wood",
+        "#workers",
+        "#turn",
+        "#gather-button"
+      ],
+      "interaction_selector": "#gather-button",
+      "expectations": [
+        {
+          "selector": "#wood",
+          "before": "0",
+          "after": "4"
+        },
+        {
+          "selector": "#turn",
+          "before": "1",
+          "after": "2"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": null,
+    "family_id": "agent-benchmark-v2-python-first:abv2-pj-05"
+  },
+  {
+    "id": "ABV2-RP-01",
+    "category": "repair-self-correction",
+    "difficulty": "D4",
+    "target_request": "Create a complete no-dependency Browser JavaScript card combat prototype in the empty workspace. Create index.html with visible element IDs player-hp, player-energy, enemy-hp, strike-button. Create src/game.js exporting createInitialState, strike, mountGame. Initial state is {'playerHp': 20, 'playerEnergy': 3, 'enemyHp': 20}; one action produces {'playerHp': 20, 'playerEnergy': 2, 'enemyHp': 14}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-rp-01",
+    "kind": "browser-project",
+    "holdout": null,
+    "browser": {
+      "required_files": [
+        "index.html",
+        "src/game.js",
+        "project.mjs",
+        "dist/game.js"
+      ],
+      "source_file": "src/game.js",
+      "build_artifact": "dist/game.js",
+      "evaluator_script": "import assert from 'node:assert/strict';\nconst game=await import('./dist/game.js');\nassert.equal(typeof game.createInitialState, 'function');\nassert.equal(typeof game.strike, 'function');\nassert.equal(typeof game.mountGame, 'function');\nconst initial=game.createInitialState();\nassert.deepEqual(initial,{\"playerHp\":20,\"playerEnergy\":3,\"enemyHp\":20});\nassert.deepEqual(game.strike(initial),{\"playerHp\":20,\"playerEnergy\":2,\"enemyHp\":14});\nassert.deepEqual(initial,{\"playerHp\":20,\"playerEnergy\":3,\"enemyHp\":20});\nconst listeners=new Map();\nconst elements=new Map([\"player-hp\", \"player-energy\", \"enemy-hp\", \"strike-button\"].map(id=>[id,{textContent:'',disabled:false,addEventListener(type,fn){listeners.set(`${id}:${type}`,fn)}}]));\nconst document={getElementById(id){return elements.get(id)??null}};\ngame.mountGame(document);\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('player-energy').textContent,'3');\nassert.equal(elements.get('enemy-hp').textContent,'20');\nlisteners.get('strike-button:click')();\nassert.equal(elements.get('player-hp').textContent,'20');\nassert.equal(elements.get('player-energy').textContent,'2');\nassert.equal(elements.get('enemy-hp').textContent,'14');\nconsole.log(\"card combat evaluator passed\");",
+      "expected_stdout": "card combat evaluator passed",
+      "page_markers": [
+        "player-hp",
+        "player-energy",
+        "enemy-hp",
+        "strike-button"
+      ],
+      "module_markers": [
+        "createInitialState",
+        "strike",
+        "mountGame"
+      ],
+      "visible_selectors": [
+        "#player-hp",
+        "#player-energy",
+        "#enemy-hp",
+        "#strike-button"
+      ],
+      "interaction_selector": "#strike-button",
+      "expectations": [
+        {
+          "selector": "#player-energy",
+          "before": "3",
+          "after": "2"
+        },
+        {
+          "selector": "#enemy-hp",
+          "before": "20",
+          "after": "14"
+        }
+      ],
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    "initial_request": "Create a complete no-dependency Browser JavaScript card combat prototype in the empty workspace. Create index.html with visible element IDs player-hp, player-energy, enemy-hp, strike-button. Create src/game.js exporting createInitialState, strike, mountGame. Initial state is {'playerHp': 20, 'playerEnergy': 3, 'enemyHp': 20}; one action produces {'playerHp': 20, 'playerEnergy': 2, 'enemyHp': 14}; mountGame renders and updates the state without mutating input. Create project.mjs whose build copies src/game.js to dist/game.js and whose serve mode hosts both files using PORT or 4173. Load ./dist/game.js as a module and run node project.mjs build before finishing. For the controlled first attempt only, deliberately make the action produce enemy HP 15 instead of 14.",
+    "family_id": "agent-benchmark-v2-python-first:abv2-rp-01"
+  },
+  {
+    "id": "ABV2-RP-02",
+    "category": "repair-self-correction",
+    "difficulty": "D2",
+    "target_request": "Create playable.js exporting playableCards(hand, energy). Preserve order and include only cards with non-negative cost at most energy.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-rp-02",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "playable.js",
+      "request": "Create playable.js exporting playableCards(hand, energy). Preserve order and include only cards with non-negative cost at most energy.",
+      "evaluator_script": "const m=await import('./playable.js');const a={id:'a',cost:1},b={id:'b',cost:3},c={id:'c',cost:-1};if(m.playableCards([a,b,c],2).map(x=>x.id).join('')!=='a')throw Error('filter');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": "Create playable.js exporting playableCards(hand, energy). Preserve order and include only cards with for the controlled first attempt, include negative cost at most energy.",
+    "family_id": "agent-benchmark-v2-python-first:abv2-rp-02"
+  },
+  {
+    "id": "ABV2-RP-03",
+    "category": "repair-self-correction",
+    "difficulty": "D2",
+    "target_request": "Create initiative.js exporting sortByInitiative(units). Return a new descending array and preserve original order for ties.",
+    "evaluator_id": "python-external-evaluator-v2:abv2-rp-03",
+    "kind": "single-file",
+    "holdout": {
+      "target_file": "initiative.js",
+      "request": "Create initiative.js exporting sortByInitiative(units). Return a new descending array and preserve original order for ties.",
+      "evaluator_script": "const m=await import('./initiative.js');const a={id:'a',initiative:2},b={id:'b',initiative:5},c={id:'c',initiative:2},x=[a,b,c],n=m.sortByInitiative(x);if(n.map(v=>v.id).join('')!=='bac'||x.map(v=>v.id).join('')!=='abc')throw Error('order');",
+      "expected_stdout": null,
+      "seed": null
+    },
+    "browser": null,
+    "initial_request": "Create initiative.js exporting sortByInitiative(units). Return a new descending array and for the controlled first attempt, reverse original order for ties.",
+    "family_id": "agent-benchmark-v2-python-first:abv2-rp-03"
+  }
+]

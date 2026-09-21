@@ -1,55 +1,28 @@
-# Minimal SFT Smoke Test
+# Python training entry points
 
-This isolated Python path verifies JSONL loading, Qwen chat-template rendering, CPU LoRA optimization, adapter checkpoint saving, reload and one generation. It is not connected to the Online Agent Runtime and is not an effectiveness experiment.
+训练、模型 worker 和评测编排均使用 Python。训练答案中的 TypeScript 是游戏代码数据，浏览器产物仍由 Node/Chromium 执行。
 
-Create an ignored virtual environment and install CPU PyTorch plus the two pinned training dependencies:
-
-```bash
-uv venv .venv
-uv pip install --python .venv/bin/python 'torch==2.8.0+cpu' --index-url https://download.pytorch.org/whl/cpu
-uv pip install --python .venv/bin/python -r training/requirements-smoke.txt
-```
-
-Run loader tests and the smoke test:
+## CPU smoke test
 
 ```bash
-.venv/bin/python -m unittest discover -s tests_py -p 'test_*.py'
+python3 -m venv .venv
+.venv/bin/python -m pip install torch -r training/requirements-smoke.txt
 .venv/bin/python -m training.sft_smoke.train
 ```
 
-The default base is `Qwen/Qwen2.5-Coder-0.5B-Instruct`. Generated checkpoints and `run.json` are written under ignored `artifacts/sft-smoke/`; do not commit model weights.
+基座为 `Qwen/Qwen2.5-Coder-0.5B-Instruct`，输出在 `artifacts/sft-smoke/`。这是 loader、LoRA、保存和重载检查，不是正式效果实验。
 
-## Small-scale comparison
+## Qwen3-4B 正式实验（待真实运行）
 
-The follow-up experiment consumes all accepted v2 records, masks user/prompt tokens from loss, trains two CPU LoRA epochs, reloads the adapter, then compares Base and SFT under the same six external-evaluator tasks:
-
-```bash
-.venv/bin/python -m training.sft_evaluation.train
-npm run sft:evaluate
-```
-
-Outputs are written to ignored `artifacts/sft-evaluation/`. The comparison uses the existing Agent loop, restricted Executor and evaluator repair wrapper. A deterministic adapter scaffold handles read/write/run sequencing while the local Qwen worker supplies only the TypeScript contents; this experiment therefore measures code generation under the Runtime, not native local-model tool calling.
-
-## Qwen3-4B scale experiment
-
-The formal scale comparison uses `Qwen/Qwen3-4B`; the 0.5B model above remains a technical smoke-test model. Use a CUDA cloud machine and install the pinned scale requirements into the ignored environment:
+环境与完整命令见 [运行说明](../docs/final_experiment_runbook.md)。仅在确认并冻结数据后运行：
 
 ```bash
-uv venv .venv
-uv pip install --python .venv/bin/python 'torch==2.8.0' --index-url https://download.pytorch.org/whl/cu126
-uv pip install --python .venv/bin/python -r training/requirements-scale.txt
-npm run sft:scale:train
-npm run sft:scale:evaluate
+.venv/bin/python -m training.final.train
+.venv/bin/python -m strategy_game_agent.final_evaluation
 ```
 
-The training command consumes all 186 records in the frozen `data_pipeline/scale/accepted.jsonl`, applies assistant-response-only masking and defaults to one QLoRA epoch. The evaluation runs Base and the saved adapter over the same 24 repository-family-isolated tasks with 4 Agent iterations and one repair. Reports and checkpoints are written to ignored `artifacts/sft-scale/`.
+使用同一个 Python Agent Runtime 和 Benchmark v2 比较 Base 与 SFT。结果保存在 `artifacts/final-sft/`，不提交模型权重。没有真实 loss、checkpoint 重载和逐题结果时，不声称训练或对比已完成。
 
-After installing the environment, the shortest guarded entry point is:
+## 历史实验
 
-```bash
-npm run sft:scale:cloud
-```
-
-It verifies CUDA, runs Node/Python tests, verifies every frozen content hash, trains, reloads the checkpoint, and evaluates Base then SFT. A 16 GB CUDA GPU is the practical floor for this rank-8, sequence-1024 QLoRA configuration; a 24 GB L4/A10-class GPU is recommended for headroom. BF16 is used when supported and FP16 otherwise.
-
-Do not interpret a prepared command as an executed experiment. A valid result requires the committed dataset plus `train-run.json` and `comparison-run.json` produced by a real CUDA run.
+`sft_evaluation/` 与 `sft_scale/` 保留早期训练逻辑；对应历史报告见 `docs/sft_evaluation_run.md`。旧 TypeScript Runtime 的六题或二十四题评测入口已移除，不能将当前三十题 Python 评测结果记成旧实验结果。

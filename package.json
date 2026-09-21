@@ -1,29 +1,26 @@
 {
   "name": "strategy-game-prototyping-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=24"
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test dist/tests/*.test.js",
-    "test:e2e": "npm run build && node --test dist/tests/agent.e2e.test.js",
-    "demo": "npm run build && node dist/src/cli.js",
-    "b1:real": "npm run build && node dist/src/b1-real-model-cli.js",
-    "b2:real": "npm run build && node dist/src/b2-real-model-cli.js",
-    "b3:real": "npm run build && node dist/src/b3-real-model-cli.js",
-    "b4:real": "npm run build && node dist/src/b4-real-model-cli.js",
-    "b4:repair:real": "npm run build && node dist/src/b4-repair-real-model-cli.js",
-    "eval:agent:v1:gpt": "npm run build && node dist/src/agent-benchmark-v1-cli.js",
-    "eval:install-browser": "playwright install chromium",
-    "sft:evaluate": "npm run build && node dist/src/sft-evaluation-cli.js",
+    "build": "python3 -m compileall -q strategy_game_agent data_pipeline training",
+    "test": "python3 -m unittest discover -s tests_py -p 'test_*.py'",
+    "test:e2e": "python3 -m unittest tests_py.test_python_evaluators -v",
+    "demo": "python3 -m strategy_game_agent.cli demo",
+    "b1:real": "python3 -m strategy_game_agent.cli real-task ABV2-CG-01",
+    "b2:real": "python3 -m strategy_game_agent.cli real-task ABV2-CM-01",
+    "b3:real": "python3 -m strategy_game_agent.cli real-task ABV2-GL-01",
+    "b4:real": "python3 -m strategy_game_agent.cli real-task ABV2-PJ-01",
+    "b4:repair:real": "python3 -m strategy_game_agent.cli real-task ABV2-RP-01",
+    "eval:agent:v2:gpt": "python3 -m strategy_game_agent.cli benchmark",
+    "eval:agent:v2:freeze": "python3 -m strategy_game_agent.freeze_benchmark",
+    "eval:install-browser": "python3 -m playwright install chromium",
     "sft:scale:train": ".venv/bin/python -m training.sft_scale.train --qlora",
-    "sft:scale:evaluate": "npm run build && node dist/src/scale-evaluation-cli.js",
+    "sft:scale:evaluate": "python3 -m strategy_game_agent.final_evaluation",
     "sft:scale:verify": ".venv/bin/python data_pipeline/scale/verify_freeze.py",
     "sft:scale:cloud": "bash training/sft_scale/cloud_run.sh",
-    "data:pilot:validate": "node data_pipeline/validate-pilot.mjs",
+    "data:pilot:validate": "python3 -m data_pipeline.validate_pilot",
     "data:expansion:validate": ".venv/bin/python -m unittest tests_py.test_data_expansion -v",
     "data:scale:run": ".venv/bin/python data_pipeline/scale/run_pipeline.py --checkout-root \"$SCALE_CHECKOUT_ROOT\"",
     "data:scale:quality-repair": "${QUALITY_PYTHON:-python3} data_pipeline/scale/run_quality_repair.py",
@@ -32,11 +29,6 @@
     "data:v3:freeze": "python3 -m data_pipeline.v3.freeze --confirm",
     "data:v3:verify": "python3 -m data_pipeline.v3.verify_freeze",
     "sft:final:train": ".venv/bin/python -m training.final.train",
-    "sft:final:evaluate": "npm run build && node dist/src/final-sft-evaluation-cli.js"
-  },
-  "devDependencies": {
-    "@types/node": "24.10.1",
-    "playwright": "1.62.1",
-    "typescript": "7.0.2"
+    "sft:final:evaluate": "python3 -m strategy_game_agent.final_evaluation"
   }
 }

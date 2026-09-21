@@ -107,7 +107,7 @@ class DataQualityPipelineTests(unittest.TestCase):
         self.assertIn("MISSING_CONTEXT", reasons)
 
     def test_target_validation_covers_all_fixed_units(self) -> None:
-        subprocess.run(["node", str(SCALE / "validate-targets.mjs")], cwd=ROOT, check=True, capture_output=True, text=True)
+        subprocess.run([sys.executable, "-m", "data_pipeline.scale.validate_targets"], cwd=ROOT, check=True, capture_output=True, text=True)
         rows = [json.loads(line) for line in (SCALE / "target-validation-v2.jsonl").read_text(encoding="utf-8").splitlines() if line]
         self.assertEqual(len(rows), 440)
         self.assertEqual(len({item["unit_id"] for item in rows}), 440)

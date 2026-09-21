@@ -33,6 +33,9 @@
 - 所有 Tool/Action 必须有结构校验、工作区边界和明确超时。
 - 禁止默认执行任意宿主机命令；Executor 必须使用隔离工作区和允许策略。
 - 日志不得写入密钥、完整环境变量或用户敏感内容。
+- Agent Runtime、模型适配、工具、评测编排和数据 Pipeline 默认使用 Python 3.11+；结构化输入使用 Pydantic。
+- JavaScript 只用于浏览器前端或 Agent 生成项目的真实执行。新增 TypeScript 实现前必须证明 Python/原生 JavaScript 无法合理承担该职责。
+- 不得把训练语料中的 TypeScript 当成仓库主体技术栈；它是模型学习和生成的目标数据。
 
 ## 4. 测试规则
 

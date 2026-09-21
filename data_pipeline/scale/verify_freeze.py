@@ -35,6 +35,8 @@ def main() -> None:
 
 
 def sha256(path: Path) -> str:
+    if not path.is_file():
+        return "MISSING"
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 

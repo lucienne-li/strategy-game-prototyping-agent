@@ -63,11 +63,11 @@
 | 2D | WORKING ASSUMPTION | 降低素材与场景复杂度 |
 | 回合制 | WORKING ASSUMPTION | 便于确定性测试 |
 | 卡牌策略 / 轻量 Deckbuilder | WORKING ASSUMPTION | 数据和规则结构较适合 |
-| 固定技术栈 | CONFIRMED FOR MVP | Browser + TypeScript；支持可复现构建与评测 |
+| 固定技术栈 | CONFIRMED FOR MVP | Python Agent + Browser JavaScript/TypeScript 交付物；支持可复现构建与评测 |
 | 不要求商业级美术 | WORKING ASSUMPTION | 聚焦玩法代码 |
 | GameSpec 具体 schema | TBD | 用 benchmark 驱动定义 |
 | CLI、Web 或 IDE 界面 | TBD | MVP 可先 CLI，但未确认 |
-| Browser + TypeScript | CONFIRMED FOR MVP | 经同任务最小实验选择；Godot 保留为后续扩展 |
+| Browser JavaScript/TypeScript | CONFIRMED FOR MVP | 经同任务最小实验选择；Agent 主体为 Python，Godot 保留为后续扩展 |
 
 ## 5. Out of Scope for MVP
 
@@ -140,7 +140,7 @@ MVP 至少需要证明：
 
 ### TBD / NEEDS VALIDATION
 
-- Godot 4 + GDScript 还是浏览器 TypeScript 技术栈；
+- 后续是否增加 Godot 支持；当前已确定 Python Agent + 浏览器游戏交付；
 - 目标基础模型、SFT 模型规模和训练资源；
 - 第一版 Benchmark 的任务数量和复杂度；
 - `2万条` 是否为目标最终样本量，以及预算是否支持；

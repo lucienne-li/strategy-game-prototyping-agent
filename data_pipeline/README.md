@@ -1,6 +1,6 @@
 # Data Pilot Workspace
 
-该目录只承载 M6 小规模离线数据试点，与 `src/` 中的 Online Agent Runtime 分离。
+该目录包含离线数据试点、批处理和 v3 数据流程，使用 Python，与 `strategy_game_agent/` 中的在线 Runtime 分离。TypeScript 源文件属于待提取的游戏训练数据，不是 Pipeline 的实现语言。
 
 ```text
 data_pipeline/
@@ -32,9 +32,9 @@ fixed manifests + curated extraction spec
 candidates.json
 → batch_repositories.py
 → group_families.py
-→ extract-units.mjs
-→ validate-targets.mjs
-→ generate_instructions.py (strict scoped JSON, 512-token budget)
+→ extract_units.py
+→ validate_targets.py
+→ generate_instructions.py (strict scoped JSON, 1024-token budget)
 → deterministic quality gates
 → review_instructions.py (strong pass/fail reviewer)
 → finalize_scale.py
@@ -45,7 +45,7 @@ candidates.json
 
 ```bash
 export SCALE_CHECKOUT_ROOT="$(mktemp -d)"
-npm run data:scale:run
+python3 data_pipeline/scale/run_pipeline.py --checkout-root "$SCALE_CHECKOUT_ROOT"
 ```
 
 各阶段以 JSONL 原子写入 checkpoint；重新运行时跳过已绑定 commit/hash 的完成项。`repositories.jsonl` 保留 license、install、build 与拒绝证据，`reviews.jsonl` 将复核结果绑定到 target SHA-256，最终筛选同时执行 family cap、target 与 instruction 近重复 gate。该流程不包含自动 GitHub discovery、分布式队列或数据库。
@@ -55,9 +55,7 @@ npm run data:scale:run
 ```bash
 python3 -m venv .venv-quality
 .venv-quality/bin/python -m pip install -r data_pipeline/requirements-quality.txt
-npm install
-export QUALITY_PYTHON="$PWD/.venv-quality/bin/python"
-npm run data:scale:quality-repair
+.venv-quality/bin/python data_pipeline/scale/run_quality_repair.py
 ```
 
 命令按 target validation、结构化生成、确定性预检、强模型 review 和 finalization 顺序执行并可断点恢复。没有 strong review 的候选一律 reject；全量完成并生成新的 quality-v2 freeze 前，Qwen3-4B 正式训练保持暂停。

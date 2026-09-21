@@ -2,9 +2,11 @@
 
 > 本文同时记录已经完成的工程结果和后续计划。文中的 **Completed** 表示有代码、测试或真实运行记录支持；**In progress** 表示已有实现但结果尚未冻结；**Planned** 描述项目全部完成后的目标形态，不代表已经取得对应数据或指标。
 
+> **2026-09 Python-first 更新：** Agent Runtime、模型 Adapter、Tool Executor、Repair Loop、External Evaluator 编排、数据 Pipeline 和训练代码已统一迁到 Python。浏览器游戏仍由 HTML/CSS/JavaScript 或 TypeScript 表达，因为这是 Agent 的交付格式；Node/Chromium 只负责运行这些交付物。旧 Benchmark v1 和已有运行记录作为历史证据保留，Python Runtime 使用 Benchmark v2 重新建立 baseline。
+
 ## 约 300 字总结
 
-这个项目不是让用户一句话生成商业游戏，而是把自然语言玩法变成可运行、可点击、可继续编辑的 Browser + TypeScript 策略游戏原型。单模型 Agent 用三种受限工具完成代码，Runtime 管理路径、命令和预算，独立 evaluator 负责构建、功能、浏览器交互和修复验收。我们已用 GPT-5.6 跑通单文件、代码修改、多文件卡牌项目和 repair，并冻结 30 题 Benchmark。离线侧从许可明确的真实代码反向生成 instruction，完成过 Pilot、小规模 SFT 和 440 个 code unit 批处理，也发现了截断、欠规格、行为错配和限流。后续将补齐 D1–D4 数据，冻结合格样本，用同一 Benchmark 比较 Qwen3-4B Base 与 QLoRA SFT，最后接入 Bolt-style Web 工作台，提供执行进度、文件、测试、可交互预览和 ZIP 下载。
+这个项目不是让用户一句话生成商业游戏，而是把自然语言玩法变成可运行、可点击、可继续编辑的浏览器策略游戏原型。主体是 Python Coding Agent：模型通过三种受限工具创建项目，Runtime 管理路径、命令和预算，独立 evaluator 负责构建、功能、浏览器交互和修复验收。浏览器中的 HTML/CSS/JavaScript 是交付物，不是 Agent 的实现语言。我们此前用 GPT-5.6 跑通单文件、代码修改、多文件卡牌项目和 repair，并冻结过 30 题 v1 Benchmark；迁移后保留这些历史记录，另建 v2 重新测量。离线侧从许可明确的真实 TypeScript 游戏代码反向生成 instruction，完成过 Pilot、小规模 SFT 和 440 个 code unit 批处理，也暴露过截断、欠规格、行为错配和限流。后续仍需冻结合格数据、比较 Qwen3-4B Base 与 QLoRA SFT，再把 Python 后端接入 Web 工作台。
 
 ## 1. 这个项目到底要做什么
 
@@ -18,7 +20,7 @@
 
 系统应交付：
 
-- 一个结构清楚的多文件 TypeScript 项目；
+- 一个结构清楚的多文件 Browser JavaScript/TypeScript 项目；
 - 可以复现的安装、构建和启动方式；
 - 能在浏览器里实际点击的游戏原型；
 - 已实现功能、评测结果和已知限制；
@@ -47,7 +49,7 @@ flowchart TB
         DS --> FT["Qwen3-4B QLoRA"]
     end
     subgraph Evaluation["固定评测"]
-        BM["Agent Benchmark v1"] --> CMP["Base / SFT / GPT-5.6 Comparison"]
+        BM["Python Agent Benchmark v2"] --> CMP["Base / SFT / GPT-5.6 Comparison"]
     end
     FT --> OA
     OA --> CMP
@@ -88,7 +90,7 @@ User Request
 | 理解玩法、决定文件和实现方式 | LLM | 通过既有 `AgentModel` 接口，可切换 Model Adapter |
 | 选择工具与参数 | LLM | 只允许 `read_file`、`write_file`、`run_command` |
 | Tool schema、路径和命令校验 | Runtime | 拒绝越界路径、未知字段、未授权命令和权限放宽参数 |
-| 文件与命令执行 | Runtime | 临时 workspace、`shell: false`、命令白名单和 timeout |
+| 文件与命令执行 | Python Runtime | 临时 workspace、`subprocess` 参数列表、命令白名单和 timeout |
 | 判断代码是否成功 | External evaluator | 模型的“完成了”不算证据，必须通过独立测试 |
 | 是否继续修复 | Runtime + LLM | Runtime 管预算，LLM 根据结构化失败结果修改代码 |
 | 最终打包 | Runtime | 只包含用户项目与必要说明，不包含内部文件 |
@@ -109,7 +111,9 @@ User Request
 
 ## 4. Evaluation-First：先固定怎么判断，再训练模型
 
-### 4.1 Agent Benchmark v1
+### 4.1 历史 Benchmark v1 与当前 Python Benchmark v2
+
+迁移后的任务目录是 `evals/agent_benchmark_v2/`，由 `strategy_game_agent/benchmark.py` 和 `evaluators.py` 执行。用 `python3 -m strategy_game_agent.cli benchmark` 启动；真实模型和真实浏览器的完整 baseline 尚待运行。以下 v1 数字及 hash 是历史证据，不能用作当前 v2 的完成证明。
 
 **Completed and frozen**：现有 Benchmark 共 30 题，来自早期 B1–B4 基础设施和后续扩展任务。
 
@@ -145,7 +149,7 @@ Evaluator 位于 Agent workspace 外，Agent 不能读取或修改。Freeze mani
 
 - **Completed**：Qwen2.5-Coder-0.5B 的 24 条小规模 SFT，在 6 个 family-isolated holdout 上从 Base 2/6 变为 SFT 3/6；只能说观察到初步正向差异。
 - **Completed historically**：GPT-5.6 分别通过过 B1、B2、B3、B4 和 B4-REPAIR，但这些零散结果不能拼成正式 30-task baseline。
-- **Planned**：GPT-5.6、Qwen3-4B Base 和 Qwen3-4B SFT 都在完整 Agent Benchmark v1 上运行。
+- **Planned**：GPT-5.6、Qwen3-4B Base 和 Qwen3-4B SFT 都在完整 Python Agent Benchmark v2 上运行。
 - **Not yet available**：正式 Qwen3-4B Base vs SFT 总表、分难度结果和正式 GPT-5.6 baseline。
 
 ## 5. Offline Data Pipeline：从真实代码反推训练任务
@@ -231,8 +235,8 @@ Qwen2.5-Coder-0.5B 已用于 CPU smoke test，但容量过小，更多是在验�
 现有工程入口为：
 
 ```bash
-npm run sft:final:train
-npm run sft:final:evaluate
+.venv/bin/python -m training.final.train
+.venv/bin/python -m strategy_game_agent.final_evaluation
 ```
 
 训练计划在 RunPod 的 24 GB 或更大 NVIDIA GPU 上执行。当前仓库没有正式 loss、checkpoint 或 Qwen3-4B 对比成绩，这部分必须等冻结数据和真实云 GPU 运行后填写。
@@ -263,7 +267,7 @@ Base 与 SFT 必须保持完全相同的：
 5. Live Preview 在 iframe 或浏览器 runtime 中打开真实项目，用户可以点击卡牌、格子或塔防控制；
 6. 用户下载清理后的 ZIP，在本地继续编辑。
 
-在没有 API credit 时，页面只能进入明确标记的 **Demo Mode**，加载已经真实验证过的 Card Combat 示例，不能伪装成实时生成。API Key 始终只存在于服务器环境变量。展示层可通过 Node/container hosting 部署，因为服务端仍需要 workspace、build、preview route 和 ZIP 打包；纯静态部署无法覆盖完整流程。
+在没有 API credit 时，页面只能进入明确标记的 **Demo Mode**，加载已经真实验证过的 Card Combat 示例，不能伪装成实时生成。API Key 始终只存在于服务器环境变量。后端计划使用 Python Web 服务并通过容器部署，管理 workspace、预览路由和 ZIP；容器内保留 Node/Chromium 执行游戏。纯静态部署无法覆盖完整流程。
 
 `feature/web-product` 已做过这一方向的 Web MVP 和 Render Docker 修复，但它尚未作为最终产品分支并入当前 `main/final-sft` 路线。完成态需要在算法实验稳定后重新同步 Runtime 接口，再做一次端到端部署验收，避免两条 feature branch 长期分叉。
 
@@ -287,7 +291,7 @@ Base 与 SFT 必须保持完全相同的：
 - generation/reviewer API failure checkpoint；
 - 数据分布、reject reason、成本和质量 summary；
 - dataset freeze manifest 与 SHA-256；
-- 与 Agent Benchmark v1 family overlap 为零的证明。
+- 与当前 Python Benchmark v2 以及保留的历史 v1 family overlap 为零的证明。
 
 ### 8.3 模型与实验交付
 
@@ -332,7 +336,7 @@ Base 与 SFT 必须保持完全相同的：
 3. 在质量门槛不变的前提下生成到合理规模，查看 accepted/rejected、难度、类别、task type、family 和成本分布。
 4. 用户确认数据后执行 dataset freeze，并固定 hash。
 5. 在 RunPod 运行 Qwen3-4B QLoRA，确认 loss、checkpoint 和 reload。
-6. 在 Agent Benchmark v1 上依次运行 Qwen3-4B Base 与 SFT；如有预算，再完成 GPT-5.6 30-task baseline。
+6. 在 Python Agent Benchmark v2 上依次运行 Qwen3-4B Base 与 SFT；如有预算，再完成 GPT-5.6 30-task baseline。
 7. 分析总体和分组结果，不根据成绩修改冻结 evaluator。
 8. 将 `feature/web-product` 的展示层重新接到最终 Runtime，完成 Card、Tower Defense 或 Tactics 至少一个公网端到端演示。
 9. 更新 README、TASKS、DECISIONS 和最终实验报告，再决定是否继续扩大数据或增加新架构。

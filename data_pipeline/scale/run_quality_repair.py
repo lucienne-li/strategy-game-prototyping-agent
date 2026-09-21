@@ -12,7 +12,7 @@ def main() -> None:
     parser.add_argument("--reviewer-model", default="gpt-5.6")
     args = parser.parse_args()
     commands = [
-        ["node", "data_pipeline/scale/validate-targets.mjs"],
+        [sys.executable, "-m", "data_pipeline.scale.validate_targets"],
         [sys.executable, "data_pipeline/scale/generate_instructions.py", "--workers", str(args.workers), "--model", args.generator_model, "--max-output-tokens", "1024"],
         [sys.executable, "data_pipeline/scale/review_instructions.py", "--workers", str(args.workers), "--model", args.reviewer_model],
         [sys.executable, "data_pipeline/scale/finalize_scale.py"],
