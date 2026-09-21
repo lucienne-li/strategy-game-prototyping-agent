@@ -3,7 +3,7 @@
   "status": "frozen",
   "taskCount": 30,
   "evaluatorVersion": "python-external-evaluator-v2",
-  "agentRuntimeCommit": "d3ab39de0fd79fdecc4f2560e437faece1373b83",
+  "agentRuntimeCommit": "0b277ecbd49b011e30745d916edefaefb2dce22b",
   "budget": {
     "maxIterationsPerAgentRun": 6,
     "maxToolCallsPerIteration": 8,

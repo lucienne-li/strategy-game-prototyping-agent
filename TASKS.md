@@ -508,6 +508,9 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。
 # Python-first migration
 
+- [x] 同步 Python 实现、当前文档与命令到 GitHub `feature/final-sft`；更新 v2 的 Runtime commit 引用，任务与 evaluator 内容保持不变。
+- [x] 本次重新运行 39 项 Python 测试及 Fake Model Demo；Demo 为 3 轮，真实输出 `hello agent`，退出码 0。
+
 - [x] 将 Model contract、Agent loop、Tool validation、workspace guard 和 executor 迁移到 Python + Pydantic；
 - [x] 将 OpenAI Adapter、本地 Qwen adapter 和 evaluator repair loop 迁移到 Python；
 - [x] 将 external evaluator、browser launch 编排和 Playwright 调用迁移到 Python；
