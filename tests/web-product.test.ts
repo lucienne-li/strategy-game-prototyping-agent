@@ -3,7 +3,7 @@ import { once } from "node:events";
 import test from "node:test";
 import { createWebProductServer } from "../src/web/server.js";
 
-test("Web MVP completes the Demo Mode card vertical slice and downloads a clean ZIP", async (context) => {
+test("Web learning activity builds, validates with a simulated browser report, and downloads a clean ZIP", async (context) => {
   const server = createWebProductServer();
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
@@ -15,11 +15,17 @@ test("Web MVP completes the Demo Mode card vertical slice and downloads a clean 
   const home = await fetch(base);
   const html = await home.text();
   assert.equal(home.status, 200);
-  assert.match(html, /DEMO MODE/);
+  assert.match(html, /GUIDED PRACTICE/);
+  assert.match(html, /Python · Training/);
+  assert.match(html, /Learning goal/);
   assert.doesNotMatch(html, /OPENAI_API_KEY/);
   assert.match(html, /sandbox="allow-scripts"/);
   assert.doesNotMatch(html, /allow-same-origin/);
 
+  for (const body of [{mode:'demo',request:''},{mode:'unknown',request:'An activity request'}]) {
+    const invalid = await fetch(`${base}/api/sessions`, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    assert.equal(invalid.status,400);
+  }
   const created = await fetch(`${base}/api/sessions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -34,7 +40,11 @@ test("Web MVP completes the Demo Mode card vertical slice and downloads a clean 
   assert.equal(preview.status, 200);
   const previewHtml = await preview.text();
   assert.match(previewHtml, /strike-button/);
-  assert.match(previewHtml, /strategy-preview-check/);
+  assert.doesNotMatch(previewHtml, /strategy-preview-check/);
+  assert.match(previewHtml, /Check prediction/);
+  assert.match(previewHtml, /Restart round/);
+  const checkPreview = await fetch(`${base}/preview/${session.id}/?check=1`);
+  assert.match(await checkPreview.text(), /strategy-preview-check/);
   const module = await fetch(`${base}/preview/${session.id}/dist/game.js`);
   assert.match(await module.text(), /enemyHp - 6/);
 
@@ -97,3 +107,41 @@ async function waitForCompletion(base: string, id: string): Promise<any> {
   }
   throw new Error("demo session did not finish");
 }
+
+test('learning activity validates predictions, explains exhausted energy, and restarts cleanly', async () => {
+  const { DEMO_GAME } = await import('../src/web/demo-project.js');
+  const game = await import(`data:text/javascript;base64,${Buffer.from(DEMO_GAME).toString('base64')}`);
+  const ids = ['player-hp','player-energy','enemy-hp','strike-button','battle-log','restart-button','prediction','prediction-feedback','check-prediction','reflection'];
+  const listeners = new Map<string, () => void>();
+  const elements = new Map(ids.map(id => [id, {
+    textContent:'', value:'', disabled:false, attributes: new Map<string,string>(),
+    addEventListener(type: string, callback: () => void) { listeners.set(`${id}:${type}`,callback); },
+    setAttribute(name: string,value: string) { this.attributes.set(name,value); },
+    removeAttribute(name: string) { this.attributes.delete(name); }, focus() {}
+  }]));
+  game.mountGame({getElementById:(id: string) => elements.get(id)});
+  const check = listeners.get('check-prediction:click')!;
+  const prediction = elements.get('prediction')!;
+  const feedback = elements.get('prediction-feedback')!;
+  for (const value of ['', '-1','21','1.5']) {
+    prediction.value = value; check();
+    assert.match(feedback.textContent,/whole number from 0 to 20/);
+    assert.equal(prediction.attributes.get('aria-invalid'),'true');
+  }
+  prediction.value = '0'; check(); assert.match(feedback.textContent,/Not quite/);
+  prediction.value = '2'; check(); assert.match(feedback.textContent,/Correct/);
+  const strike = listeners.get('strike-button:click')!;
+  strike(); strike(); strike(); strike();
+  assert.equal(elements.get('enemy-hp')!.textContent,'2');
+  assert.equal(elements.get('player-energy')!.textContent,'0');
+  assert.equal(elements.get('strike-button')!.disabled,true);
+  assert.match(elements.get('battle-log')!.textContent,/Round complete/);
+  elements.get('reflection')!.value='My reflection';
+  listeners.get('restart-button:click')!();
+  assert.equal(elements.get('player-energy')!.textContent,'3');
+  assert.equal(elements.get('enemy-hp')!.textContent,'20');
+  assert.equal(elements.get('strike-button')!.disabled,false);
+  assert.equal(elements.get('reflection')!.value,'');
+  assert.equal(prediction.value,'');
+  assert.equal(feedback.textContent,'');
+});

@@ -6,5 +6,5 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("PORT m
 const server = createWebProductServer();
 server.listen(port, "0.0.0.0", () => {
   console.log(`Strategy Game Agent Web MVP listening on http://localhost:${port}`);
-  console.log(process.env.OPENAI_API_KEY ? "Live Model mode enabled" : "Demo Mode only (OPENAI_API_KEY is not configured)");
+  console.log(process.env.OPENAI_API_KEY ? "Live Model mode enabled" : "Guided practice ready; AI customization is not configured");
 });

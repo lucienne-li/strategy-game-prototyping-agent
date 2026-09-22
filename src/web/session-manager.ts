@@ -8,7 +8,7 @@ import { B4_REQUEST, evaluateB4, type B4Evaluation } from "../evaluation/b4-eval
 import { OpenAIResponsesModel } from "../model/openai-responses-model.js";
 import { runWithEvaluatorRepair } from "../repair/evaluator-repair-loop.js";
 import { ToolExecutor } from "../runtime/tool-executor.js";
-import { createDemoModel } from "./demo-project.js";
+import { createDemoModel, DEMO_REQUEST } from "./demo-project.js";
 
 export type WebMode = "demo" | "live";
 export type ProgressKind = "info" | "tool" | "success" | "error" | "repair" | "preview";
@@ -52,7 +52,7 @@ export class SessionManager {
   async create(request: string, mode: WebMode): Promise<WebSession> {
     if (mode === "live" && !this.liveAvailable) throw new Error("Live generation is unavailable because OPENAI_API_KEY is not configured");
     const session: WebSession = {
-      id: randomUUID(), mode, request, workspace: await mkdtemp(path.join(os.tmpdir(), "strategy-web-")),
+      id: randomUUID(), mode, request: mode === "demo" ? DEMO_REQUEST : request, workspace: await mkdtemp(path.join(os.tmpdir(), "strategy-web-")),
       status: "running", events: [], clients: new Set()
     };
     this.sessions.set(session.id, session);
@@ -106,7 +106,7 @@ export class SessionManager {
   }
 
   private async run(session: WebSession): Promise<void> {
-    this.emit(session, "info", "Understanding request", session.mode === "demo" ? "Loading the verified Card Combat path" : "Preparing the Card Combat implementation contract");
+    this.emit(session, "info", "Understanding request", session.mode === "demo" ? "Building the fixed learning activity; no live model call" : "Customizing the fixed Card Combat learning activity");
     const baseModel = session.mode === "demo"
       ? createDemoModel()
       : OpenAIResponsesModel.fromEnv({ maxOutputTokens: 4096 });
@@ -117,7 +117,7 @@ export class SessionManager {
     );
     const targetRequest = session.mode === "demo"
       ? session.request
-      : `${session.request}\n\nThe generated deliverable must also satisfy this fixed playable Card Combat contract:\n${B4_REQUEST}`;
+      : `${session.request}\n\nThe generated deliverable must also satisfy this fixed playable Card Combat contract:\n${B4_REQUEST}\nAlso include beginner-friendly rules, a learning goal about limited resources, explanatory feedback, and a restart button. Clearly state that this is a one-round exercise, not a full combat game.`;
 
     try {
       const result = await runWithEvaluatorRepair(targetRequest, {
@@ -129,7 +129,7 @@ export class SessionManager {
         evaluator: async () => {
           session.pendingVisual = undefined;
           this.emit(session, "info", "Evaluating", "Build, functional, launch, and browser interaction checks");
-          this.emit(session, "preview", "Preview ready", "Running an independent browser interaction check");
+          this.emit(session, "preview", "Preview ready", "Checking a separate preview so your activity starts untouched");
           const evaluation = await evaluateB4(session.workspace, {
             visualEvaluator: async () => this.waitForVisual(session)
           });

@@ -276,3 +276,9 @@ Evaluator 与隐藏断言只存在于 Repository 进程，不复制进临时 wor
 `web/public/` 使用 Bolt-style Chat + Workbench 布局。文件和下载 API 只枚举生成 workspace 中的常规非隐藏文件；Preview 通过 `/preview/:sessionId/` 加载到不含 `allow-same-origin` 的 sandbox iframe。服务器只在返回的 HTML 中注入一次性 visual bridge，该 bridge 不写入 workspace/ZIP，负责验证 HUD/controls、overflow 和 Strike 后状态并将结构化结果交给外部 evaluator。OpenAI Key 仅由服务器环境读取，API 只返回 Live Mode 是否可用。
 
 MVP 继续使用服务端 `ToolExecutor`，没有引入 WebContainer、Bolt MessageParser、ActionRunner、RAG、Memory、Planner 或 Multi-Agent。这样既保留已验证的权限/评测闭环，也避免为展示层重构 Runtime。
+
+## Web learning interface verification
+
+The current deployed web runtime and Agent Loop remain Node/TypeScript; Python is used by the offline data and training pipeline. The header label `Python · Training` describes that distinction, not a runtime migration.
+
+The learner iframe is no longer used for automatic Strike checks. A separate off-screen sandboxed iframe requests `?check=1`; only that response includes the preview bridge. The visible iframe starts untouched. This avoids spending a learner's energy during verification. Browser-reported checks are lightweight diagnostics, not a tamper-proof evaluation or accessibility audit. Both frames keep `sandbox="allow-scripts"` without same-origin privileges.

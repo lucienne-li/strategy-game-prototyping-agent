@@ -29,7 +29,7 @@ npm --prefix web start
 
 Open <http://localhost:3000>.
 
-Without `OPENAI_API_KEY`, only the clearly labeled **Demo Mode** is enabled. It runs a deterministic model through the existing Agent Loop and tools to create the verified Card Combat project. It does not represent a live model call.
+Without `OPENAI_API_KEY`, **Guided practice** is enabled. It runs a deterministic model through the existing Agent Loop and tools to create the fixed playable learning activity. The rules field is read-only; no custom prompt is interpreted and no live model call is made. Prediction feedback and restart work without an API key. The internal `demo` API mode is retained for compatibility.
 
 To enable live generation:
 
@@ -47,7 +47,7 @@ The key is read only by the server-side `OpenAIResponsesModel`. `/api/config` ex
 2. A reporting adapter wraps the existing Model and ToolExecutor and maps safe lifecycle/tool summaries to SSE; it never exposes chain-of-thought.
 3. The existing Agent Loop creates files and runs `node project.mjs build`.
 4. The existing B4 external evaluator checks the files, build artifact, logic, DOM contract, and launch behavior.
-5. `/preview/:sessionId/` serves generated files into a sandboxed iframe. A server-injected bridge, which is not part of the generated project or ZIP, checks render/layout and performs one Strike interaction. The server derives `passed` from all check fields rather than trusting a client-provided aggregate.
+5. `/preview/:sessionId/` serves generated files into a sandboxed iframe. A separate off-screen sandbox iframe requests `?check=1`. Only that response receives a server-injected bridge for render/layout and one Strike check. The visible learner preview remains untouched; the bridge is never part of the ZIP. The server derives `passed` from all check fields rather than trusting a client-provided aggregate.
 6. Files can be inspected through read-only endpoints. Download creates an in-memory ZIP from generated workspace files only; dotfiles, dependencies, evaluator source, logs, secrets, and internal artifacts are never copied into the workspace or archive.
 
 ## Deployment
@@ -58,7 +58,15 @@ On Render:
 
 1. Create a new Blueprint and select this GitHub repository and `feature/web-product` while reviewing the feature branch; use `main` after the branch is merged.
 2. Render detects `render.yaml` and builds the Docker service.
-3. Leave `OPENAI_API_KEY` unset for Demo Mode, or add it as a secret environment variable to enable Live Model mode.
+3. Leave `OPENAI_API_KEY` unset for Guided practice, or add it as a secret environment variable to enable Live Model mode.
 4. Open the generated `onrender.com` URL and run the Card Combat acceptance flow.
 
 No browser bundle or API response contains the key. Do not commit a `.env` file.
+
+## Educational revision validation
+
+Run `npm run build` and `node --test dist/tests/web-product.test.js` for server and deterministic learning checks. That integration test simulates the browser report; it is not visual evidence.
+
+Run `node tests/web-learning.browser.mjs` for the actual Chromium walkthrough. Install the project's Playwright Chromium first or set `CHROMIUM_EXECUTABLE_PATH` to an available Chromium binary. The script starts and closes its own local server and saves evidence under `docs/evidence/educ6192`.
+
+The AI option requires an owner-configured server key; the key is never entered in the public page. A configured key is not a claim that a live generation run has passed. The current learning revision was verified in Guided practice only. Sessions and generated previews are temporary; download activity files to retain them.

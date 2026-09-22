@@ -159,3 +159,9 @@ MVP 至少需要证明：
 4. **Repairability 不是单一模型质量指标。** 它依赖错误类型、反馈质量和修复预算，应报告条件化结果。
 5. **GitHub topic 数量不等于合法可训练数据。** License、可构建性、重复、资源缺失和技术栈会大幅减少可用量。
 6. **卡牌策略可能过窄。** 对 MVP 有利，但研究结论只能外推到相近规则驱动游戏，不应宣称覆盖所有策略游戏。
+
+## EDUC 6192 learning activity — CONFIRMED scope
+
+The web interface also supports beginning game-design and decision-science students learning how an energy budget constrains a one-round outcome. Guided practice builds a fixed card activity; it does not interpret arbitrary requests or call a live model. Learners predict the remaining HP after three strikes, receive calculation-based feedback, play the round, and restart. Optional reflection is not graded or stored.
+
+AI customization is a separate, configuration-dependent option within the existing B4 rules. It is not a general game generator on this web branch. Instructor review is needed for generated educational content. Success criteria include a playable preview, recoverable missing/invalid prediction input, correct resource limits, restart, keyboard controls, and a usable narrow-screen layout. These checks do not establish learning gains or full accessibility compliance.

@@ -29,7 +29,8 @@ async function route(request: IncomingMessage, response: ServerResponse, manager
     if (typeof payload.request !== "string" || payload.request.trim().length < 8 || payload.request.length > 8_000) {
       return json(response, 400, { error: "request must be between 8 and 8000 characters" });
     }
-    const mode: WebMode = payload.mode === "live" ? "live" : "demo";
+    if (payload.mode !== "demo" && payload.mode !== "live") return json(response, 400, { error: "Choose guided practice or AI customization." });
+    const mode: WebMode = payload.mode;
     try {
       const session = await manager.create(payload.request.trim(), mode);
       return json(response, 201, manager.publicView(session));
@@ -95,7 +96,7 @@ async function route(request: IncomingMessage, response: ServerResponse, manager
     const stats = await lstat(file);
     if (!stats.isFile() || stats.isSymbolicLink()) return text(response, 404, "Preview file not found");
     let data: Buffer | string = await readFile(file);
-    if (relative === "index.html") data = injectPreviewBridge(data.toString("utf8"), session.id);
+    if (relative === "index.html" && url.searchParams.get("check") === "1") data = injectPreviewBridge(data.toString("utf8"), session.id);
     response.writeHead(200, { "content-type": contentType(file), "cache-control": "no-store", "access-control-allow-origin": "*" });
     response.end(data);
     return;

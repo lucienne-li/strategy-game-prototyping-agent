@@ -3,59 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Strategy Forge · Game Agent</title>
+  <title>Strategy Forge · Learn through game rules</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/" aria-label="Strategy Forge home"><span class="brand-mark">SF</span><span>Strategy Forge</span></a>
-    <div class="topbar-center"><span class="status-dot"></span><span id="runtime-status">Runtime ready</span></div>
-    <div class="top-actions"><span class="chip">Browser + TypeScript</span><span id="mode-badge" class="mode-badge">DEMO MODE</span></div>
+    <div class="topbar-center"><span class="status-dot"></span><span id="runtime-status">Checking connection…</span></div>
+    <div class="top-actions"><span class="chip" title="Python is used for training and data processing. The current web Agent and browser games use TypeScript.">Python · Training</span><span id="mode-badge" class="mode-badge">GUIDED PRACTICE</span></div>
   </header>
 
   <main class="workspace">
     <section class="left-panel">
       <div class="intro">
-        <div class="eyebrow">Strategy Game Prototyping Agent</div>
-        <h1>Turn game rules into<br /><span>a playable prototype.</span></h1>
-        <p>Describe a mechanic. The Agent creates files, builds the project, evaluates behavior, and prepares a live preview.</p>
+        <div class="eyebrow">Game rules and resource allocation · Application Version 2</div>
+        <h1>Learn how rules shape<br /><span>your decisions.</span></h1>
+        <p>For beginning game-design and decision-science students. Predict an outcome, play a short card activity, and explain how a limited energy budget affects what you can achieve.</p>
       </div>
 
       <div class="conversation">
         <div class="message agent-message">
           <div class="avatar">✦</div>
-          <div><strong>Prototype Agent</strong><p>I can build a compact Browser + TypeScript strategy prototype. Demo Mode loads our verified Card Combat vertical slice.</p></div>
+          <div><strong>How to use this activity</strong><p>1. Start the guided activity. 2. Predict the enemy HP after three strikes. 3. Play, check your prediction, and restart to try again.</p><p id="mode-help">Guided practice builds a fixed, playable example without AI generation. AI customization, when configured, is limited to the same card-combat rules.</p></div>
         </div>
         <div id="user-message" class="message user-message hidden"></div>
         <div id="final-message" class="message agent-message hidden"><div class="avatar">✓</div><div><strong>Agent result</strong><p></p></div></div>
       </div>
 
       <form id="prompt-form" class="composer">
-        <textarea id="prompt" rows="4" aria-label="Game request">Create a card combat game where the player has 20 HP and 3 Energy. Add a Strike button that costs 1 Energy and deals 6 damage to an enemy with 20 HP.</textarea>
+        <label for="prompt" class="field-label">Activity rules <span id="prompt-hint">Fixed example in guided practice</span></label>
+        <textarea id="prompt" rows="4" minlength="8" maxlength="8000" required readonly aria-describedby="mode-help prompt-error">Create a card combat game where the player has 20 HP and 3 Energy. Add a Strike button that costs 1 Energy and deals 6 damage to an enemy with 20 HP.</textarea>
+        <p id="prompt-error" class="form-error" role="alert"></p>
         <div class="composer-footer">
-          <div class="mode-choice" id="mode-choice"><button type="button" data-mode="demo" class="active">Demo</button><button type="button" data-mode="live">Live model</button></div>
-          <button id="generate" class="generate" type="submit"><span>Generate prototype</span><span>→</span></button>
+          <div class="mode-choice" id="mode-choice"><button type="button" data-mode="demo" class="active" aria-pressed="true">Guided practice</button><button type="button" data-mode="live" aria-pressed="false" disabled>AI customize</button></div>
+          <button id="generate" class="generate" type="submit"><span>Start activity</span><span>→</span></button>
         </div>
       </form>
 
-      <section class="progress-card">
-        <div class="section-title"><span>Execution</span><span id="run-state" class="muted">Waiting</span></div>
-        <div id="progress" class="progress-list"><div class="empty-state">Start a run to see Agent events.</div></div>
-      </section>
+      <section class="learning-notes"><h2>Learning goal</h2><p>Calculate the maximum damage from a limited energy budget and explain why an action can be valid yet insufficient to reach a goal.</p><p>This is a fixed rules exercise, not an assessment of your general decision-making ability. Written reflections are not automatically graded.</p></section>
+      <details class="progress-card">
+        <summary class="section-title"><span>Build details</span><span id="run-state" class="muted" role="status" aria-live="polite">Waiting</span></summary>
+        <div id="progress" class="progress-list"><div class="empty-state">Start the activity to build and check the playable example.</div></div>
+      </details>
     </section>
 
     <section class="right-panel">
       <div class="workbench-bar">
         <div class="window-controls"><i></i><i></i><i></i></div>
         <div class="tabs"><button class="tab active" data-tab="preview">Preview</button><button class="tab" data-tab="code">Files</button></div>
-        <button id="reload-preview" class="icon-button" title="Reload preview">↻</button>
+        <button id="reload-preview" class="icon-button" title="Restart the game preview" aria-label="Restart the game preview">↻</button>
       </div>
 
       <div id="preview-view" class="workbench-view active">
-        <div class="address-bar"><span>🔒</span><span id="preview-address">No preview available</span></div>
+        <div class="address-bar"><span>Preview: </span><span id="preview-address">No preview available</span></div>
         <div class="preview-shell">
-          <div id="preview-placeholder" class="preview-placeholder"><div class="strategy-glyph">♜</div><strong>Your playable prototype appears here</strong><span>Build and evaluation output will stream on the left.</span></div>
-          <iframe id="preview-frame" title="Generated game preview" sandbox="allow-scripts"></iframe>
+          <div id="preview-placeholder" class="preview-placeholder"><div class="strategy-glyph">♜</div><strong>Your learning activity appears here</strong><span>Start the activity on the left, then predict, play, and reflect.</span></div>
+          <iframe id="preview-frame" title="Playable learning activity" sandbox="allow-scripts"></iframe>
         </div>
       </div>
 
@@ -66,11 +69,11 @@
 
       <div class="bottom-grid">
         <section class="results-panel">
-          <div class="section-title"><span>Test results</span><span class="muted">External evaluator</span></div>
+          <div class="section-title"><span>Test results</span><span class="muted">Technical checks</span></div>
           <div class="test-grid">
             <div class="test-row"><span>Build</span><span id="test-build" class="test-status pending">Pending</span></div>
             <div class="test-row"><span>Functional</span><span id="test-functional" class="test-status pending">Pending</span></div>
-            <div class="test-row"><span>Visual</span><span id="test-visual" class="test-status pending">Pending</span></div>
+            <div class="test-row"><span>Browser</span><span id="test-visual" class="test-status pending">Pending</span></div>
             <div class="test-row"><span>Repair</span><span id="test-repair" class="test-status neutral">Not used</span></div>
           </div>
         </section>
@@ -81,11 +84,12 @@
       </div>
 
       <div class="download-bar">
-        <div><strong>Project package</strong><span id="file-count">No generated files</span></div>
-        <a id="download" class="download disabled" aria-disabled="true">↓ Download Project</a>
+        <div><strong>Activity files</strong><span id="file-count">No generated files</span></div>
+        <a id="download" class="download disabled" aria-disabled="true">↓ Download activity</a>
       </div>
     </section>
   </main>
+  <iframe id="check-frame" title="Automated verification only" sandbox="allow-scripts" tabindex="-1" aria-hidden="true"></iframe>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

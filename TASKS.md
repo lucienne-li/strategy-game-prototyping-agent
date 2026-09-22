@@ -517,3 +517,13 @@ M5 没有增加 Planner、Memory、RAG、Multi-Agent，也没有修改 Agent Loo
 - [ ] 在扩到约 100—500 条前，实现 AST/符号提取、强 reviewer + 人工双标校准、跨仓 family/near-duplicate 分组和成本遥测。
 - [ ] 扩张后冻结更大的 repository-family holdout，增加重复采样并重新验证趋势。
 - [ ] M4 后续仍可评估真实浏览器自动化或容器级沙箱；当前 DOM double 与 Node permission model 不是生产级安全边界。
+
+## EDUC 6192 web revision
+
+- [x] Clarify Python training versus TypeScript web runtime and game output.
+- [x] Replace misleading free-form demo input with explicit fixed Guided practice; preserve separate model-dependent customization.
+- [x] Add resource-budget learning goal, prediction validation/explanation, round completion, reflection and restart.
+- [x] Preserve learner initial state by moving automatic browser checks to a separate iframe.
+- [x] Verify build, server integration, prediction behavior, and real Chromium interaction at desktop and 390px widths.
+- [x] Preserve before/after evidence by reproducing V1 commit `4522c1a` and capturing V2.
+- [ ] Obtain student/JeepyTA formative feedback; do not claim course submission is complete.

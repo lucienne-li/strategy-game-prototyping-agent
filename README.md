@@ -152,3 +152,7 @@ npm run sft:scale:evaluate
 ## 下一步
 
 当前优先完成 Web MVP 的公开部署验收。数据扩张和 Qwen3-4B QLoRA 按用户要求暂停；Web 分支验收后再进入 Data Pipeline v3。
+
+## Educational web activity
+
+On the web-product branch, run `npm --prefix web start` and open http://localhost:3000. Guided practice provides a playable fixed card activity with prediction feedback and restart, without an API key. See `docs/web_demo.md` for AI configuration and browser verification. The Python header label refers to training; the current online Agent remains TypeScript.

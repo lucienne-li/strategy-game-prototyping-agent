@@ -247,3 +247,12 @@
 - **Download:** 使用标准库生成 store-only ZIP，只枚举 session workspace 中的常规非隐藏文件，不复制环境变量、evaluator、日志或 Repository 文件。
 - **License:** Bolt.new 为 MIT；本项目没有逐文件复制其源码，只使用其公开交互模式，并在 `docs/web_demo.md` 记录来源与复用边界。
 - **Deployment:** 采用 Node Docker 服务和 Render Blueprint；MVP workspace 是 ephemeral `/tmp`，不承诺持久化或多实例 session 迁移。
+
+## D-030 — EDUC 6192 educational web revision
+
+- **CONFIRMED:** User requested a functional educational interface, updated language labeling, and clarification of Demo Mode. Existing `feature/web-product` is the website branch; main contains later research work and is not silently replaced or merged.
+- **Evidence:** `/api/config` on the existing Render service reports `liveAvailable:false`. The online implementation is TypeScript, while Python files implement data and training. Label the header `Python · Training`; do not claim a Python runtime migration.
+- **Decision:** Offer explicit Guided practice with fixed, read-only rules and no LLM call. Add prediction validation, explanation, a round-end message, and restart to the real generated card activity. Keep AI customization separately labeled and unavailable when no server model is configured.
+- **Evidence-based repair:** Reproducing commit `4522c1a` in Chromium showed the learner's preview starting at energy 2 because the visual bridge clicked Strike. Run that check in a separate sandboxed frame; verify the learner still starts at energy 3 and enemy HP 20.
+- **Scope:** No new project runtime dependencies, model training, secret changes, or rewrite of the Agent Loop. A temporary external Chromium binary was used only for verification; it is not shipped or added to package files.
+- **Assignment boundary:** Actual V1/V2 screenshots and browser checks are retained under `docs/evidence/educ6192`. JeepyTA formative feedback and the student's personal reflection remain external steps and are not represented as completed.
